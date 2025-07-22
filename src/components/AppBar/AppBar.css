@@ -1,0 +1,206 @@
+/* AppBar Component Styles */
+.custom-appbar {
+  background: var(--surface-color);
+  box-shadow: var(--shadow);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0 1rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  height: 64px;
+}
+
+.appbar-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.appbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.back-button {
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  background-color: var(--background-color);
+  transform: translateX(-2px);
+}
+
+.project-name-section {
+  position: relative;
+}
+
+.project-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-name:hover {
+  background-color: var(--background-color);
+}
+
+.project-name .edit-icon {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  font-size: 0.875rem;
+}
+
+.project-name:hover .edit-icon {
+  opacity: 1;
+}
+
+.project-name-input {
+  font-size: 1.25rem;
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--primary-color);
+  border-radius: 8px;
+  background: var(--surface-color);
+  color: var(--text-primary);
+  outline: none;
+  min-width: 200px;
+  max-width: 300px;
+}
+
+.save-button {
+  background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.save-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.settings-dropdown {
+  position: relative;
+}
+
+.settings-trigger {
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.settings-trigger:hover {
+  background-color: var(--background-color);
+  transform: rotate(90deg);
+}
+
+.settings-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  min-width: 200px;
+  z-index: 1001;
+}
+
+.settings-menu .e-menu-item {
+  padding: 0.75rem 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.settings-menu .e-menu-item:hover {
+  background-color: var(--background-color);
+}
+
+.user-avatar {
+  padding: 0.5rem;
+  border-radius: 50%;
+  background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.user-avatar:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Theme-specific styles */
+[data-theme="dark"] .custom-appbar {
+  background: var(--surface-color);
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .project-name-input {
+  background: var(--surface-color);
+  color: var(--text-primary);
+  border-color: var(--primary-color);
+}
+
+[data-theme="dark"] .settings-menu {
+  background: var(--surface-color);
+  border-color: var(--border-color);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .custom-appbar {
+    padding: 0 0.5rem;
+  }
+  
+  .appbar-left, .appbar-right {
+    gap: 0.5rem;
+  }
+  
+  .project-name {
+    font-size: 1.1rem;
+    max-width: 200px;
+  }
+  
+  .save-button {
+    padding: 0.5rem;
+  }
+  
+  .save-button .e-btn-content {
+    display: none;
+  }
+  
+  .save-button::before {
+    content: '💾';
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .project-name {
+    max-width: 150px;
+  }
+  
+  .settings-menu {
+    min-width: 160px;
+  }
+}

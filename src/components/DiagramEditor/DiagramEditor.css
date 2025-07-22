@@ -1,0 +1,236 @@
+/* Diagram Editor Component Styles */
+.diagram-editor-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: 
+    linear-gradient(90deg, rgba(102, 126, 234, 0.03) 1px, transparent 1px),
+    linear-gradient(rgba(102, 126, 234, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-attachment: local;
+}
+
+/* Dark theme background */
+[data-theme="dark"] .diagram-editor-container {
+  background: 
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-attachment: local;
+}
+
+/* Diagram Component Override */
+#workflow-diagram {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.e-diagram {
+  background: transparent !important;
+}
+
+/* Node Styles */
+.e-diagram .e-node {
+  transition: all 0.3s ease;
+}
+
+.e-diagram .e-node:hover {
+  transform: scale(1.02);
+}
+
+.e-diagram .e-node.e-selected {
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+}
+
+/* Connector Styles */
+.e-diagram .e-connector {
+  transition: all 0.3s ease;
+}
+
+.e-diagram .e-connector:hover {
+  stroke-width: 3px !important;
+}
+
+.e-diagram .e-connector.e-selected {
+  stroke-dasharray: 5,5 !important;
+}
+
+/* Context Menu Styles */
+.e-contextmenu-container {
+  background: var(--surface-color) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 8px !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.e-contextmenu .e-menu-item {
+  color: var(--text-primary) !important;
+  padding: 8px 12px !important;
+  transition: background-color 0.3s ease;
+}
+
+.e-contextmenu .e-menu-item:hover {
+  background-color: var(--background-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.e-contextmenu .e-menu-item .e-caret {
+  color: var(--text-secondary) !important;
+}
+
+/* Port Styles */
+.e-diagram .e-port {
+  transition: all 0.3s ease;
+}
+
+.e-diagram .e-port:hover {
+  transform: scale(1.5);
+  fill: var(--primary-color) !important;
+}
+
+/* Selection Handles */
+.e-diagram .e-selector .e-resize {
+  fill: var(--primary-color) !important;
+  stroke: white !important;
+  stroke-width: 2px !important;
+}
+
+.e-diagram .e-selector .e-rotate {
+  fill: var(--secondary-color) !important;
+  stroke: white !important;
+}
+
+/* Grid Lines */
+.e-diagram .e-gridlines {
+  stroke: var(--border-color) !important;
+  opacity: 0.3;
+}
+
+[data-theme="dark"] .e-diagram .e-gridlines {
+  stroke: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Node Animation */
+@keyframes node-execution {
+  0% {
+    box-shadow: 0 0 0 0 rgba(72, 187, 120, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(72, 187, 120, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 0 20px rgba(72, 187, 120, 0);
+  }
+}
+
+.e-diagram .e-node.executing {
+  animation: node-execution 2s infinite;
+}
+
+/* Sticky Note Styles */
+.e-diagram .e-node[id*="sticky"] {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: -1 !important;
+}
+
+.e-diagram .e-node[id*="sticky"]:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transform: scale(1.02) rotate(1deg);
+}
+
+/* Scrollbar Styles */
+.e-diagram::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.e-diagram::-webkit-scrollbar-track {
+  background: var(--background-color);
+}
+
+.e-diagram::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.e-diagram::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Overview Panel Container */
+.diagram-overview-container {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 200px;
+  height: 150px;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  z-index: 100;
+}
+
+/* Loading State */
+.diagram-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-secondary);
+}
+
+.diagram-loading .spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-color);
+  border-top: 3px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Node Type Indicators */
+.e-diagram .e-node[data-type="trigger"] {
+  border-left: 4px solid #48bb78;
+}
+
+.e-diagram .e-node[data-type="action"] {
+  border-left: 4px solid #667eea;
+}
+
+.e-diagram .e-node[data-type="form"] {
+  border-left: 4px solid #ed8936;
+}
+
+.e-diagram .e-node.disabled {
+  opacity: 0.5;
+  filter: grayscale(50%);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .diagram-overview-container {
+    width: 150px;
+    height: 100px;
+    bottom: 10px;
+    right: 10px;
+  }
+  
+  .e-diagram .e-node {
+    font-size: 12px;
+  }
+  
+  .e-contextmenu .e-menu-item {
+    padding: 6px 8px !important;
+    font-size: 14px;
+  }
+}

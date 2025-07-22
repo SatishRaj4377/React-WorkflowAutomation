@@ -1,0 +1,351 @@
+/* Config Panel Component Styles */
+.e-sidebar {
+  background: var(--surface-color);
+  border-left: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+  z-index: 1000;
+}
+
+.config-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.config-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.config-panel-title h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+.node-icon {
+  font-size: 1.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.config-panel-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.maximize-btn,
+.close-btn {
+  background: transparent;
+  color: white;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.maximize-btn:hover,
+.close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.config-panel-content {
+  height: calc(100vh - 70px);
+  overflow-y: auto;
+}
+
+/* Tabs Styling */
+.config-tabs {
+  height: 100%;
+}
+
+.config-tabs .e-tab-header {
+  background: var(--background-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.config-tabs .e-tab-header .e-toolbar-item {
+  border-radius: 0;
+}
+
+.config-tabs .e-tab-header .e-toolbar-item.e-active {
+  background: var(--surface-color);
+  border-bottom: 2px solid var(--primary-color);
+}
+
+.config-tabs .e-tab-header .e-toolbar-item .e-tab-text {
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.config-tabs .e-tab-header .e-toolbar-item .e-icons {
+  color: var(--text-secondary);
+  margin-right: 0.5rem;
+  font-size: 1rem;
+}
+
+.config-tabs .e-content {
+  background: var(--surface-color);
+}
+
+.config-tab-content {
+  padding: 1.5rem;
+}
+
+/* Config Form Styling */
+.config-section {
+  margin-bottom: 1.5rem;
+}
+
+.config-label {
+  display: block;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.config-description {
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  margin-top: -0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.config-input,
+.config-textarea,
+.config-select {
+  width: 100%;
+  background: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+}
+
+.config-input .e-input-group,
+.config-textarea .e-input-group {
+  background: transparent;
+}
+
+.config-input .e-input,
+.config-textarea .e-input {
+  background: transparent;
+  color: var(--text-primary);
+  padding: 0.75rem;
+}
+
+.config-input:focus,
+.config-textarea:focus,
+.config-select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.15);
+}
+
+.config-select {
+  padding: 0.75rem;
+  height: 40px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
+}
+
+.config-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.config-switch .e-switch-inner {
+  background: var(--background-color);
+  border-color: var(--border-color);
+}
+
+.config-switch .e-switch-on,
+.config-switch .e-switch-active {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.config-checkbox .e-frame {
+  background: var(--background-color);
+  border-color: var(--border-color);
+}
+
+.config-checkbox .e-check {
+  color: white;
+}
+
+.config-checkbox.e-checkbox:checked .e-frame {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.color-picker-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.color-picker {
+  width: 100%;
+  height: 40px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  background: transparent;
+}
+
+.add-field-btn {
+  background: var(--primary-color);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.add-field-btn:hover {
+  background: var(--secondary-color);
+  transform: translateY(-2px);
+}
+
+/* Empty State */
+.config-panel-empty {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.empty-state-icon {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.5;
+}
+
+.config-panel-empty h3 {
+  font-size: 1.25rem;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.config-panel-empty p {
+  max-width: 240px;
+  line-height: 1.5;
+  font-size: 0.875rem;
+}
+
+/* Maximized State */
+.e-sidebar.maximized {
+  width: 60%;
+}
+
+.e-sidebar.maximized .config-panel-title h3 {
+  max-width: 100%;
+}
+
+/* Scrollbar Styles */
+.config-panel-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.config-panel-content::-webkit-scrollbar-track {
+  background: var(--background-color);
+}
+
+.config-panel-content::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.config-panel-content::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Animations */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.e-sidebar.e-open {
+  /* animation: slideInRight 0.3s ease-out; */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .e-sidebar:not(.maximized) {
+    width: 300px !important;
+  }
+  
+  .config-panel-header {
+    padding: 0.75rem;
+  }
+  
+  .config-panel-title h3 {
+    font-size: 1.1rem;
+    max-width: 180px;
+  }
+  
+  .node-icon {
+    font-size: 1.25rem;
+    width: 32px;
+    height: 32px;
+  }
+  
+  .config-tabs .e-tab-header .e-toolbar-item .e-tab-text {
+    font-size: 0.8rem;
+  }
+  
+  .config-tab-content {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .e-sidebar {
+    width: 100% !important;
+  }
+  
+  .config-panel-header {
+    padding: 0.75rem 1rem;
+  }
+  
+  .config-panel-title h3 {
+    font-size: 1rem;
+    max-width: 160px;
+  }
+}

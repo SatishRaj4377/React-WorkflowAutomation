@@ -1,0 +1,232 @@
+/* Toast Component Styles */
+.workflow-toast-container {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  z-index: 9999;
+}
+
+.workflow-toast-container .e-toast {
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  border: none;
+  overflow: hidden;
+  min-width: 320px;
+  max-width: 380px;
+  padding: 0;
+  margin-bottom: 1rem;
+}
+
+.workflow-toast-container .e-toast-message {
+  padding: 1rem;
+}
+
+.workflow-toast-container .e-toast-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  margin-right: 0.75rem;
+  font-size: 1rem;
+}
+
+.workflow-toast-container .e-toast-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.workflow-toast-container .e-toast-content {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin-top: 0.25rem;
+  word-break: break-word;
+}
+
+.workflow-toast-container .e-toast-close-icon {
+  background-color: transparent;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+.workflow-toast-container .e-toast-close-icon:hover {
+  opacity: 1;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.workflow-toast-container .e-toast-progress {
+  height: 4px;
+  opacity: 0.7;
+}
+
+/* Success Toast */
+.workflow-toast-container .toast-success {
+  background-color: #f0fff4;
+  border-left: 4px solid #48bb78;
+  color: #22543d;
+}
+
+.workflow-toast-container .toast-success .e-toast-icon {
+  background-color: #c6f6d5;
+  color: #276749;
+}
+
+.workflow-toast-container .toast-success .e-toast-progress {
+  background-color: #48bb78;
+}
+
+/* Error Toast */
+.workflow-toast-container .toast-error {
+  background-color: #fff5f5;
+  border-left: 4px solid #f56565;
+  color: #742a2a;
+}
+
+.workflow-toast-container .toast-error .e-toast-icon {
+  background-color: #fed7d7;
+  color: #c53030;
+}
+
+.workflow-toast-container .toast-error .e-toast-progress {
+  background-color: #f56565;
+}
+
+/* Warning Toast */
+.workflow-toast-container .toast-warning {
+  background-color: #fffaf0;
+  border-left: 4px solid #ed8936;
+  color: #7b341e;
+}
+
+.workflow-toast-container .toast-warning .e-toast-icon {
+  background-color: #feebc8;
+  color: #c05621;
+}
+
+.workflow-toast-container .toast-warning .e-toast-progress {
+  background-color: #ed8936;
+}
+
+/* Info Toast */
+.workflow-toast-container .toast-info {
+  background-color: #ebf8ff;
+  border-left: 4px solid #4299e1;
+  color: #2a4365;
+}
+
+.workflow-toast-container .toast-info .e-toast-icon {
+  background-color: #bee3f8;
+  color: #2b6cb0;
+}
+
+.workflow-toast-container .toast-info .e-toast-progress {
+  background-color: #4299e1;
+}
+
+/* Dark Theme Styles */
+[data-theme="dark"] .workflow-toast-container .toast-success {
+  background-color: #1c3329;
+  border-left: 4px solid #48bb78;
+  color: #c6f6d5;
+}
+
+[data-theme="dark"] .workflow-toast-container .toast-success .e-toast-icon {
+  background-color: #276749;
+  color: #c6f6d5;
+}
+
+[data-theme="dark"] .workflow-toast-container .toast-error {
+  background-color: #341e1e;
+  border-left: 4px solid #f56565;
+  color: #fed7d7;
+}
+
+[data-theme="dark"] .workflow-toast-container .toast-error .e-toast-icon {
+  background-color: #c53030;
+  color: #fed7d7;
+}
+
+[data-theme="dark"] .workflow-toast-container .toast-warning {
+  background-color: #332a1c;
+  border-left: 4px solid #ed8936;
+  color: #feebc8;
+}
+
+[data-theme="dark"] .workflow-toast-container .toast-warning .e-toast-icon {
+  background-color: #c05621;
+  color: #feebc8;
+}
+
+[data-theme="dark"] .workflow-toast-container .toast-info {
+  background-color: #1e2a3e;
+  border-left: 4px solid #4299e1;
+  color: #bee3f8;
+}
+
+[data-theme="dark"] .workflow-toast-container .toast-info .e-toast-icon {
+  background-color: #2b6cb0;
+  color: #bee3f8;
+}
+
+/* Toast Animation */
+@keyframes toastSlideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes toastSlideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.workflow-toast-container .e-toast.e-toast-slide-in {
+  animation: toastSlideIn 0.3s ease-out;
+}
+
+.workflow-toast-container .e-toast.e-toast-slide-out {
+  animation: toastSlideOut 0.3s ease-in;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 480px) {
+  .workflow-toast-container .e-toast {
+    min-width: auto;
+    max-width: 95%;
+    margin: 0 2.5%;
+  }
+  
+  .workflow-toast-container .e-toast-message {
+    padding: 0.75rem;
+  }
+  
+  .workflow-toast-container .e-toast-title {
+    font-size: 0.9375rem;
+  }
+  
+  .workflow-toast-container .e-toast-content {
+    font-size: 0.8125rem;
+  }
+}
