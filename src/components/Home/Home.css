@@ -83,7 +83,7 @@
   overflow: hidden;
   background: var(--surface-color);
   border-radius: 20px;
-  border: 2px solid transparent;
+  border: 1px solid transparent;
 }
 
 .quick-access-card:hover {
@@ -173,7 +173,7 @@
 .section-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 2rem;
   flex-wrap: wrap;
   gap: 1rem;
@@ -182,10 +182,8 @@
 .view-toggle {
   display: flex;
   gap: 10px;
-  background: var(--surface-color);
   border-radius: 12px;
   padding: 4px;
-  box-shadow: var(--shadow);
 }
 
 .view-toggle-btn {
@@ -229,11 +227,13 @@
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  border: 1px solid transparent;
 }
 
 .project-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-hover);
+  border-color: var(--accent-color);
 }
 
 .project-card.list-item {
