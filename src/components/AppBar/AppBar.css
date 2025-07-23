@@ -15,19 +15,19 @@
 .appbar-left {
   display: flex;
   align-items: center;
-  gap: 1rem;
 }
 
 .appbar-right {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
 }
 
 .back-button {
-  padding: 0.5rem;
-  border-radius: 50%;
+  border-radius: 100%;
   transition: all 0.3s ease;
+  background-color: var(--background-color);
+  width: 40px;
+  height: 40px;
 }
 
 .back-button:hover {
@@ -136,19 +136,6 @@
   background-color: var(--background-color);
 }
 
-.user-avatar {
-  padding: 0.5rem;
-  border-radius: 50%;
-  background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
-  color: white;
-  transition: all 0.3s ease;
-}
-
-.user-avatar:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
 /* Theme-specific styles */
 [data-theme="dark"] .custom-appbar {
   background: var(--surface-color);
@@ -187,11 +174,6 @@
   
   .save-button .e-btn-content {
     display: none;
-  }
-  
-  .save-button::before {
-    content: '💾';
-    font-size: 1rem;
   }
 }
 

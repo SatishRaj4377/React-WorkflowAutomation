@@ -30,7 +30,6 @@ const Editor: React.FC<EditorProps> = ({
   const [diagramConnectors, setDiagramConnectors] = useState<any[]>([]);
   const [isExecuting, setIsExecuting] = useState(false);
   const [projectName, setProjectName] = useState(project.name);
-  const [isConfigMaximized, setIsConfigMaximized] = useState(false);
 
   useEffect(() => {
     // Update selected node data when ID changes
@@ -194,26 +193,22 @@ const Editor: React.FC<EditorProps> = ({
       
       <div className="editor-content">
         {/* Left Sidebar for Node Palette */}
-        <div className={`left-sidebar ${nodePaletteSidebarOpen ? 'open' : ''}`}>
-          <Sidebar 
-            isOpen={nodePaletteSidebarOpen}
-            onClose={() => setNodePaletteSidebarOpen(false)}
-            onNodeDrag={handleAddNode}
-          />
-        </div>
+        <Sidebar 
+          isOpen={nodePaletteSidebarOpen}
+          onClose={() => setNodePaletteSidebarOpen(false)}
+          onNodeDrag={handleAddNode}
+        />
         
         {/* Right Sidebar for Configuration */}
-        <div className={`right-sidebar ${configPanelOpen ? 'open' : ''} ${isConfigMaximized ? 'maximized' : ''}`}>
-          <ConfigPanel 
-            isOpen={configPanelOpen}
-            onClose={() => setConfigPanelOpen(false)}
-            selectedNode={selectedNode}
-            onNodeConfigChange={handleNodeConfigChange}
-          />
-        </div>
+        <ConfigPanel 
+          isOpen={configPanelOpen}
+          onClose={() => setConfigPanelOpen(false)}
+          selectedNode={selectedNode}
+          onNodeConfigChange={handleNodeConfigChange}
+        />
         
         {/* Main Diagram Area */}
-        <div className={`diagram-container ${nodePaletteSidebarOpen ? 'left-open' : ''} ${configPanelOpen ? (isConfigMaximized ? 'right-maximized' : 'right-open') : ''}`}>
+        <div className="diagram-container">
           <DiagramEditor 
             selectedNodeId={selectedNodeId || ""}
             onNodeSelect={handleNodeSelect}

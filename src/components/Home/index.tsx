@@ -150,30 +150,30 @@ const Home: React.FC<HomeProps> = ({
                   <div className="e-card-actions">
                     <ButtonComponent
                       cssClass="e-card-btn"
-                      iconCss="icon-open"
+                      iconCss="e-icons e-folder-open"
                       onClick={(e) => {
                         e.stopPropagation();
                         onOpenProject(project);
                       }}
                     >
-                      🚀 Open
+                      Open
                     </ButtonComponent>
                     <ButtonComponent
                       cssClass="e-card-btn"
-                      iconCss="icon-duplicate"
+                      iconCss="e-icons e-duplicate"
                       onClick={(e) => handleDuplicate(project, e)}
                     >
-                      📋 Duplicate
+                      Duplicate
                     </ButtonComponent>
                     <ButtonComponent
                       cssClass="e-card-btn danger"
-                      iconCss="icon-delete"
+                      iconCss="e-icons e-trash"
                       onClick={(e) => {
                         e.stopPropagation();
                         onDeleteProject(project.id);
                       }}
                     >
-                      🗑️ Delete
+                      Delete
                     </ButtonComponent>
                   </div>
                 </div>

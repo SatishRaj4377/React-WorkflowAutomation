@@ -26,6 +26,10 @@
   height: 100% !important;
 }
 
+#workflow-diagramcontent {
+ overflow: hidden !important; 
+}
+
 .e-diagram {
   background: transparent !important;
 }

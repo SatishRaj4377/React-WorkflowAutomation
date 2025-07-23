@@ -87,14 +87,10 @@
 /* Toolbar positioning */
 .editor-toolbar {
   position: fixed;
-  top: 64px;
+  bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
-  background: var(--surface-color);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  box-shadow: var(--shadow);
   padding: 0.5rem;
   margin-top: 1rem;
 }

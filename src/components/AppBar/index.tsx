@@ -54,23 +54,6 @@ const AppBar: React.FC<AppBarProps> = ({
     { id: 'about', text: 'About', iconCss: 'e-icons e-info' }
   ];
 
-  const handleMenuClick = (args: any) => {
-    switch (args.item.id) {
-      case 'theme':
-        onThemeToggle();
-        break;
-      case 'settings':
-        console.log('Settings clicked');
-        break;
-      case 'help':
-        console.log('Help clicked');
-        break;
-      case 'about':
-        console.log('About clicked');
-        break;
-    }
-  };
-
   return (
     <AppBarComponent id="workflow-appbar" cssClass="custom-appbar">
       <div className="appbar-left">
@@ -109,33 +92,19 @@ const AppBar: React.FC<AppBarProps> = ({
       <div className="appbar-right">
         {onSave && (
           <ButtonComponent
-            cssClass="e-inherit save-button"
-            iconCss="e-icons e-save-icon"
-            content="Save"
+            cssClass="e-inherit"
+            iconCss="e-icons e-save"
             onClick={onSave}
-            isPrimary
             title="Save Workflow"
           />
         )}
         
         <div className="settings-dropdown">
-          <ButtonComponent
-            cssClass="e-inherit settings-trigger"
-            iconCss="e-icons e-settings"
-            title="Settings"
-          />
-          <DropDownButtonComponent
-            items={settingsMenuItems}
-            select={handleMenuClick}
-            cssClass="settings-menu"
-          />
-        </div>
-
-        <div className="user-profile">
-          <ButtonComponent
-            cssClass="e-inherit user-avatar"
-            iconCss="e-icons e-user"
-            title="User Profile"
+            <ButtonComponent
+              cssClass="e-inherit"
+              iconCss="e-icons e-brightness"
+              onClick={onThemeToggle}
+              title="Toggle Theme"
           />
         </div>
       </div>

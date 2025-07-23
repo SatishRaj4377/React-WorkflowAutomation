@@ -1,26 +1,42 @@
 import React, { useState } from 'react';
-import { TabComponent, TabItemDirective, TabItemsDirective } from '@syncfusion/ej2-react-navigations';
+import { SidebarComponent, TabComponent, TabItemDirective, TabItemsDirective } from '@syncfusion/ej2-react-navigations';
 import { ButtonComponent, CheckBoxComponent, SwitchComponent } from '@syncfusion/ej2-react-buttons';
 import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { NodeConfig } from '../../types';
 import './ConfigPanel.css';
 
 interface ConfigPanelProps {
+  /** Controls whether the config panel sidebar is open */
   isOpen: boolean;
+  /** Callback function to close the config panel */
   onClose: () => void;
+  /** The currently selected node to configure */
   selectedNode: NodeConfig | null;
+  /** Callback function to update node configuration */
   onNodeConfigChange: (nodeId: string, config: NodeConfig) => void;
 }
 
+/**
+ * ConfigPanel Component - A right-side sidebar for configuring node properties
+ * Uses EJ2 SidebarComponent for professional sidebar behavior
+ */
 const ConfigPanel: React.FC<ConfigPanelProps> = ({
   isOpen,
   onClose,
   selectedNode,
   onNodeConfigChange,
 }) => {
+  // Local state for panel maximization
   const [isMaximized, setIsMaximized] = useState(false);
+  // Local state for active tab in the configuration tabs
   const [activeTab, setActiveTab] = useState(0);
 
+  /**
+   * Handles configuration changes for node settings
+   * @param field - The field name to update
+   * @param value - The new value for the field
+   * @param section - The settings section (general, authentication, advanced)
+   */
   const handleConfigChange = (field: string, value: any, section: 'general' | 'authentication' | 'advanced' = 'general') => {
     if (!selectedNode) return;
 
@@ -38,22 +54,34 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
     onNodeConfigChange(selectedNode.id, updatedConfig);
   };
 
+  /**
+   * Handles node name changes
+   */
   const handleNameChange = (value: string) => {
     if (!selectedNode) return;
     const updatedConfig = { ...selectedNode, name: value };
     onNodeConfigChange(selectedNode.id, updatedConfig);
   };
 
+  /**
+   * Handles node enable/disable toggle
+   */
   const handleDisableToggle = (checked: boolean) => {
     if (!selectedNode) return;
     const updatedConfig = { ...selectedNode, disabled: !checked };
     onNodeConfigChange(selectedNode.id, updatedConfig);
   };
 
+  /**
+   * Toggles the maximized state of the config panel
+   */
   const toggleMaximize = () => {
     setIsMaximized(!isMaximized);
   };
 
+  /**
+   * Renders the General tab content with basic node configuration
+   */
   const renderGeneralTab = () => {
     if (!selectedNode) return null;
 
@@ -100,6 +128,9 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
     );
   };
 
+  /**
+   * Renders trigger-specific configuration options
+   */
   const renderTriggerConfig = () => {
     if (!selectedNode) return null;
     const settings = selectedNode.settings.general || {};
@@ -147,6 +178,9 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
     );
   };
 
+  /**
+   * Renders action-specific configuration options
+   */
   const renderActionConfig = () => {
     if (!selectedNode) return null;
     const settings = selectedNode.settings.general || {};
@@ -220,6 +254,9 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
     );
   };
 
+  /**
+   * Renders form-specific configuration options
+   */
   const renderFormConfig = () => {
     return (
       <div className="config-section">
@@ -234,6 +271,9 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
     );
   };
 
+  /**
+   * Renders sticky note-specific configuration options
+   */
   const renderStickyConfig = () => {
     if (!selectedNode) return null;
     const settings = selectedNode.settings.general || {};
@@ -253,6 +293,9 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
     );
   };
 
+  /**
+   * Renders the Authentication tab content
+   */
   const renderAuthenticationTab = () => {
     if (!selectedNode) return null;
 
@@ -310,6 +353,9 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
     );
   };
 
+  /**
+   * Renders the Advanced tab content with advanced configuration options
+   */
   const renderAdvancedTab = () => {
     if (!selectedNode) return null;
 
@@ -360,58 +406,66 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
     );
   };
 
-  if (!selectedNode) {
-    return (
-      <div className="custom-config-panel">
+  // Render the EJ2 Sidebar component for the configuration panel
+  return (
+    <SidebarComponent
+      id="config-panel-sidebar"
+      className={`custom-config-panel ${isMaximized ? 'maximized' : ''}`}
+      width={isMaximized ? "60%" : "400px"} // Dynamic width based on maximized state
+      position="Right" // Position on the right side
+      type="Over" // Overlay type - slides over content
+      isOpen={isOpen} // Controlled by parent component
+      close={onClose} // Close handler from parent
+      target=".editor-content" // Target container for positioning
+    >
+      {!selectedNode ? (
         <div className="config-panel-empty">
           <div className="empty-state-icon">⚙️</div>
           <h3>No Node Selected</h3>
           <p>Select a node from the diagram to configure its properties</p>
         </div>
-      </div>
-    );
-  }
+      ) : (
+        <>
+          <div className="config-panel-header">
+            <div className="config-panel-title">
+              <span className="node-icon">{selectedNode?.icon}</span>
+              <h3>{selectedNode?.name || 'Node'} Configuration</h3>
+            </div>
+            <div className="config-panel-actions">
+              <ButtonComponent
+                cssClass="maximize-btn"
+                iconCss={`e-icons ${isMaximized ? 'e-minimize' : 'e-maximize'}`}
+                onClick={toggleMaximize}
+                title={isMaximized ? 'Minimize' : 'Maximize'}
+              />
+              <ButtonComponent
+                cssClass="close-btn"
+                iconCss="e-icons e-close"
+                onClick={onClose}
+              />
+            </div>
+          </div>
 
-  return (
-    <div className="custom-config-panel">
-      <div className="config-panel-header">
-        <div className="config-panel-title">
-          <span className="node-icon">{selectedNode?.icon}</span>
-          <h3>{selectedNode?.name || 'Node'} Configuration</h3>
-        </div>
-        <div className="config-panel-actions">
-          <ButtonComponent
-            cssClass="maximize-btn"
-            iconCss={`e-icons ${isMaximized ? 'e-minimize' : 'e-maximize'}`}
-            onClick={toggleMaximize}
-            title={isMaximized ? 'Minimize' : 'Maximize'}
-          />
-          <ButtonComponent
-            cssClass="close-btn"
-            iconCss="e-icons e-close"
-            onClick={onClose}
-          />
-        </div>
-      </div>
-
-      <div className="config-panel-content">
-        <TabComponent
-          id="config-tab"
-          selectedItem={activeTab}
-          selecting={(e: any) => setActiveTab(e.selectedIndex)}
-          cssClass="config-tabs"
-        >
-          <TabItemsDirective>
-            <TabItemDirective header={{ text: 'General' }} content={renderGeneralTab}>
-            </TabItemDirective>
-            <TabItemDirective header={{ text: 'Authentication' }} content={renderAuthenticationTab}>
-            </TabItemDirective>
-            <TabItemDirective header={{ text: 'Advanced' }} content={renderAdvancedTab}>
-            </TabItemDirective>
-          </TabItemsDirective>
-        </TabComponent>
-      </div>
-    </div>
+          <div className="config-panel-content">
+            <TabComponent
+              id="config-tab"
+              selectedItem={activeTab}
+              selecting={(e: any) => setActiveTab(e.selectedIndex)}
+              cssClass="config-tabs"
+            >
+              <TabItemsDirective>
+                <TabItemDirective header={{ text: 'General' }} content={renderGeneralTab}>
+                </TabItemDirective>
+                <TabItemDirective header={{ text: 'Authentication' }} content={renderAuthenticationTab}>
+                </TabItemDirective>
+                <TabItemDirective header={{ text: 'Advanced' }} content={renderAdvancedTab}>
+                </TabItemDirective>
+              </TabItemsDirective>
+            </TabComponent>
+          </div>
+        </>
+      )}
+    </SidebarComponent>
   );
 };
 

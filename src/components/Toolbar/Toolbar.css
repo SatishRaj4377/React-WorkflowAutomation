@@ -1,18 +1,5 @@
 /* Toolbar Component Styles */
-.workflow-toolbar-container {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem;
-  background: var(--surface-color);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(10px);
-}
-
-.main-toolbar, .execution-toolbar {
+.main-toolbar{
   background: var(--surface-color);
   border: 1px solid var(--border-color);
   border-radius: 12px;
@@ -21,16 +8,9 @@
 }
 
 .custom-toolbar {
-  padding: 0.5rem;
   border: none;
   border-radius: 12px;
   background: transparent;
-}
-
-.custom-toolbar .e-toolbar-items {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
 }
 
 .custom-toolbar .e-toolbar-item {
@@ -39,7 +19,7 @@
   margin: 0 2px;
 }
 
-.custom-toolbar .e-toolbar-item:hover {
+.custom-toolbar .e-toolbar-items .e-tbar-btn:hover{
   background-color: var(--background-color);
   transform: translateY(-2px);
 }
@@ -50,11 +30,15 @@
   background: transparent;
   color: var(--text-primary);
   border-radius: 8px;
-  width: 36px;
+  width: 40px !important;
   height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.custom-toolbar .e-toolbar-items{
+  background: transparent !important;
 }
 
 .custom-toolbar .e-toolbar-item.e-separator {
@@ -64,13 +48,10 @@
   margin: 0 0.5rem;
 }
 
-.custom-toolbar .e-toolbar-item .e-tbar-btn:hover {
-  background-color: var(--primary-color);
-  color: white;
-}
 
-.custom-toolbar .e-toolbar-item .e-tbar-btn:active {
-  transform: scale(0.95);
+.custom-toolbar .e-toolbar-item .e-tbar-btn:focus {
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .execution-toolbar {
@@ -79,21 +60,12 @@
   justify-content: center;
 }
 
-.execute-btn, .cancel-btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 600;
-  border: none;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
 
 .execute-btn {
-  background: linear-gradient(45deg, #48bb78, #38a169);
+  background: linear-gradient(45deg,  var(--primary-color), var(--secondary-color)) !important;
   color: white;
-  box-shadow: 0 2px 8px rgba(72, 187, 120, 0.3);
+  outline: none;
+  border: none;
 }
 
 .execute-btn:hover {
@@ -103,9 +75,10 @@
 }
 
 .cancel-btn {
-  background: linear-gradient(45deg, #e53e3e, #c53030);
+  background: linear-gradient(45deg, var(--danger-color), var(--danger-accent)) !important;
   color: white;
-  box-shadow: 0 2px 8px rgba(229, 62, 62, 0.3);
+  outline: none;
+  border: none;
 }
 
 .cancel-btn:hover {
@@ -245,14 +218,6 @@
     display: none;
   }
   
-  /* Show only icons on very small screens */
-  .execute-btn::before {
-    content: '▶️';
-  }
-  
-  .cancel-btn::before {
-    content: '⏹️';
-  }
 }
 
 /* Dark theme specific adjustments */
@@ -267,14 +232,3 @@
   border-color: var(--border-color);
 }
 
-/* High contrast mode */
-@media (prefers-contrast: high) {
-  .custom-toolbar .e-toolbar-item:hover {
-    background-color: var(--text-primary);
-    color: var(--surface-color);
-  }
-  
-  .execute-btn, .cancel-btn {
-    border: 2px solid currentColor;
-  }
-}

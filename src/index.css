@@ -35,6 +35,26 @@ body {
   --gradient-primary: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ff8c42 100%);
   --gradient-secondary: linear-gradient(135deg, #ff8c42 0%, #ffa726 50%, #ffb74d 100%);
   --gradient-accent: linear-gradient(135deg, #ff6b35 0%, #ff8a65 100%);
+  --danger-color: #e53e3e;
+  --danger-accent: #c53030;
+
+
+  --color-sf-black: #2d1810;
+  --color-sf-white: 255, 255, 255;
+  --color-sf-primary:#ff6b35;
+  --color-sf-primary-container: 234, 221, 255;
+  --color-sf-secondary: #f7931e;
+  --color-sf-secondary-container: 232, 222, 248;
+  --color-sf-tertiary: 125, 82, 96;
+  --color-sf-tertiary-container: 255, 216, 228;
+  --color-sf-surface: #ffffff;
+  --color-sf-surface-variant: 231, 224, 236;
+  --color-sf-background: #fef7f0;;
+  --color-sf-on-primary: 255, 255, 255;
+  --color-sf-on-primary-container: 33, 0, 94;
+  --color-sf-on-secondary: 255, 255, 255;
+  --color-sf-on-secondary-container: 30, 25, 43;
+  --color-sf-on-tertiary: 255, 255, 255;
 }
 
 /* Dark theme - Orange Dark Palette */

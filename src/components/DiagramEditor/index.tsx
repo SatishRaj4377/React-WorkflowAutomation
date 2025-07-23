@@ -35,13 +35,12 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   // Grid and Snap Settings
   const snapSettings: SnapSettingsModel = {
     constraints: SnapConstraints.All,
+    gridType: 'Dots',
     horizontalGridlines: {
-      lineColor: 'rgba(0, 0, 0, 0.1)',
-      lineDashArray: '2,2',
+      lineColor: '#ffc078ff',
     } as GridlinesModel,
     verticalGridlines: {
-      lineColor: 'rgba(0, 0, 0, 0.1)',
-      lineDashArray: '2,2',
+      lineColor: '#ffc078ff',
     } as GridlinesModel,
   };
 

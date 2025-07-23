@@ -1,11 +1,16 @@
-/* Custom Sidebar Component Styles */
+/* EJ2 Sidebar Component Styles */
 .custom-sidebar {
-  width: 100%;
-  height: 100%;
   background: var(--surface-color);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  height: 100%;
+}
+
+.e-sidebar.custom-sidebar {
+  background: var(--surface-color);
+  border-right: 1px solid var(--border-color);
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
 }
 
 .sidebar-header {
@@ -40,6 +45,7 @@
 .sidebar-content {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 0;
 }
 
@@ -132,7 +138,7 @@
 
 .node-item:hover {
   background-color: var(--background-color);
-  transform: translateX(4px);
+  transform: scale(1.02);
 }
 
 .node-item:active {
@@ -240,13 +246,6 @@
   font-size: 0.875rem;
 }
 
-.sidebar-footer {
-  padding: 1rem;
-  background: var(--background-color);
-  border-top: 1px solid var(--border-color);
-  flex-shrink: 0;
-}
-
 .help-text {
   text-align: center;
   color: var(--text-secondary);
@@ -280,20 +279,6 @@
 
 .sidebar-content::-webkit-scrollbar-thumb:hover {
   background: var(--text-secondary);
-}
-
-/* Animations */
-@keyframes slideInLeft {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-.e-sidebar.e-open {
-  animation: slideInLeft 0.3s ease-out;
 }
 
 /* Responsive Design */

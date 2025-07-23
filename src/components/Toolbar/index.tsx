@@ -1,5 +1,5 @@
 import React from 'react';
-import { ToolbarComponent, ItemsDirective, ItemDirective } from '@syncfusion/ej2-react-navigations';
+import { ToolbarComponent, ItemsDirective, ItemDirective, OverflowOption  } from '@syncfusion/ej2-react-navigations';
 import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
 import './Toolbar.css';
 
@@ -36,12 +36,13 @@ const Toolbar: React.FC<ToolbarProps> = ({
       tooltipText: 'Add Node (Open Node Palette)',
       id: 'add-node',
       click: onAddNode,
+      overflow: "Show"
     },
     {
       type: 'Separator'
     },
     {
-      prefixIcon: 'e-icons e-fit',
+      prefixIcon: 'e-icons e-zoom-to-fit',
       tooltipText: 'Fit to Page',
       id: 'fit-page',
       click: onFitToPage,
@@ -62,16 +63,18 @@ const Toolbar: React.FC<ToolbarProps> = ({
       type: 'Separator'
     },
     {
-      prefixIcon: 'e-icons e-table-align-center-edit',
+      prefixIcon: 'e-icons e-ai-chat',
       tooltipText: 'Auto-align Layout',
       id: 'auto-align',
       click: onAutoAlign,
+      overflow: "Show"
     },
     {
-      prefixIcon: 'e-icons e-content',
+      prefixIcon: 'e-icons e-add-notes',
       tooltipText: 'Add Sticky Note',
       id: 'add-sticky',
       click: onAddSticky,
+      overflow: "Show"
     },
     {
       type: 'Separator'
@@ -81,25 +84,46 @@ const Toolbar: React.FC<ToolbarProps> = ({
       tooltipText: 'Search on Board',
       id: 'search',
       click: onSearch,
+      overflow: "Show"
     },
     {
       type: 'Separator'
     },
     {
-      prefixIcon: 'e-icons e-history',
+      prefixIcon: 'e-icons e-clock',
       tooltipText: 'Version History',
       id: 'version-history',
       click: onVersionHistory,
+      overflow: "Show"
     },
   ];
 
   return (
     <div className="workflow-toolbar-container">
-      <div className="main-toolbar">
+      <div className="execution-toolbar">
+        {!isExecuting ? (
+          <ButtonComponent
+            cssClass="execute-btn"
+            iconCss="e-icons e-play"
+            content="Execute"
+            onClick={onExecute}
+            isPrimary
+          />
+        ) : (
+          <ButtonComponent
+            cssClass="cancel-btn"
+            iconCss="e-icons e-stop-rectangle"
+            content="Cancel"
+            onClick={onCancel}
+          />
+        )}
+      </div>
+            <div className="main-toolbar">
         <ToolbarComponent
           id="workflow-toolbar"
           cssClass="custom-toolbar"
           height="48px"
+          overflowMode="Popup"
         >
           <ItemsDirective>
             {toolbarItems.map((item, index) => (
@@ -110,29 +134,11 @@ const Toolbar: React.FC<ToolbarProps> = ({
                 id={item.id}
                 type={item.type as any}
                 click={item.click}
+                overflow={item.overflow as OverflowOption}
               />
             ))}
           </ItemsDirective>
         </ToolbarComponent>
-      </div>
-
-      <div className="execution-toolbar">
-        {!isExecuting ? (
-          <ButtonComponent
-            cssClass="execute-btn"
-            iconCss="e-icons e-play-icon"
-            content="Execute"
-            onClick={onExecute}
-            isPrimary
-          />
-        ) : (
-          <ButtonComponent
-            cssClass="cancel-btn"
-            iconCss="e-icons e-stop-icon"
-            content="Cancel"
-            onClick={onCancel}
-          />
-        )}
       </div>
     </div>
   );

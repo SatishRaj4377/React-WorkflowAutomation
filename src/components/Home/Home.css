@@ -301,7 +301,6 @@
   display: flex;
   gap: 0.75rem;
   padding: 1.5rem;
-  border-top: 1px solid var(--border-color);
   background: rgba(255, 107, 53, 0.02);
 }
 
@@ -474,15 +473,6 @@
     margin-bottom: 1.5rem;
   }
 }
-
-/* Icon Styles (using Unicode icons as placeholders) */
-.icon-plus::before { content: '➕'; }
-.icon-template::before { content: '📋'; }
-.icon-grid::before { content: '⊞'; }
-.icon-list::before { content: '☰'; }
-.icon-open::before { content: '📁'; }
-.icon-duplicate::before { content: '📋'; }
-.icon-delete::before { content: '🗑️'; }
 
 /* Loading and interaction states */
 .quick-access-card:active {
