@@ -221,3 +221,18 @@ body {
 .font-bold { font-weight: bold; }
 .text-primary { color: var(--text-primary); }
 .text-secondary { color: var(--text-secondary); }
+
+::selection {
+  background: var(--primary-color);
+  color: var(--surface-color);
+}
+::-moz-selection {
+  background: var(--primary-color);
+  color: var(--surface-color);
+}
+
+[data-theme="dark"] ::selection,
+[data-theme="dark"] ::-moz-selection {
+  background: var(--secondary-color);
+  color: var(--surface-color);
+}

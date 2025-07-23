@@ -176,17 +176,10 @@ const Sidebar: React.FC<SidebarProps> = ({
   })).filter(category => category.nodes.length > 0);
 
   const handleNodeClick = (nodeTemplate: NodeTemplate) => {
-    // For now, just log the click. In a real implementation,
-    // this would initiate drag-and-drop or add node to diagram
     console.log('Node clicked:', nodeTemplate.name);
     if (onNodeDrag) {
       onNodeDrag(nodeTemplate, { x: 300, y: 200 });
     }
-  };
-
-  const handleDragStart = (e: React.DragEvent, nodeTemplate: NodeTemplate) => {
-    e.dataTransfer.setData('application/json', JSON.stringify(nodeTemplate));
-    e.dataTransfer.effectAllowed = 'copy';
   };
 
   return (
@@ -242,8 +235,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                       key={node.id}
                       className="node-item"
                       onClick={() => handleNodeClick(node)}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, node)}
                       title={node.description}
                     >
                       <div className="node-icon">{node.icon}</div>
