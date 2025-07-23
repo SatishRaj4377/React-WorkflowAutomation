@@ -1,9 +1,11 @@
-/* Config Panel Component Styles */
-.e-sidebar {
+/* Custom Config Panel Component Styles */
+.custom-config-panel {
+  width: 100%;
+  height: 100%;
   background: var(--surface-color);
-  border-left: 1px solid var(--border-color);
-  box-shadow: var(--shadow);
-  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .config-panel-header {
@@ -65,7 +67,7 @@
 }
 
 .config-panel-content {
-  height: calc(100vh - 70px);
+  flex: 1;
   overflow-y: auto;
 }
 

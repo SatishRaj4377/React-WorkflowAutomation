@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { SidebarComponent } from '@syncfusion/ej2-react-navigations';
 import { TabComponent, TabItemDirective, TabItemsDirective } from '@syncfusion/ej2-react-navigations';
 import { ButtonComponent, CheckBoxComponent, SwitchComponent } from '@syncfusion/ej2-react-buttons';
 import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
@@ -363,30 +362,18 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
 
   if (!selectedNode) {
     return (
-      <SidebarComponent
-        id="config-panel-sidebar"
-        width={isMaximized ? "60%" : "320px"}
-        position="Right"
-        isOpen={isOpen}
-        close={onClose}
-      >
+      <div className="custom-config-panel">
         <div className="config-panel-empty">
           <div className="empty-state-icon">⚙️</div>
           <h3>No Node Selected</h3>
           <p>Select a node from the diagram to configure its properties</p>
         </div>
-      </SidebarComponent>
+      </div>
     );
   }
 
   return (
-    <SidebarComponent
-      id="config-panel-sidebar"
-      width={isMaximized ? "60%" : "360px"}
-      position="Right"
-      isOpen={isOpen}
-      close={onClose}
-    >
+    <div className="custom-config-panel">
       <div className="config-panel-header">
         <div className="config-panel-title">
           <span className="node-icon">{selectedNode?.icon}</span>
@@ -424,7 +411,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
           </TabItemsDirective>
         </TabComponent>
       </div>
-    </SidebarComponent>
+    </div>
   );
 };
 

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { SidebarComponent } from '@syncfusion/ej2-react-navigations';
 import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
 import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { NodeTemplate, PaletteCategory } from '../../types';
@@ -190,15 +189,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <SidebarComponent
-      id="node-palette-sidebar"
-      width="320px"
-      position="Left"
-      showBackdrop={true}
-      closeOnDocumentClick={true}
-      isOpen={isOpen}
-      close={onClose}
-    >
+    <div className="custom-sidebar">
       <div className="sidebar-header">
         <h3 className="sidebar-title">Node Palette</h3>
         <ButtonComponent
@@ -273,7 +264,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           <small>💡 Drag nodes to the canvas to add them to your workflow</small>
         </div>
       </div>
-    </SidebarComponent>
+    </div>
   );
 };
 
