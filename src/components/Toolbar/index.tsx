@@ -33,7 +33,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
   const toolbarItems = [
     {
       prefixIcon: 'e-icons e-plus',
-      tooltipText: 'Add Node (Open Node Palette)',
+      tooltipText: 'Open Node Palette',
       id: 'add-node',
       click: onAddNode,
       overflow: "Show"
