@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { 
   SidebarComponent, 
   AccordionComponent, 
@@ -22,7 +22,15 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
   onNodeDrag
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const searchRef = useRef<TextBoxComponent>(null);
 
+  const handleSearchCreated = () => {
+      setTimeout(() => {
+        if (searchRef.current) {
+          searchRef.current.addIcon('prepend', 'e-icons e-search search-icon');
+        }
+      });
+    };
   // Sample node templates
   const nodeCategories: PaletteCategory[] = [
     {
@@ -236,11 +244,13 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
       <div className="sidebar-content">
         <div className="search-section">
           <TextBoxComponent
+            ref={searchRef}
             placeholder="Search nodes..."
             value={searchTerm}
             change={(e: any) => setSearchTerm(e.value)}
             cssClass="search-input"
             showClearButton={true}
+            created={handleSearchCreated}
           />
         </div>
 
