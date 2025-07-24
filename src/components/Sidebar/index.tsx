@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-import { SidebarComponent } from '@syncfusion/ej2-react-navigations';
+import { 
+  SidebarComponent, 
+  AccordionComponent, 
+  AccordionItemDirective, 
+  AccordionItemsDirective 
+} from '@syncfusion/ej2-react-navigations';
 import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
 import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { NodeTemplate, PaletteCategory } from '../../types';
@@ -17,7 +22,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   onNodeDrag
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [expandedCategories, setExpandedCategories] = useState<string[]>(['Triggers', 'Core']);
 
   // Sample node templates
   const nodeCategories: PaletteCategory[] = [
@@ -159,14 +163,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     }
   ];
 
-  const toggleCategory = (categoryName: string) => {
-    setExpandedCategories(prev => 
-      prev.includes(categoryName)
-        ? prev.filter(name => name !== categoryName)
-        : [...prev, categoryName]
-    );
-  };
-
   const filteredCategories = nodeCategories.map(category => ({
     ...category,
     nodes: category.nodes.filter(node =>
@@ -180,6 +176,40 @@ const Sidebar: React.FC<SidebarProps> = ({
     if (onNodeDrag) {
       onNodeDrag(nodeTemplate, { x: 300, y: 200 });
     }
+  };
+
+  // Create content for each accordion item
+  const createCategoryContent = (category: PaletteCategory) => {
+    return (
+      <div className="category-nodes">
+        {category.nodes.map((node) => (
+          <div
+            key={node.id}
+            className="node-item"
+            onClick={() => handleNodeClick(node)}
+            title={node.description}
+          >
+            <div className="node-icon">{node.icon}</div>
+            <div className="node-info">
+              <div className="node-name">{node.name}</div>
+              <div className="node-description">{node.description}</div>
+            </div>
+            <div className={`node-type-badge ${node.type}`}>
+              {node.type}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  // Create header template for each accordion item
+  const createCategoryHeader = (category: PaletteCategory) => {
+    return () => (
+      <div className="accordion-header-content">
+        <span className="category-title">{category.name}</span>
+      </div>
+    );
   };
 
   return (
@@ -215,49 +245,28 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         <div className="categories-container">
-          {filteredCategories.map((category) => (
-            <div key={category.name} className="category-section">
-              <div
-                className="category-header"
-                onClick={() => toggleCategory(category.name)}
-              >
-                <span className={`category-icon ${expandedCategories.includes(category.name) ? 'expanded' : ''}`}>
-                  ▶
-                </span>
-                <span className="category-title">{category.name}</span>
-                <span className="category-count">({category.nodes.length})</span>
-              </div>
-
-              {expandedCategories.includes(category.name) && (
-                <div className="category-nodes">
-                  {category.nodes.map((node) => (
-                    <div
-                      key={node.id}
-                      className="node-item"
-                      onClick={() => handleNodeClick(node)}
-                      title={node.description}
-                    >
-                      <div className="node-icon">{node.icon}</div>
-                      <div className="node-info">
-                        <div className="node-name">{node.name}</div>
-                        <div className="node-description">{node.description}</div>
-                      </div>
-                      <div className={`node-type-badge ${node.type}`}>
-                        {node.type}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-
-          {filteredCategories.length === 0 && searchTerm && (
+          {filteredCategories.length > 0 ? (
+            <AccordionComponent
+              className="custom-accordion"
+              expandMode="Multiple"
+            >
+              <AccordionItemsDirective>
+                {filteredCategories.map((category) => (
+                  <AccordionItemDirective
+                    key={category.name}
+                    expanded={!category.collapsed}
+                    header={createCategoryHeader(category)}
+                    content={() => createCategoryContent(category)}
+                  />
+                ))}
+              </AccordionItemsDirective>
+            </AccordionComponent>
+          ) : searchTerm ? (
             <div className="no-results">
               <div className="no-results-icon">🔍</div>
               <p>No nodes found matching "{searchTerm}"</p>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </SidebarComponent>
