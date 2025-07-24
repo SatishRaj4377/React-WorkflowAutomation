@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import AppBar from '../Header';
 import DiagramEditor from '../DiagramEditor';
-import Sidebar from '../NodePaletteSidebar';
-import ConfigPanel from '../NodeConfigSidebar';
 import Toolbar from '../Toolbar';
 import Toast, { showSuccessToast, showErrorToast } from '../Toast';
+import NodePaletteSidebar from '../NodePaletteSidebar';
+import NodeConfigSidebar from '../NodeConfigSidebar';
 import { useTheme } from '../../contexts/ThemeContext';
 import { ProjectData, NodeConfig, NodeTemplate } from '../../types';
 import WorkflowService from '../../services/WorkflowService';
-import './Editor.css';
-import NodePaletteSidebar from '../NodePaletteSidebar';
-import NodeConfigSidebar from '../NodeConfigSidebar';
 import { NodeConstraints, PortVisibility } from '@syncfusion/ej2-react-diagrams';
+import './Editor.css';
 
 interface EditorProps {
   project: ProjectData;
@@ -96,7 +94,7 @@ const Editor: React.FC<EditorProps> = ({
       // This is just a placeholder
       setDiagramConnectors([]);
     }
-  }, [selectedNodeId, project.workflowData.nodeConfigs]);
+  }, [project.workflowData.nodeConfigs]);
 
   const handleSave = () => {
     try {

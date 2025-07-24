@@ -44,6 +44,12 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
   // HTML Templates for different node types
   const getNodeTemplate = (nodeConfig: NodeConfig): string => {
+    // Validate nodeConfig parameter
+    if (!nodeConfig || typeof nodeConfig !== 'object') {
+      console.warn('Invalid nodeConfig provided to getNodeTemplate');
+      return '<div>Invalid Node</div>';
+    }
+
     const baseStyle = `
       width: 100%; 
       height: 100%; 
@@ -62,11 +68,14 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
     let gradient = 'linear-gradient(135deg, #ffffff, #f0f0f0)';
     let borderColor = '#d1d1d1';
+    
+    // Safely access nodeConfig.icon with fallback
+    const icon = nodeConfig.icon || '❓';
    
     return `
       <div style="${baseStyle} background: ${gradient}; border-color: ${borderColor};">
         <div>
-          <div style="font-size: 2.5rem;">${nodeConfig.icon}</div>
+          <div style="font-size: 2.5rem;">${icon}</div>
         </div>
       </div>
     `;
@@ -74,17 +83,26 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
   // Get default styles for nodes
   const getNodeDefaults = (obj: NodeModel): NodeModel => {
+    // Ensure obj and addInfo exist before accessing properties
+    if (!obj) return obj;
+    
     // Set HTML template based on node configuration
-    if (obj.addInfo && (obj.addInfo as any).nodeConfig) {
+    if (obj.addInfo && typeof obj.addInfo === 'object' && (obj.addInfo as any).nodeConfig) {
       const nodeConfig = (obj.addInfo as any).nodeConfig as NodeConfig;
-      obj.shape = {
-        type: 'HTML',
-        content: getNodeTemplate(nodeConfig)
-      };
+      if (nodeConfig && typeof nodeConfig === 'object') {
+        obj.shape = {
+          type: 'HTML',
+          content: getNodeTemplate(nodeConfig)
+        };
+      }
     }
 
     // Set default ports for all nodes except sticky notes
-    if (!(obj.addInfo as any)?.nodeConfig?.type || (obj.addInfo as any)?.nodeConfig?.type !== 'sticky') {
+    const addInfo = obj.addInfo as any;
+    const nodeConfig = addInfo?.nodeConfig;
+    const nodeType = nodeConfig?.type;
+    
+    if (!nodeType || nodeType !== 'sticky') {
       obj.ports = [
         {
           id: 'left-port',
@@ -109,6 +127,11 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
   // Get default styles for connectors
   const getConnectorDefaults = (obj: ConnectorModel): ConnectorModel => {
+    // Ensure obj exists before modifying it
+    if (!obj || typeof obj !== 'object') {
+      return obj;
+    }
+
     obj.type = 'Bezier';
     obj.style = {
       strokeColor: '#667eea',
@@ -153,10 +176,18 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
   // Event Handlers
   const handleSelectionChange = (args: any) => {
-    if (args.newValue && args.newValue.length > 0) {
+    // Add null/undefined checks for args and its properties
+    if (!args || typeof args !== 'object') {
+      onNodeSelect(null);
+      return;
+    }
+
+    if (args.newValue && Array.isArray(args.newValue) && args.newValue.length > 0) {
       const selectedNode = args.newValue[0];
-      if (selectedNode.id) {
+      if (selectedNode && typeof selectedNode === 'object' && selectedNode.id) {
         onNodeSelect(selectedNode.id);
+      } else {
+        onNodeSelect(null);
       }
     } else {
       onNodeSelect(null);
@@ -164,12 +195,29 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   };
 
   const handleContextMenuClick = (args: any) => {
-    switch (args.item.id) {
+    // Add null/undefined checks for args and its properties
+    if (!args || typeof args !== 'object' || !args.item || typeof args.item !== 'object') {
+      console.warn('Invalid context menu click arguments');
+      return;
+    }
+
+    const itemId = args.item.id;
+    if (!itemId) {
+      console.warn('Context menu item has no id');
+      return;
+    }
+
+    switch (itemId) {
       case 'selectAll':
-        diagramRef.current?.selectAll();
+        if (diagramRef.current) {
+          diagramRef.current.selectAll();
+        }
         break;
       case 'addSticky':
-        addStickyNote(args.clickPosition || { x: 300, y: 300 });
+        const position = args.clickPosition && typeof args.clickPosition === 'object' 
+          ? args.clickPosition 
+          : { x: 300, y: 300 };
+        addStickyNote(position);
         break;
       case 'lockWorkflow':
         console.log('Lock workflow');
@@ -178,13 +226,21 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         autoAlignNodes();
         break;
       default:
+        console.warn(`Unknown context menu item: ${itemId}`);
         break;
     }
   };
 
   const addStickyNote = (position: { x: number; y: number }) => {
+    // Validate position parameter
+    if (!position || typeof position !== 'object' || 
+        typeof position.x !== 'number' || typeof position.y !== 'number') {
+      position = { x: 300, y: 300 };
+    }
+
+    const timestamp = Date.now();
     const stickyNote: NodeModel = {
-      id: `sticky-${Date.now()}`,
+      id: `sticky-${timestamp}`,
       width: 120,
       height: 120,
       offsetX: position.x,
@@ -193,41 +249,70 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       constraints: (NodeConstraints.Default & ~NodeConstraints.Rotate),
       addInfo: {
         nodeConfig: {
-          id: `sticky-${Date.now()}`,
+          id: `sticky-${timestamp}`,
           type: 'sticky',
           name: 'Sticky Note',
           icon: '📝',
-          settings: { general: { color: '#fff59d', text: 'Sticky Note' } },
+          settings: { 
+            general: { 
+              color: '#fff59d', 
+              text: 'Sticky Note' 
+            },
+            authentication: {},
+            advanced: {}
+          },
           disabled: false,
           position: position
         } as NodeConfig
       }
     };
 
-    diagramRef.current?.add(stickyNote);
+    if (diagramRef.current) {
+      diagramRef.current.add(stickyNote);
+    }
   };
 
   const autoAlignNodes = () => {
-    if (diagramRef.current) {
-      const nodes = diagramRef.current.nodes;
-      let x = 100;
-      let y = 100;
-      const spacing = 200;
+    if (!diagramRef.current) {
+      console.warn('Diagram reference is not available');
+      return;
+    }
 
-      nodes.forEach((node, index) => {
-        if ((node.addInfo as any)?.nodeConfig?.type !== 'sticky') {
-          node.offsetX = x;
-          node.offsetY = y;
+    const nodes = diagramRef.current.nodes;
+    if (!nodes || !Array.isArray(nodes)) {
+      console.warn('No nodes available for alignment');
+      return;
+    }
 
-          x += spacing;
-          if ((index + 1) % 4 === 0) {
-            x = 100;
-            y += spacing;
-          }
+    let x = 100;
+    let y = 100;
+    const spacing = 200;
+
+    nodes.forEach((node, index) => {
+      if (!node || typeof node !== 'object') {
+        return;
+      }
+
+      const addInfo = node.addInfo as any;
+      const nodeConfig = addInfo?.nodeConfig;
+      const nodeType = nodeConfig?.type;
+
+      if (nodeType !== 'sticky') {
+        node.offsetX = x;
+        node.offsetY = y;
+
+        x += spacing;
+        if ((index + 1) % 4 === 0) {
+          x = 100;
+          y += spacing;
         }
-      });
+      }
+    });
 
+    try {
       diagramRef.current.dataBind();
+    } catch (error) {
+      console.error('Error during data binding:', error);
     }
   };
 
