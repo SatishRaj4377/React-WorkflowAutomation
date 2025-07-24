@@ -12,7 +12,7 @@ interface ConfigPanelProps {
   onNodeConfigChange: (nodeId: string, config: NodeConfig) => void;
 }
 
-const ConfigPanel: React.FC<ConfigPanelProps> = ({
+const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   isOpen,
   onClose,
   selectedNode,
@@ -461,4 +461,4 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
   );
 };
 
-export default ConfigPanel;
+export default NodeConfigSidebar;

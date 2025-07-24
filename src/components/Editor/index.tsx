@@ -9,6 +9,8 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { ProjectData, NodeConfig, NodeTemplate } from '../../types';
 import WorkflowService from '../../services/WorkflowService';
 import './Editor.css';
+import NodePaletteSidebar from '../NodePaletteSidebar';
+import NodeConfigSidebar from '../NodeConfigSidebar';
 
 interface EditorProps {
   project: ProjectData;
@@ -192,14 +194,14 @@ const Editor: React.FC<EditorProps> = ({
       
       <div className="editor-content">
         {/* Left Sidebar for Node Palette */}
-        <Sidebar 
+        <NodePaletteSidebar 
           isOpen={nodePaletteSidebarOpen}
           onClose={() => setNodePaletteSidebarOpen(false)}
           onNodeDrag={handleAddNode}
         />
         
         {/* Right Sidebar for Configuration */}
-        <ConfigPanel 
+        <NodeConfigSidebar 
           isOpen={configPanelOpen}
           onClose={() => setConfigPanelOpen(false)}
           selectedNode={selectedNode}

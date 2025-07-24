@@ -16,7 +16,7 @@ interface SidebarProps {
   onNodeDrag?: (nodeTemplate: NodeTemplate, position: { x: number; y: number }) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({
+const NodePaletteSidebar: React.FC<SidebarProps> = ({
   isOpen,
   onClose,
   onNodeDrag
@@ -273,4 +273,4 @@ const Sidebar: React.FC<SidebarProps> = ({
   );
 };
 
-export default Sidebar;
+export default NodePaletteSidebar;
