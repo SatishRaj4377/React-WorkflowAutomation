@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { AppBarComponent } from '@syncfusion/ej2-react-navigations';
 import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
-import { DropDownButtonComponent } from '@syncfusion/ej2-react-splitbuttons';
 import './AppBar.css';
 
 interface AppBarProps {
@@ -9,7 +8,6 @@ interface AppBarProps {
   onBack?: () => void;
   onSave?: () => void;
   onProjectNameChange?: (name: string) => void;
-  theme: 'light' | 'dark';
   onThemeToggle: () => void;
   showBackButton?: boolean;
 }
@@ -19,7 +17,6 @@ const AppBar: React.FC<AppBarProps> = ({
   onBack,
   onSave,
   onProjectNameChange,
-  theme,
   onThemeToggle,
   showBackButton = false,
 }) => {
@@ -46,13 +43,6 @@ const AppBar: React.FC<AppBarProps> = ({
       setIsEditing(false);
     }
   };
-
-  const settingsMenuItems = [
-    { id: 'theme', text: `Switch to ${theme === 'light' ? 'Dark' : 'Light'} Theme`, iconCss: 'e-icons e-palette' },
-    { id: 'settings', text: 'Settings', iconCss: 'e-icons e-settings' },
-    { id: 'help', text: 'Help & Support', iconCss: 'e-icons e-help' },
-    { id: 'about', text: 'About', iconCss: 'e-icons e-info' }
-  ];
 
   return (
     <AppBarComponent id="workflow-appbar" cssClass="custom-appbar">
