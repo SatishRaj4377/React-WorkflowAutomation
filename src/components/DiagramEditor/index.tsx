@@ -37,10 +37,10 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     constraints: SnapConstraints.All,
     gridType: 'Dots',
     horizontalGridlines: {
-      lineColor: '#ffc078ff',
+      lineColor: '#a6b4caff',
     } as GridlinesModel,
     verticalGridlines: {
-      lineColor: '#ffc078ff',
+      lineColor: '#a6b4caff',
     } as GridlinesModel,
   };
 

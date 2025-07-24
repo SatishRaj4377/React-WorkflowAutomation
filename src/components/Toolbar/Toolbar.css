@@ -70,8 +70,8 @@
 
 .execute-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
-  background: linear-gradient(45deg, #38a169, #2f855a);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  background: linear-gradient(45deg, #2563eb, #1d4ed8);
 }
 
 .cancel-btn {

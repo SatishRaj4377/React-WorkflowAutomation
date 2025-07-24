@@ -72,18 +72,18 @@
 
 /* Success Toast */
 .workflow-toast-container .toast-success {
-  background-color: #f0fff4;
-  border-left: 4px solid #48bb78;
-  color: #22543d;
+  background-color: #eff6ff;
+  border-left: 4px solid #2563eb;
+  color: #1e40af;
 }
 
 .workflow-toast-container .toast-success .e-toast-icon {
-  background-color: #c6f6d5;
-  color: #276749;
+  background-color: #dbeafe;
+  color: #1d4ed8;
 }
 
 .workflow-toast-container .toast-success .e-toast-progress {
-  background-color: #48bb78;
+  background-color: #2563eb;
 }
 
 /* Error Toast */
@@ -120,30 +120,30 @@
 
 /* Info Toast */
 .workflow-toast-container .toast-info {
-  background-color: #ebf8ff;
-  border-left: 4px solid #4299e1;
-  color: #2a4365;
+  background-color: #f0f9ff;
+  border-left: 4px solid #3b82f6;
+  color: #1e40af;
 }
 
 .workflow-toast-container .toast-info .e-toast-icon {
-  background-color: #bee3f8;
-  color: #2b6cb0;
+  background-color: #dbeafe;
+  color: #2563eb;
 }
 
 .workflow-toast-container .toast-info .e-toast-progress {
-  background-color: #4299e1;
+  background-color: #3b82f6;
 }
 
 /* Dark Theme Styles */
 [data-theme="dark"] .workflow-toast-container .toast-success {
-  background-color: #1c3329;
-  border-left: 4px solid #48bb78;
-  color: #c6f6d5;
+  background-color: #1e3a8a;
+  border-left: 4px solid #2563eb;
+  color: #dbeafe;
 }
 
 [data-theme="dark"] .workflow-toast-container .toast-success .e-toast-icon {
-  background-color: #276749;
-  color: #c6f6d5;
+  background-color: #1d4ed8;
+  color: #dbeafe;
 }
 
 [data-theme="dark"] .workflow-toast-container .toast-error {
@@ -169,14 +169,14 @@
 }
 
 [data-theme="dark"] .workflow-toast-container .toast-info {
-  background-color: #1e2a3e;
-  border-left: 4px solid #4299e1;
-  color: #bee3f8;
+  background-color: #1e3a8a;
+  border-left: 4px solid #3b82f6;
+  color: #dbeafe;
 }
 
 [data-theme="dark"] .workflow-toast-container .toast-info .e-toast-icon {
-  background-color: #2b6cb0;
-  color: #bee3f8;
+  background-color: #2563eb;
+  color: #dbeafe;
 }
 
 /* Toast Animation */

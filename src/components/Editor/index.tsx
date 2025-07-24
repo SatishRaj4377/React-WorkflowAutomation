@@ -59,9 +59,9 @@ const Editor: React.FC<EditorProps> = ({
           shape: { type: 'Flow', shape: nodeConfig.type === 'trigger' ? 'Terminator' : 'Process' },
           style: {
             fill: nodeConfig.type === 'trigger' 
-              ? 'linear-gradient(45deg, #667eea, #764ba2)'
-              : 'linear-gradient(45deg, #48bb78, #38a169)',
-            strokeColor: nodeConfig.type === 'trigger' ? '#5a67d8' : '#2f855a',
+              ? 'linear-gradient(45deg, #2563eb, #1d4ed8)'
+              : 'linear-gradient(45deg, #3b82f6, #1e40af)',
+            strokeColor: nodeConfig.type === 'trigger' ? '#1d4ed8' : '#1e40af',
             strokeWidth: 2,
           },
           ports: [

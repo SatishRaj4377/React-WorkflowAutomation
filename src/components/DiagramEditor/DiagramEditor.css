@@ -205,15 +205,15 @@
 
 /* Node Type Indicators */
 .e-diagram .e-node[data-type="trigger"] {
-  border-left: 4px solid #48bb78;
+  border-left: 4px solid #2563eb;
 }
 
 .e-diagram .e-node[data-type="action"] {
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #3b82f6;
 }
 
 .e-diagram .e-node[data-type="form"] {
-  border-left: 4px solid #ed8936;
+  border-left: 4px solid #6366f1;
 }
 
 .e-diagram .e-node.disabled {
