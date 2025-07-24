@@ -64,6 +64,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       font-size: 12px;
       text-align: center;
       pointer-events: none;
+      user-select: none; 
     `;
 
     let gradient = 'linear-gradient(135deg, #ffffff, #f0f0f0)';
