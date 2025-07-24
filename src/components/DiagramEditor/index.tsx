@@ -12,7 +12,9 @@ import {
   DataBinding,
   HierarchicalTree,
   DiagramContextMenu,
-  NodeConstraints
+  NodeConstraints,
+  PortVisibility,
+  PortConstraints
 } from '@syncfusion/ej2-react-diagrams';
 import { NodeConfig } from '../../types';
 import './DiagramEditor.css';
@@ -86,14 +88,18 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   const getNodeDefaults = (obj: NodeModel): NodeModel => {
     // Ensure obj and addInfo exist before accessing properties
     if (!obj) return obj;
-    
+
     // Set HTML template based on node configuration
-    if (obj.addInfo && typeof obj.addInfo === 'object' && (obj.addInfo as any).nodeConfig) {
+    if (
+      obj.addInfo &&
+      typeof obj.addInfo === "object" &&
+      (obj.addInfo as any).nodeConfig
+    ) {
       const nodeConfig = (obj.addInfo as any).nodeConfig as NodeConfig;
-      if (nodeConfig && typeof nodeConfig === 'object') {
+      if (nodeConfig && typeof nodeConfig === "object") {
         obj.shape = {
-          type: 'HTML',
-          content: getNodeTemplate(nodeConfig)
+          type: "HTML",
+          content: getNodeTemplate(nodeConfig),
         };
       }
     }
@@ -102,26 +108,52 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     const addInfo = obj.addInfo as any;
     const nodeConfig = addInfo?.nodeConfig;
     const nodeType = nodeConfig?.type;
-    
-    if (!nodeType || nodeType !== 'sticky') {
-      obj.ports = [
-        {
-          id: 'left-port',
-          offset: { x: 0, y: 0.5 },
-          shape: 'Circle',
-          height: 8,
-          width: 8,
-          style: { fill: '#ffffff', strokeColor: '#000000' }
-        },
-        {
-          id: 'right-port',
-          offset: { x: 1, y: 0.5 },
-          shape: 'Circle',
-          height: 8,
-          width: 8,
-          style: { fill: '#ffffff', strokeColor: '#000000' }
-        }
-      ];
+    if (!nodeType || nodeType !== "sticky") {
+      if (nodeType == "trigger") {
+        obj.ports = [
+          {
+            id: "right-port",
+            offset: { x: 1, y: 0.5 },
+            shape: "Circle",
+            height: 12,
+            width: 12,
+            style: { fill: "#d2cfcfff", strokeColor: "#d2cfcfff" },
+            visibility: PortVisibility.Visible,
+            constraints:
+              PortConstraints.Default |
+              PortConstraints.Draw |
+              PortConstraints.OutConnect,
+            margin: { right: -14 },
+          },
+        ];
+      } else {
+        obj.ports = [
+          {
+            id: "left-port",
+            offset: { x: 0, y: 0.5 },
+            height: 12,
+            width: 12,
+            style: { fill: "#d2cfcfff", strokeColor: "#d2cfcfff" },
+            visibility: PortVisibility.Visible,
+            constraints: PortConstraints.InConnect,
+            margin: { left: -12 },
+          },
+          {
+            id: "right-port",
+            offset: { x: 1, y: 0.5 },
+            shape: "Circle",
+            height: 12,
+            width: 12,
+            style: { fill: "#d2cfcfff", strokeColor: "#d2cfcfff" },
+            visibility: PortVisibility.Visible,
+            constraints:
+              PortConstraints.Default |
+              PortConstraints.Draw |
+              PortConstraints.OutConnect,
+            margin: { right: -12 },
+          },
+        ];
+      }
     }
     return obj;
   };
@@ -135,13 +167,13 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
     obj.type = 'Bezier';
     obj.style = {
-      strokeColor: '#667eea',
+      strokeColor: '#b4b4b4ff',
       strokeWidth: 2,
     };
     obj.targetDecorator = {
       style: {
-        fill: '#667eea',
-        strokeColor: '#667eea',
+        fill: '#b4b4b4ff',
+        strokeColor: '#b4b4b4ff',
       }
     };
     return obj;
