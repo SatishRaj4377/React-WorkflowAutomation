@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { AppBarComponent } from '@syncfusion/ej2-react-navigations';
 import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
-import './AppBar.css';
+import './Header.css';
 
 interface AppBarProps {
   projectName?: string;

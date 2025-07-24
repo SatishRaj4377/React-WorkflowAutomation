@@ -3,7 +3,7 @@ import { SidebarComponent, TabComponent, TabItemDirective, TabItemsDirective } f
 import { ButtonComponent, CheckBoxComponent, SwitchComponent } from '@syncfusion/ej2-react-buttons';
 import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { NodeConfig } from '../../types';
-import './ConfigPanel.css';
+import './NodeConfigSidebar.css';
 
 interface ConfigPanelProps {
   isOpen: boolean;

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import AppBar from '../AppBar';
+import AppBar from '../Header';
 import DiagramEditor from '../DiagramEditor';
-import Sidebar from '../Sidebar';
-import ConfigPanel from '../ConfigPanel';
+import Sidebar from '../NodePaletteSidebar';
+import ConfigPanel from '../NodeConfigSidebar';
 import Toolbar from '../Toolbar';
 import Toast, { showSuccessToast, showErrorToast } from '../Toast';
 import { useTheme } from '../../contexts/ThemeContext';

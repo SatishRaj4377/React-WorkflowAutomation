@@ -8,7 +8,7 @@ import {
 import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
 import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { NodeTemplate, PaletteCategory } from '../../types';
-import './Sidebar.css';
+import './NodePaletteSidebar.css';
 
 interface SidebarProps {
   isOpen: boolean;
