@@ -120,7 +120,7 @@ const Home: React.FC<HomeProps> = ({
               <div className="empty-icon">🚀</div>
               <h3>No projects yet</h3>
               <p>Create your first workflow to get started and unlock the power of automation</p>
-              <ButtonComponent isPrimary onClick={onCreateNew} cssClass="e-btn">
+              <ButtonComponent onClick={onCreateNew} cssClass="e-btn">
                 ✨ Create New Workflow
               </ButtonComponent>
             </div>

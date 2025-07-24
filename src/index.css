@@ -31,6 +31,7 @@ body {
   --text-secondary: #64748b;
   --border-color: #e2e8f0;
   --box-shadow: rgba(53, 164, 255, 0.3);
+  --box-shadow2: rgba(53, 164, 255, 0.511);
   --shadow: 0 4px 20px rgba(37, 99, 235, 0.15);
   --shadow-hover: 0 8px 30px rgba(37, 99, 235, 0.25);
   --gradient-primary: linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%);
