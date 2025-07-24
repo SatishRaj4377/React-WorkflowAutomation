@@ -64,7 +64,7 @@
 .project-name .edit-icon {
   opacity: 0;
   transition: opacity 0.3s ease;
-  font-size: 0.875rem;
+  font-size: 1.2rem;
 }
 
 .project-name:hover .edit-icon {

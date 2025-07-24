@@ -162,7 +162,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+  box-shadow: 0 2px 8px var(--box-shadow);
 }
 
 /* Recent Projects Section */
@@ -302,42 +302,6 @@
   gap: 0.75rem;
   padding: 1.5rem;
   background: rgba(255, 107, 53, 0.02);
-}
-
-.e-card-btn {
-  flex: 1;
-  font-size: 0.9rem;
-  padding: 0.75rem 1rem;
-  border-radius: 10px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
-}
-
-.e-card-btn:hover {
-  transform: translateY(-1px);
-}
-
-.e-card-btn:first-child {
-  background: var(--gradient-primary);
-  color: white;
-  border-color: var(--primary-color);
-}
-
-.e-card-btn:first-child:hover {
-  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
-}
-
-.e-card-btn.danger {
-  background-color: #ef4444;
-  color: white;
-  border-color: #ef4444;
-}
-
-.e-card-btn.danger:hover {
-  background-color: #dc2626;
-  border-color: #dc2626;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
 }
 
 /* Empty State */

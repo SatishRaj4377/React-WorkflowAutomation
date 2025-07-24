@@ -11,9 +11,6 @@ import { BrowserRouter as Router, Routes, Route, useNavigate, useParams, Navigat
 // Enable ripple effect for better interactivity
 enableRipple(true);
 
-// Register your Syncfusion license key here if you have one
-// registerLicense('YOUR_LICENSE_KEY');
-
 // EditorPage wrapper to get :id param from router
 const EditorPage: React.FC<{
   projects: ProjectData[];
@@ -39,6 +36,9 @@ const AppContent: React.FC = () => {
   // Load projects from local storage on component mount
   useEffect(() => {
     const loadedProjects = WorkflowService.getProjects();
+    loadedProjects.sort((a, b) =>
+      new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime()
+    );
     setProjects(loadedProjects);
   }, []);
 
@@ -58,11 +58,14 @@ const AppContent: React.FC = () => {
   };
 
   const handleSaveProject = (updatedProject: ProjectData) => {
-    setProjects(prev =>
-      prev.map(p => p.id === updatedProject.id ? updatedProject : p)
-    );
+    const updatedProjects = projects
+      .map(p => p.id === updatedProject.id ? updatedProject : p)
+      .sort((a, b) =>
+        new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime()
+      );
+    setProjects(updatedProjects);
   };
-
+  
   const handleOpenProject = (project: ProjectData) => {
     navigate(`/workflow/${project.id}`);
   };

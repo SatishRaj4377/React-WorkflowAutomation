@@ -22,7 +22,7 @@ const Editor: React.FC<EditorProps> = ({
   onBackToHome,
 }) => {
   const { theme, toggleTheme } = useTheme();
-  const [nodePaletteSidebarOpen, setNodePaletteSidebarOpen] = useState(false);
+  const [nodePaletteSidebarOpen, setNodePaletteSidebarOpen] = useState(true);
   const [configPanelOpen, setConfigPanelOpen] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<NodeConfig | null>(null);

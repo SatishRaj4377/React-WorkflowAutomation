@@ -30,6 +30,7 @@ body {
   --text-primary: #1e293b;
   --text-secondary: #64748b;
   --border-color: #e2e8f0;
+  --box-shadow: rgba(53, 164, 255, 0.3);
   --shadow: 0 4px 20px rgba(37, 99, 235, 0.15);
   --shadow-hover: 0 8px 30px rgba(37, 99, 235, 0.25);
   --gradient-primary: linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%);
@@ -37,23 +38,6 @@ body {
   --gradient-accent: linear-gradient(135deg, #2563eb 0%, #6366f1 100%);
   --danger-color: #e53e3e;
   --danger-accent: #c53030;
-
-  --color-sf-black: #1e293b;
-  --color-sf-white: 255, 255, 255;
-  --color-sf-primary: #2563eb;
-  --color-sf-primary-container: 219, 234, 254;
-  --color-sf-secondary: #1d4ed8;
-  --color-sf-secondary-container: 224, 242, 254;
-  --color-sf-tertiary: 79, 70, 229;
-  --color-sf-tertiary-container: 238, 242, 255;
-  --color-sf-surface: #ffffff;
-  --color-sf-surface-variant: 241, 245, 249;
-  --color-sf-background: #f8fafc;
-  --color-sf-on-primary: 255, 255, 255;
-  --color-sf-on-primary-container: 30, 58, 138;
-  --color-sf-on-secondary: 255, 255, 255;
-  --color-sf-on-secondary-container: 29, 78, 216;
-  --color-sf-on-tertiary: 255, 255, 255;
 }
 
 /* Dark theme - Professional Blue Dark Palette */

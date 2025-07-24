@@ -42,7 +42,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
       type: 'Separator'
     },
     {
-      prefixIcon: 'e-icons e-zoom-to-fit',
+      prefixIcon: 'e-icons e-frame-hook',
       tooltipText: 'Fit to Page',
       id: 'fit-page',
       click: onFitToPage,

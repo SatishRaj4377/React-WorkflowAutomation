@@ -6,20 +6,12 @@ import { NodeConfig } from '../../types';
 import './ConfigPanel.css';
 
 interface ConfigPanelProps {
-  /** Controls whether the config panel sidebar is open */
   isOpen: boolean;
-  /** Callback function to close the config panel */
   onClose: () => void;
-  /** The currently selected node to configure */
   selectedNode: NodeConfig | null;
-  /** Callback function to update node configuration */
   onNodeConfigChange: (nodeId: string, config: NodeConfig) => void;
 }
 
-/**
- * ConfigPanel Component - A right-side sidebar for configuring node properties
- * Uses EJ2 SidebarComponent for professional sidebar behavior
- */
 const ConfigPanel: React.FC<ConfigPanelProps> = ({
   isOpen,
   onClose,
@@ -410,13 +402,13 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
   return (
     <SidebarComponent
       id="config-panel-sidebar"
-      className={`custom-config-panel ${isMaximized ? 'maximized' : ''}`}
-      width={isMaximized ? "60%" : "400px"} // Dynamic width based on maximized state
-      position="Right" // Position on the right side
-      type="Over" // Overlay type - slides over content
-      isOpen={isOpen} // Controlled by parent component
-      close={onClose} // Close handler from parent
-      target=".editor-content" // Target container for positioning
+      className={`custom-config-panel`}
+      width={isMaximized ? "80%" : "400px"} // Dynamic width based on maximized state
+      position="Right"
+      type="Over"
+      isOpen={isOpen}
+      close={onClose}
+      target=".editor-content"
     >
       {!selectedNode ? (
         <div className="config-panel-empty">
@@ -434,7 +426,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
             <div className="config-panel-actions">
               <ButtonComponent
                 cssClass="maximize-btn"
-                iconCss={`e-icons ${isMaximized ? 'e-minimize' : 'e-maximize'}`}
+                iconCss={`e-icons ${isMaximized ? 'e-zoom-to-fit' : 'e-zoom-to-fit'}`}
                 onClick={toggleMaximize}
                 title={isMaximized ? 'Minimize' : 'Maximize'}
               />
