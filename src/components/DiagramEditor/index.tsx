@@ -128,14 +128,9 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     show: true,
     items: [
       {
-        text: 'Select All',
-        id: 'selectAll',
-        iconCss: 'e-icons e-select-all'
-      },
-      {
         text: 'Add Sticky Note',
         id: 'addSticky',
-        iconCss: 'e-icons e-note'
+        iconCss: 'e-icons e-add-notes'
       },
       {
         text: 'Lock Workflow',
@@ -146,9 +141,14 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         text: 'Auto Align',
         id: 'autoAlign',
         iconCss: 'e-icons e-align-center'
+      },
+            {
+        text: 'Select All',
+        id: 'selectAll',
+        iconCss: 'e-icons e-select-all'
       }
     ],
-    showCustomMenuOnly: false,
+    showCustomMenuOnly: true,
   };
 
   // Event Handlers
