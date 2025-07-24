@@ -186,7 +186,6 @@ const Editor: React.FC<EditorProps> = ({
         onBack={onBackToHome}
         onSave={handleSave}
         onProjectNameChange={setProjectName}
-        theme={theme}
         onThemeToggle={toggleTheme}
         showBackButton={true}
       />
