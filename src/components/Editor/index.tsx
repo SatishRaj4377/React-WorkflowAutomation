@@ -11,6 +11,7 @@ import WorkflowService from '../../services/WorkflowService';
 import './Editor.css';
 import NodePaletteSidebar from '../NodePaletteSidebar';
 import NodeConfigSidebar from '../NodeConfigSidebar';
+import { NodeConstraints, PortVisibility } from '@syncfusion/ej2-react-diagrams';
 
 interface EditorProps {
   project: ProjectData;
@@ -47,15 +48,18 @@ const Editor: React.FC<EditorProps> = ({
       const nodes = Object.values(project.workflowData.nodeConfigs).map(nodeConfig => {
         return {
           id: nodeConfig.id,
-          width: 140,
-          height: 60,
+          width: 80,
+          height: 80,
           offsetX: nodeConfig.position.x,
           offsetY: nodeConfig.position.y,
+          constraints: (NodeConstraints.Default & ~NodeConstraints.Rotate & ~NodeConstraints.Resize) | NodeConstraints.HideThumbs,
           annotations: [
             {
               id: `${nodeConfig.id}-label`,
               content: nodeConfig.name,
-              style: { color: 'white', fontWeight: 'bold' }
+              style: { color: 'Black', fontWeight: 'bold', textWrapping: 'NoWrap' },
+              offset: { x: 0.5, y: 1 },
+              margin: { top: 15 },
             }
           ],
           shape: { type: 'Flow', shape: nodeConfig.type === 'trigger' ? 'Terminator' : 'Process' },
@@ -68,18 +72,18 @@ const Editor: React.FC<EditorProps> = ({
           },
           ports: [
             {
-              id: `${nodeConfig.id}-left-port`,
               offset: { x: 0, y: 0.5 },
               shape: 'Circle',
-              height: 8,
-              width: 8,
+              height: 12,
+              width: 12,
+              visibility: PortVisibility.Visible,
             },
             {
-              id: `${nodeConfig.id}-right-port`,
               offset: { x: 1, y: 0.5 },
               shape: 'Circle',
-              height: 8,
-              width: 8,
+              height: 12,
+              width: 12,
+              visibility: PortVisibility.Visible,
             }
           ],
           addInfo: { nodeConfig }
@@ -211,9 +215,7 @@ const Editor: React.FC<EditorProps> = ({
         {/* Main Diagram Area */}
         <div className="diagram-container">
           <DiagramEditor 
-            selectedNodeId={selectedNodeId || ""}
             onNodeSelect={handleNodeSelect}
-            onNodeConfigChange={handleNodeConfigChange}
             nodes={diagramNodes}
             connectors={diagramConnectors}
           />

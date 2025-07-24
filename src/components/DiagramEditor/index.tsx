@@ -10,25 +10,23 @@ import {
   DiagramTools,
   UndoRedo,
   DataBinding,
-  HierarchicalTree
+  HierarchicalTree,
+  DiagramContextMenu,
+  NodeConstraints
 } from '@syncfusion/ej2-react-diagrams';
 import { NodeConfig } from '../../types';
 import './DiagramEditor.css';
 
 interface DiagramEditorProps {
-  selectedNodeId?: string;
   onNodeSelect: (nodeId: string | null) => void;
-  onNodeConfigChange: (nodeId: string, config: NodeConfig) => void;
   nodes?: NodeModel[];
   connectors?: ConnectorModel[];
 }
 
 const DiagramEditor: React.FC<DiagramEditorProps> = ({
-  selectedNodeId,
   onNodeSelect,
-  onNodeConfigChange,
-  nodes: externalNodes,
-  connectors: externalConnectors
+  nodes: nodeFromPalette,
+  connectors: connectorsFromPalette
 }) => {
   const diagramRef = useRef<DiagramComponent>(null);
 
@@ -44,74 +42,57 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     } as GridlinesModel,
   };
 
-  // Default nodes if none provided externally
-  const defaultNodes: NodeModel[] = [
-    {
-      id: 'start-node',
-      width: 140,
-      height: 60,
-      offsetX: 200,
-      offsetY: 100,
-      annotations: [
-        {
-          id: 'start-label',
-          content: 'Start Trigger',
-          style: { color: 'white', bold: true }
-        }
-      ],
-      shape: { type: 'Flow', shape: 'Terminator' },
-      style: {
-        fill: 'linear-gradient(45deg, #667eea, #764ba2)',
-        strokeColor: '#5a67d8',
-        strokeWidth: 2,
-      },
-      ports: [
-        {
-          id: 'right-port',
-          offset: { x: 1, y: 0.5 },
-          shape: 'Circle',
-          height: 8,
-          width: 8,
-        }
-      ],
-      addInfo: {
-        nodeConfig: {
-          id: 'start-node',
-          type: 'trigger',
-          name: 'Start Trigger',
-          icon: '▶️',
-          settings: { general: {} },
-          disabled: false,
-          position: { x: 200, y: 100 }
-        } as NodeConfig
-      }
-    },
-    {
-      id: 'action-node',
-      width: 140,
-      height: 60,
-      offsetX: 400,
-      offsetY: 100,
-      annotations: [
-        {
-          id: 'action-label',
-          content: 'Send Email',
-          style: { color: 'white', bold: true }
-        }
-      ],
-      shape: { type: 'Flow', shape: 'Process' },
-      style: {
-        fill: 'linear-gradient(45deg, #48bb78, #38a169)',
-        strokeColor: '#2f855a',
-        strokeWidth: 2,
-      },
-      ports: [
+  // HTML Templates for different node types
+  const getNodeTemplate = (nodeConfig: NodeConfig): string => {
+    const baseStyle = `
+      width: 100%; 
+      height: 100%; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border: 2px solid;
+      color: white;
+      font-weight: bold;
+      font-size: 12px;
+      text-align: center;
+      pointer-events: none;
+    `;
+
+    let gradient = 'linear-gradient(135deg, #ffffff, #f0f0f0)';
+    let borderColor = '#d1d1d1';
+   
+    return `
+      <div style="${baseStyle} background: ${gradient}; border-color: ${borderColor};">
+        <div>
+          <div style="font-size: 2.5rem;">${nodeConfig.icon}</div>
+        </div>
+      </div>
+    `;
+  };
+
+  // Get default styles for nodes
+  const getNodeDefaults = (obj: NodeModel): NodeModel => {
+    // Set HTML template based on node configuration
+    if (obj.addInfo && (obj.addInfo as any).nodeConfig) {
+      const nodeConfig = (obj.addInfo as any).nodeConfig as NodeConfig;
+      obj.shape = {
+        type: 'HTML',
+        content: getNodeTemplate(nodeConfig)
+      };
+    }
+
+    // Set default ports for all nodes except sticky notes
+    if (!(obj.addInfo as any)?.nodeConfig?.type || (obj.addInfo as any)?.nodeConfig?.type !== 'sticky') {
+      obj.ports = [
         {
           id: 'left-port',
           offset: { x: 0, y: 0.5 },
           shape: 'Circle',
           height: 8,
           width: 8,
+          style: { fill: '#ffffff', strokeColor: '#000000' }
         },
         {
           id: 'right-port',
@@ -119,45 +100,30 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
           shape: 'Circle',
           height: 8,
           width: 8,
+          style: { fill: '#ffffff', strokeColor: '#000000' }
         }
-      ],
-      addInfo: {
-        nodeConfig: {
-          id: 'action-node',
-          type: 'action',
-          name: 'Send Email',
-          icon: '📧',
-          settings: { general: {} },
-          disabled: false,
-          position: { x: 400, y: 100 }
-        } as NodeConfig
-      }
+      ];
     }
-  ];
+    return obj;
+  };
 
-  // Default connectors if none provided externally
-  const defaultConnectors: ConnectorModel[] = [
-    {
-      id: 'connector1',
-      sourceID: 'start-node',
-      targetID: 'action-node',
-      sourcePortID: 'right-port',
-      targetPortID: 'left-port',
-      type: 'Bezier',
+  // Get default styles for connectors
+  const getConnectorDefaults = (obj: ConnectorModel): ConnectorModel => {
+    obj.type = 'Bezier';
+    obj.style = {
+      strokeColor: '#667eea',
+      strokeWidth: 2,
+    };
+    obj.targetDecorator = {
       style: {
+        fill: '#667eea',
         strokeColor: '#667eea',
-        strokeWidth: 2,
-      },
-      targetDecorator: {
-        style: {
-          fill: '#667eea',
-          strokeColor: '#667eea',
-        }
       }
-    }
-  ];
+    };
+    return obj;
+  };
 
-  // Context Menu Items for the diagram (works via contextMenuSettings)
+  // Context Menu Items for the diagram
   const contextMenuSettings = {
     show: true,
     items: [
@@ -175,11 +141,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         text: 'Lock Workflow',
         id: 'lockWorkflow',
         iconCss: 'e-icons e-lock'
-      },
-      {
-        text: 'Add Node',
-        id: 'addNode',
-        iconCss: 'e-icons e-plus'
       },
       {
         text: 'Auto Align',
@@ -213,9 +174,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       case 'lockWorkflow':
         console.log('Lock workflow');
         break;
-      case 'addNode':
-        console.log('Add node at', args.clickPosition);
-        break;
       case 'autoAlign':
         autoAlignNodes();
         break;
@@ -231,20 +189,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       height: 120,
       offsetX: position.x,
       offsetY: position.y,
-      shape: { type: 'Basic', shape: 'Rectangle' },
-      style: {
-        fill: '#fff59d',
-        strokeColor: '#f57f17',
-        strokeWidth: 1,
-      },
-      annotations: [
-        {
-          id: 'sticky-text',
-          content: 'Sticky Note',
-          style: { color: '#424242', fontSize: 12 }
-        }
-      ],
-      zIndex: -1, // Keep sticky notes behind other elements
+      zIndex: -1,
+      constraints: (NodeConstraints.Default & ~NodeConstraints.Rotate),
       addInfo: {
         nodeConfig: {
           id: `sticky-${Date.now()}`,
@@ -263,7 +209,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
   const autoAlignNodes = () => {
     if (diagramRef.current) {
-      // Simple auto-align logic - arrange nodes in a grid
       const nodes = diagramRef.current.nodes;
       let x = 100;
       let y = 100;
@@ -287,7 +232,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   };
 
   useEffect(() => {
-    // Set up diagram tools and other configurations
     if (diagramRef.current) {
       diagramRef.current.tool = DiagramTools.Default;
     }
@@ -300,8 +244,10 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         ref={diagramRef}
         width="100%"
         height="100%"
-        nodes={externalNodes || defaultNodes}
-        connectors={externalConnectors || defaultConnectors}
+        nodes={nodeFromPalette || []}
+        connectors={connectorsFromPalette || []}
+        getNodeDefaults={getNodeDefaults}
+        getConnectorDefaults={getConnectorDefaults}
         snapSettings={snapSettings}
         contextMenuSettings={contextMenuSettings}
         selectionChange={handleSelectionChange}
@@ -317,7 +263,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         <Inject services={[
           UndoRedo,
           DataBinding,
-          HierarchicalTree
+          HierarchicalTree,
+          DiagramContextMenu
         ]} />
       </DiagramComponent>
     </div>

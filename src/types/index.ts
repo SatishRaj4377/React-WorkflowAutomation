@@ -1,6 +1,6 @@
 export interface NodeConfig {
   id: string;
-  type: 'trigger' | 'action' | 'sticky' | 'form';
+  type: 'trigger' | 'action' | 'sticky' | 'form' | 'condition';
   name: string;
   icon: string;
   settings: {

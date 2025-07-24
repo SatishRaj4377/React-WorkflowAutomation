@@ -1,4 +1,23 @@
 /* Diagram Editor Component Styles */
+.e-diagram-selector{
+  stroke: var(--node-selector) !important;
+  pointer-events: none !important;
+  stroke-width: 8px !important;
+  stroke-dashoffset: none;
+  stroke-dasharray: none;
+  rx: 8px;
+  ry: 8px
+
+}
+.e-diagram-resize-handle{
+  stroke: var(--node-handle);
+  stroke-width: 1px;
+  stroke-dasharray:none;
+  fill: var(--node-handle);
+  rx:10px;
+  ry:10px;
+}
+
 .diagram-editor-container {
   width: 100%;
   height: 100%;
