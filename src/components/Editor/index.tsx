@@ -50,7 +50,7 @@ const Editor: React.FC<EditorProps> = ({
           height: 80,
           offsetX: nodeConfig.position.x,
           offsetY: nodeConfig.position.y,
-          constraints: (NodeConstraints.Default & ~NodeConstraints.Rotate & ~NodeConstraints.Resize) | NodeConstraints.HideThumbs,
+          constraints: (NodeConstraints.Default & ~NodeConstraints.Rotate & ~NodeConstraints.Resize & ~NodeConstraints.InConnect & ~NodeConstraints.OutConnect) | NodeConstraints.HideThumbs,
           annotations: [
             {
               id: `${nodeConfig.id}-label`,

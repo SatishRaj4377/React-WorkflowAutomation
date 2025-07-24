@@ -66,18 +66,6 @@
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
 }
 
-/* Connector Styles */
-.e-diagram .e-connector {
-  transition: all 0.3s ease;
-}
-
-.e-diagram .e-connector:hover {
-  stroke-width: 3px !important;
-}
-
-.e-diagram .e-connector.e-selected {
-  stroke-dasharray: 5,5 !important;
-}
 
 /* Context Menu Styles */
 .e-contextmenu-container {

@@ -119,10 +119,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
             width: 12,
             style: { fill: "#d2cfcfff", strokeColor: "#d2cfcfff" },
             visibility: PortVisibility.Visible,
-            constraints:
-              PortConstraints.Default |
-              PortConstraints.Draw |
-              PortConstraints.OutConnect,
+            constraints: PortConstraints.Draw | PortConstraints.OutConnect,
             margin: { right: -14 },
           },
         ];
@@ -146,10 +143,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
             width: 12,
             style: { fill: "#d2cfcfff", strokeColor: "#d2cfcfff" },
             visibility: PortVisibility.Visible,
-            constraints:
-              PortConstraints.Default |
-              PortConstraints.Draw |
-              PortConstraints.OutConnect,
+            constraints: PortConstraints.OutConnect | PortConstraints.Draw,
             margin: { right: -12 },
           },
         ];
@@ -160,6 +154,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
   // Get default styles for connectors
   const getConnectorDefaults = (obj: ConnectorModel): ConnectorModel => {
+    debugger
     // Ensure obj exists before modifying it
     if (!obj || typeof obj !== 'object') {
       return obj;
