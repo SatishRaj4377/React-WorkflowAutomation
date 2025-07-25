@@ -34,6 +34,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       setSelectedNode(project.workflowData.nodeConfigs[selectedNodeId]);
       setConfigPanelOpen(true);
     } else {
+      setConfigPanelOpen(false);
       setSelectedNode(null);
     }
     
@@ -90,7 +91,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       // This is just a placeholder
       setDiagramConnectors([]);
     }
-  }, [selectedNodeId,project.workflowData.nodeConfigs]);
+  }, [selectedNodeId, project.workflowData.nodeConfigs]);
 
   const handleSave = () => {
     try {
@@ -107,10 +108,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   };
 
   const handleNodeSelect = (nodeId: string | null) => {
-    if (nodeId){
-      console.log('Node selected:', nodeId);
-      setSelectedNodeId(nodeId);
-    }
+    setSelectedNodeId(nodeId);
   };
 
   const handleNodeConfigChange = (nodeId: string, config: NodeConfig) => {
