@@ -15,18 +15,27 @@
   display: none !important;
   stroke: none !important;
 }
+.e-diagram-highlighter{
+  display: none !important;
+}
 
 /* Node Selected Custom Styles */
 .node-template {
   transition: all 0.1s ease-in-out;
 }
-
-/* Node Selection Styles */
 .node-template.selected {
   outline: 5px solid var(--node-selector-outline);
   background: var(--node-selector-background) !important; 
   transform: scale(1.02);
 }
+
+/* Custom Port hover effects */
+.node-template:hover .port-left,
+.node-template:hover .port-right {
+  background-color: #4CAF50;
+  border-color: #45a049;
+}
+
 
 .diagram-editor-container {
   width: 100%;

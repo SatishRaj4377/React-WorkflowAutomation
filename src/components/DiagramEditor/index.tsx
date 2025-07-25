@@ -96,17 +96,50 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       font-size: 12px;
       text-align: center;
       pointer-events: none;
-      user-select: none; 
+      user-select: none;
+      position: relative;
     `;
 
     let gradient = 'linear-gradient(135deg, #ffffff, #f0f0f0)';
-    let borderColor = '#d1d1d1';
+    let borderColor = '#9193a2ff';
     
     // Safely access nodeConfig.icon with fallback
     const icon = nodeConfig.icon || '❓';
-   
+
+    // Port styles
+    const portStyle = `
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background-color: ${borderColor};
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 10;
+    `;
+
+    const leftPortStyle = `${portStyle} left: -8px; border-radius: 2px;`;
+    const rightPortStyle = `${portStyle} right: -8px; border-radius: 50%;`;
+
+    // Check if it's a trigger node (only right port) or sticky note (no ports)
+    const nodeType = nodeConfig.type;
+    let portsHtml = '';
+    
+    if (nodeType !== 'sticky') {
+      if (nodeType === 'trigger') {
+        // Only right port for trigger nodes
+        portsHtml = `<div style="${rightPortStyle}"></div>`;
+      } else {
+        // Both ports for regular nodes
+        portsHtml = `
+          <div style="${leftPortStyle}"></div>
+          <div style="${rightPortStyle}"></div>
+        `;
+      }
+    }
+    
     return `
-      <div class="node-template" data-node-id="${nodeId}"  style="${baseStyle} background: ${gradient}; border-color: ${borderColor};">
+      <div class="node-template" data-node-id="${nodeId}" style="${baseStyle} background: ${gradient}; border-color: ${borderColor};">
+        ${portsHtml}
         <div>
           <div style="font-size: 2.5rem;">${icon}</div>
         </div>
@@ -147,10 +180,9 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
             shape: "Circle",
             height: 12,
             width: 12,
-            style: { fill: "#d2cfcfff", strokeColor: "#d2cfcfff" },
+            style: { fill: "transparent", strokeColor: "transparent" },
             visibility: PortVisibility.Visible,
             constraints: PortConstraints.Draw | PortConstraints.OutConnect,
-            margin: { right: -14 },
           },
         ];
       } else {
@@ -160,10 +192,9 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
             offset: { x: 0, y: 0.5 },
             height: 12,
             width: 12,
-            style: { fill: "#d2cfcfff", strokeColor: "#d2cfcfff" },
+            style: { fill: "transparent", strokeColor: "transparent" },
             visibility: PortVisibility.Visible,
             constraints: PortConstraints.InConnect,
-            margin: { left: -12 },
           },
           {
             id: "right-port",
@@ -171,10 +202,9 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
             shape: "Circle",
             height: 12,
             width: 12,
-            style: { fill: "#d2cfcfff", strokeColor: "#d2cfcfff" },
+            style: { fill: "transparent", strokeColor: "transparent" },
             visibility: PortVisibility.Visible,
             constraints: PortConstraints.OutConnect | PortConstraints.Draw,
-            margin: { right: -12 },
           },
         ];
       }
