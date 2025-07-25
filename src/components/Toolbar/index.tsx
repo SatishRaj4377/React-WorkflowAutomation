@@ -27,7 +27,6 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onSearch,
   onExecute,
   onCancel,
-  onVersionHistory,
   isExecuting = false,
 }) => {
   const toolbarItems = [
@@ -84,16 +83,6 @@ const Toolbar: React.FC<ToolbarProps> = ({
       tooltipText: 'Search on Board',
       id: 'search',
       click: onSearch,
-      overflow: "Show"
-    },
-    {
-      type: 'Separator'
-    },
-    {
-      prefixIcon: 'e-icons e-clock',
-      tooltipText: 'Version History',
-      id: 'version-history',
-      click: onVersionHistory,
       overflow: "Show"
     },
   ];

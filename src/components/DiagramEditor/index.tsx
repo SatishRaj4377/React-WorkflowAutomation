@@ -25,12 +25,14 @@ import { NodeConfig } from '../../types';
 import './DiagramEditor.css';
 
 interface DiagramEditorProps {
+  onAddNode?: () => void;
   onNodeSelect: (nodeId: string | null) => void;
   nodes?: NodeModel[];
   connectors?: ConnectorModel[];
 }
 
 const DiagramEditor: React.FC<DiagramEditorProps> = ({
+  onAddNode,
   onNodeSelect,
   nodes: nodeFromPalette,
   connectors: connectorsFromPalette
@@ -44,12 +46,10 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
   const handleScrollChange = () => {
     setShowOverview(true);
-    
     // Clear existing timeout
     if (overviewTimeoutRef.current) {
       clearTimeout(overviewTimeoutRef.current);
     }
-    
     // Hide overview after 2 seconds of no scroll/pan activity
     overviewTimeoutRef.current = setTimeout(() => {
       setShowOverview(false);
@@ -221,6 +221,11 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     show: true,
     items: [
       {
+        text: 'Add Node',
+        id: 'addNode',
+        iconCss: 'e-icons e-plus'
+      },
+      {
         text: 'Add Sticky Note',
         id: 'addSticky',
         iconCss: 'e-icons e-add-notes'
@@ -233,7 +238,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       {
         text: 'Auto Align',
         id: 'autoAlign',
-        iconCss: 'e-icons e-align-center'
+        iconCss: 'e-icons e-ai-chat'
       },
             {
         text: 'Select All',
@@ -273,20 +278,24 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
     const itemId = args.item.id;
     if (!itemId) {
-      console.warn('Context menu item has no id');
       return;
     }
 
     switch (itemId) {
+      case 'addNode':
+        if (onAddNode){
+          onAddNode();
+        }
+        break;
       case 'selectAll':
         if (diagramRef.current) {
           diagramRef.current.selectAll();
         }
         break;
       case 'addSticky':
-        const position = args.clickPosition && typeof args.clickPosition === 'object' 
-          ? args.clickPosition 
-          : { x: 300, y: 300 };
+        console.log(args);
+        const position = args.event && typeof args.event === 'object' 
+          ? {x: args.event.x, y: args.event.y} : { x: 300, y: 300 };
         addStickyNote(position);
         break;
       case 'lockWorkflow':

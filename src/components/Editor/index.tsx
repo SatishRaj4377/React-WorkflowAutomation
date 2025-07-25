@@ -213,6 +213,7 @@ const Editor: React.FC<EditorProps> = ({
         {/* Main Diagram Area */}
         <div className="diagram-container">
           <DiagramEditor 
+            onAddNode={() => setNodePaletteSidebarOpen(true)}
             onNodeSelect={handleNodeSelect}
             nodes={diagramNodes}
             connectors={diagramConnectors}
