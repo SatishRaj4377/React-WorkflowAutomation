@@ -297,12 +297,6 @@
   font-weight: 500;
 }
 
-.e-card-actions {
-  display: flex;
-  gap: 0.75rem;
-  padding: 1.5rem;
-  background: rgba(255, 107, 53, 0.02);
-}
 
 /* Empty State */
 .empty-state {

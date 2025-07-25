@@ -182,6 +182,19 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     return obj;
   };
 
+  // Removes the disconnected connector
+  const removeDisConnectedConnectors = (args: any) => {
+    if (args.state === 'Completed' && args.objectType === 'Connector') {
+      const connector = args.source;
+      if (
+        connector &&
+        (connector.sourceID === '' || connector.targetID === '')
+      ) {
+        (diagramRef.current as any).remove(connector);
+      }
+    }
+  };
+
   // Context Menu Items for the diagram
   const contextMenuSettings = {
     show: true,
@@ -411,6 +424,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         connectors={connectorsFromPalette || []}
         getNodeDefaults={getNodeDefaults}
         getConnectorDefaults={getConnectorDefaults}
+        elementDraw={removeDisConnectedConnectors}
         snapSettings={snapSettings}
         contextMenuSettings={contextMenuSettings}
         selectionChange={handleSelectionChange}
