@@ -68,16 +68,8 @@
 
 
 /* Context Menu Styles */
-.e-contextmenu-container {
-  background: var(--surface-color) !important;
-  border: 1px solid var(--border-color) !important;
-  border-radius: 8px !important;
-  box-shadow: var(--shadow) !important;
-}
-
 .e-contextmenu .e-menu-item {
   color: var(--text-primary) !important;
-  padding: 8px 12px !important;
   transition: background-color 0.3s ease;
 }
 
