@@ -1,21 +1,25 @@
 /* Diagram Editor Component Styles */
-.e-diagram-selector{
-  stroke: var(--node-selector) !important;
-  pointer-events: none !important;
-  stroke-width: 8px !important;
-  stroke-dashoffset: none;
-  stroke-dasharray: none;
-  rx: 8px;
-  ry: 8px
 
+/* Removing Selector Styles */
+.e-diagram-selector{
+  display: none !important;
+  stroke: none !important;
+  pointer-events: none !important;
 }
 .e-diagram-resize-handle{
-  stroke: var(--node-handle);
-  stroke-width: 1px;
-  stroke-dasharray:none;
-  fill: var(--node-handle);
-  rx:10px;
-  ry:10px;
+  stroke: none !important;
+  stroke-dasharray: none !important;
+}
+
+/* Node Selected Custom Styles */
+.node-template {
+  transition: all 0.1s ease-in-out;
+}
+
+/* Node Selection Styles */
+.node-template.selected {
+  outline: 5px solid var(--node-selector);
+  transform: scale(1.02);
 }
 
 .diagram-editor-container {

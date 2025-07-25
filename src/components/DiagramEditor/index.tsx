@@ -43,6 +43,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   const [isPanning, setIsPanning] = useState(false);
   const [showOverview, setShowOverview] = useState(false);
   const overviewTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
   const handleScrollChange = () => {
     setShowOverview(true);
@@ -74,7 +75,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   };
 
   // HTML Templates for different node types
-  const getNodeTemplate = (nodeConfig: NodeConfig): string => {
+  const getNodeTemplate = (nodeConfig: NodeConfig, nodeId: string): string => {
     // Validate nodeConfig parameter
     if (!nodeConfig || typeof nodeConfig !== 'object') {
       console.warn('Invalid nodeConfig provided to getNodeTemplate');
@@ -105,7 +106,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     const icon = nodeConfig.icon || '❓';
    
     return `
-      <div style="${baseStyle} background: ${gradient}; border-color: ${borderColor};">
+      <div class="node-template" data-node-id="${nodeId}"  style="${baseStyle} background: ${gradient}; border-color: ${borderColor};">
         <div>
           <div style="font-size: 2.5rem;">${icon}</div>
         </div>
@@ -128,7 +129,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       if (nodeConfig && typeof nodeConfig === "object") {
         obj.shape = {
           type: "HTML",
-          content: getNodeTemplate(nodeConfig),
+          content: getNodeTemplate(nodeConfig, obj.id as string),
         };
       }
     }
@@ -249,11 +250,68 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   };
 
   // Event Handlers
-  const handleDoubleClick = (args: any) => {
-    if (args && args.source && args.source.id && onNodeDoubleClick) {
-      onNodeDoubleClick(args.source.id);
+  const updateNodeSelection = (nodeId: string | null) => {
+    // Remove selection from all node templates
+    const allNodeTemplates = document.querySelectorAll('.node-template');
+    allNodeTemplates.forEach(template => {
+      template.classList.remove('selected');
+    });
+
+    // Add selection to the specified node
+    if (nodeId) {
+      const selectedTemplate = document.querySelector(`[data-node-id="${nodeId}"]`);
+      
+      if (selectedTemplate) {
+        selectedTemplate.classList.add('selected');
+      } else {
+        console.warn(`Could not find template for node: ${nodeId}`);
+      }
     }
   };
+  
+  const handleClick = (args: any) => {
+    debugger
+    if (args && args.element && args.element.id) {
+      // Node clicked
+      const nodeId = args.element.id;
+      setSelectedNodeId(nodeId);
+      updateNodeSelection(nodeId);
+    } else {
+      // Canvas clicked - deselect
+      setSelectedNodeId(null);
+      updateNodeSelection(null);
+    }
+  };
+
+  const handleDoubleClick = (args: any) => {
+    if (args && args.source && args.source.id && onNodeDoubleClick) {
+      const nodeId = args.source.id;
+      setSelectedNodeId(nodeId);
+      updateNodeSelection(nodeId);
+      onNodeDoubleClick(nodeId);
+    }
+  };
+
+  const handleSelectionChange = (args: any) => {
+    if (args && args.newValue && args.newValue.length > 0) {
+      const nodeId = args.newValue[0].id;
+      setSelectedNodeId(nodeId);
+      updateNodeSelection(nodeId);
+    } else {
+      setSelectedNodeId(null);
+      updateNodeSelection(null);
+    }
+  };
+
+  // Update useEffect to handle selection updates when nodes change
+  useEffect(() => {
+    if (selectedNodeId) {
+      // Delay to ensure DOM is updated
+      setTimeout(() => {
+        updateNodeSelection(selectedNodeId);
+      }, 100);
+    }
+  }, [nodeFromPalette, selectedNodeId]);
 
   const handleContextMenuClick = (args: any) => {
     // Add null/undefined checks for args and its properties
@@ -454,7 +512,9 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         contextMenuSettings={contextMenuSettings}
         scrollChange={handleScrollChange}
         contextMenuClick={handleContextMenuClick}
+        click={handleClick}
         doubleClick={handleDoubleClick}
+        selectionChange={handleSelectionChange}
         commandManager={getCommandManagerSettings()}
         backgroundColor="transparent"
         pageSettings={{

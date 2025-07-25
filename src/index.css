@@ -39,7 +39,7 @@ body {
   --gradient-accent: linear-gradient(135deg, #2563eb 0%, #6366f1 100%);
   --danger-color: #e53e3e;
   --danger-accent: #c53030;
-  --node-selector: #d4d9e0;
+  --node-selector: #ccd5e2ad;
   --node-handle: #a8adb3;
 }
 
