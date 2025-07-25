@@ -43,7 +43,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   const [isPanning, setIsPanning] = useState(false);
   const [showOverview, setShowOverview] = useState(false);
   const overviewTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
 
   const handleScrollChange = () => {
     setShowOverview(true);
@@ -250,30 +250,32 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   };
 
   // Event Handlers
-  const updateNodeSelection = (nodeId: string | null) => {
+  const updateNodeSelection = (nodeIds: string[] | null) => {
     // Remove selection from all node templates
     const allNodeTemplates = document.querySelectorAll('.node-template');
     allNodeTemplates.forEach(template => {
       template.classList.remove('selected');
     });
 
-    // Add selection to the specified node
-    if (nodeId) {
-      const selectedTemplate = document.querySelector(`[data-node-id="${nodeId}"]`);
-      
-      if (selectedTemplate) {
-        selectedTemplate.classList.add('selected');
-      } else {
-        console.warn(`Could not find template for node: ${nodeId}`);
-      }
+    // Add selection to all specified nodes
+    if (nodeIds && nodeIds.length > 0) {
+      nodeIds.forEach(nodeId => {
+        const selectedTemplate = document.querySelector(`[data-node-id="${nodeId}"]`);
+        
+        if (selectedTemplate) {
+          selectedTemplate.classList.add('selected');
+        } else {
+          console.warn(`Could not find template for node: ${nodeId}`);
+        }
+      });
     }
   };
 
   const handleDoubleClick = (args: any) => {
     if (args && args.source && args.source.id && onNodeDoubleClick) {
       const nodeId = args.source.id;
-      setSelectedNodeId(nodeId);
-      updateNodeSelection(nodeId);
+      setSelectedNodeIds([nodeId]);
+      updateNodeSelection([nodeId]);
       onNodeDoubleClick(nodeId);
     }
   };
@@ -281,32 +283,24 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   const handleSelectionChange = (args: any) => {
     if (args && args.newValue && args.newValue.length > 0) {
       const selectedNodeIds = args.newValue.map((item: any) => item.id);
-      
-      if (selectedNodeIds.length === 1) {
-        // Single selection - show visual indicator
-        setSelectedNodeId(selectedNodeIds[0]);
-        updateNodeSelection(selectedNodeIds);
-      } else {
-        // Multiple selection - don't show visual indicators on individual nodes
-        setSelectedNodeId(null);
-        updateNodeSelection(null);
-      }
+      setSelectedNodeIds(selectedNodeIds);
+      updateNodeSelection(selectedNodeIds);
     } else {
       // No selection
-      setSelectedNodeId(null);
+      setSelectedNodeIds([]);
       updateNodeSelection(null);
     }
   };
 
   // Update useEffect to handle selection updates when nodes change
   useEffect(() => {
-    if (selectedNodeId) {
-      // Delay to ensure DOM is updated
+    debugger
+    if (selectedNodeIds.length > 0) {
       setTimeout(() => {
-        updateNodeSelection(selectedNodeId);
+        updateNodeSelection(selectedNodeIds);
       }, 100);
     }
-  }, [nodeFromPalette, selectedNodeId]);
+  }, [nodeFromPalette, selectedNodeIds]);
 
   const handleContextMenuClick = (args: any) => {
     // Add null/undefined checks for args and its properties

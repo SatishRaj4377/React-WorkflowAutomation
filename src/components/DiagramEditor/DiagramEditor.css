@@ -7,8 +7,13 @@
   pointer-events: none !important;
 }
 .e-diagram-resize-handle{
+  display: none !important;
   stroke: none !important;
   stroke-dasharray: none !important;
+}
+.e-diagram-selection-indicator{
+  display: none !important;
+  stroke: none !important;
 }
 
 /* Node Selected Custom Styles */
@@ -18,7 +23,8 @@
 
 /* Node Selection Styles */
 .node-template.selected {
-  outline: 5px solid var(--node-selector);
+  outline: 5px solid var(--node-selector-outline);
+  background: var(--node-selector-background) !important; 
   transform: scale(1.02);
 }
 
