@@ -73,71 +73,23 @@
   height: 150px;
   background: var(--surface-color);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
-  box-shadow: var(--shadow);
-  z-index: 100;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px var(--box-shadow);
+  z-index: 1000;
+  transition: 'opacity 0.3s ease-in-out, visibility 0.3s ease-in-out'
 }
 
-/* Loading State */
-.diagram-loading {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  color: var(--text-secondary);
+.overview-resizer {
+  fill: var(--border-color);
 }
 
-.diagram-loading .spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--border-color);
-  border-top: 3px solid var(--primary-color);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Node Type Indicators */
-.e-diagram .e-node[data-type="trigger"] {
-  border-left: 4px solid #2563eb;
-}
-
-.e-diagram .e-node[data-type="action"] {
-  border-left: 4px solid #3b82f6;
-}
-
-.e-diagram .e-node[data-type="form"] {
-  border-left: 4px solid #6366f1;
-}
-
-.e-diagram .e-node.disabled {
-  opacity: 0.5;
-  filter: grayscale(50%);
+#overview_canvasoverviewrect{
+  fill: rgba(177, 220, 255, 0.226);
 }
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
-  .diagram-overview-container {
-    width: 150px;
-    height: 100px;
-    bottom: 10px;
-    right: 10px;
-  }
-  
-  .e-diagram .e-node {
-    font-size: 12px;
-  }
-  
   .e-contextmenu .e-menu-item {
-    padding: 6px 8px !important;
     font-size: 14px;
   }
 }

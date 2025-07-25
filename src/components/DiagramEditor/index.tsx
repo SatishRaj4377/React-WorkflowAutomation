@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import {
   DiagramComponent,
   SnapSettingsModel,
+  OverviewComponent,
   GridlinesModel,
   Inject,
   ConnectorModel,
@@ -17,7 +18,8 @@ import {
   PortConstraints,
   Keys,
   KeyModifiers,
-  CommandManagerModel
+  CommandManagerModel,
+  ScrollSettingsModel
 } from '@syncfusion/ej2-react-diagrams';
 import { NodeConfig } from '../../types';
 import './DiagramEditor.css';
@@ -35,10 +37,24 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 }) => {
 
   const diagramRef = useRef<DiagramComponent>(null);
-  const [previousDiagramTool, setPreviousDiagramTool] = useState<DiagramTools>(
-    DiagramTools.SingleSelect | DiagramTools.MultipleSelect
-  );
+  const [previousDiagramTool, setPreviousDiagramTool] = useState<DiagramTools>(DiagramTools.SingleSelect | DiagramTools.MultipleSelect);
   const [isPanning, setIsPanning] = useState(false);
+  const [showOverview, setShowOverview] = useState(false);
+  const overviewTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleScrollChange = () => {
+    setShowOverview(true);
+    
+    // Clear existing timeout
+    if (overviewTimeoutRef.current) {
+      clearTimeout(overviewTimeoutRef.current);
+    }
+    
+    // Hide overview after 2 seconds of no scroll/pan activity
+    overviewTimeoutRef.current = setTimeout(() => {
+      setShowOverview(false);
+    }, 2000);
+  };
 
   // Grid and Snap Settings
   const snapSettings: SnapSettingsModel = {
@@ -50,6 +66,11 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     verticalGridlines: {
       lineColor: '#a6b4caff',
     } as GridlinesModel,
+  };
+
+    // Grid and Snap Settings
+  const scrollSettings: ScrollSettingsModel = {
+     scrollLimit: 'Infinity',
   };
 
   // HTML Templates for different node types
@@ -413,6 +434,14 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     };
   }, [isPanning, previousDiagramTool]);
 
+  useEffect(() => {
+    return () => {
+      if (overviewTimeoutRef.current) {
+        clearTimeout(overviewTimeoutRef.current);
+      }
+    };
+  }, []);
+
   return (
     <div className="diagram-editor-container">
       <DiagramComponent
@@ -426,8 +455,10 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         getConnectorDefaults={getConnectorDefaults}
         elementDraw={removeDisConnectedConnectors}
         snapSettings={snapSettings}
+        scrollSettings={scrollSettings}
         contextMenuSettings={contextMenuSettings}
         selectionChange={handleSelectionChange}
+        scrollChange={handleScrollChange}
         contextMenuClick={handleContextMenuClick}
         commandManager={getCommandManagerSettings()}
         backgroundColor="transparent"
@@ -445,6 +476,21 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
           DiagramContextMenu
         ]} />
       </DiagramComponent>
+
+      {/* Overview Panel */}
+      <div className='diagram-overview-container'
+        style={{
+          opacity: showOverview ? 1 : 0,
+          visibility: showOverview ? 'visible' : 'hidden',
+        }}
+      >
+        <OverviewComponent
+          id="overview"
+          sourceID="workflow-diagram"
+          width="100%"
+          height="100%"
+        />
+      </div>
     </div>
   );
 };
