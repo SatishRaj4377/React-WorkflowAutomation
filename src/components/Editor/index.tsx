@@ -17,11 +17,7 @@ interface EditorProps {
   onBackToHome: () => void;
 }
 
-const Editor: React.FC<EditorProps> = ({
-  project,
-  onSaveProject,
-  onBackToHome,
-}) => {
+const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, }) => {
   const { theme, toggleTheme } = useTheme();
   const [nodePaletteSidebarOpen, setNodePaletteSidebarOpen] = useState(true);
   const [configPanelOpen, setConfigPanelOpen] = useState(false);
@@ -94,7 +90,7 @@ const Editor: React.FC<EditorProps> = ({
       // This is just a placeholder
       setDiagramConnectors([]);
     }
-  }, [project.workflowData.nodeConfigs]);
+  }, [selectedNodeId,project.workflowData.nodeConfigs]);
 
   const handleSave = () => {
     try {
@@ -111,7 +107,10 @@ const Editor: React.FC<EditorProps> = ({
   };
 
   const handleNodeSelect = (nodeId: string | null) => {
-    setSelectedNodeId(nodeId);
+    if (nodeId){
+      console.log('Node selected:', nodeId);
+      setSelectedNodeId(nodeId);
+    }
   };
 
   const handleNodeConfigChange = (nodeId: string, config: NodeConfig) => {
