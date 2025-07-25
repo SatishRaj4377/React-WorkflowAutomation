@@ -268,20 +268,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       }
     }
   };
-  
-  const handleClick = (args: any) => {
-    debugger
-    if (args && args.element && args.element.id) {
-      // Node clicked
-      const nodeId = args.element.id;
-      setSelectedNodeId(nodeId);
-      updateNodeSelection(nodeId);
-    } else {
-      // Canvas clicked - deselect
-      setSelectedNodeId(null);
-      updateNodeSelection(null);
-    }
-  };
 
   const handleDoubleClick = (args: any) => {
     if (args && args.source && args.source.id && onNodeDoubleClick) {
@@ -294,10 +280,19 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
   const handleSelectionChange = (args: any) => {
     if (args && args.newValue && args.newValue.length > 0) {
-      const nodeId = args.newValue[0].id;
-      setSelectedNodeId(nodeId);
-      updateNodeSelection(nodeId);
+      const selectedNodeIds = args.newValue.map((item: any) => item.id);
+      
+      if (selectedNodeIds.length === 1) {
+        // Single selection - show visual indicator
+        setSelectedNodeId(selectedNodeIds[0]);
+        updateNodeSelection(selectedNodeIds);
+      } else {
+        // Multiple selection - don't show visual indicators on individual nodes
+        setSelectedNodeId(null);
+        updateNodeSelection(null);
+      }
     } else {
+      // No selection
       setSelectedNodeId(null);
       updateNodeSelection(null);
     }
@@ -512,7 +507,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         contextMenuSettings={contextMenuSettings}
         scrollChange={handleScrollChange}
         contextMenuClick={handleContextMenuClick}
-        click={handleClick}
         doubleClick={handleDoubleClick}
         selectionChange={handleSelectionChange}
         commandManager={getCommandManagerSettings()}
