@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
   DiagramComponent,
   SnapSettingsModel,
@@ -14,7 +14,10 @@ import {
   DiagramContextMenu,
   NodeConstraints,
   PortVisibility,
-  PortConstraints
+  PortConstraints,
+  Keys,
+  KeyModifiers,
+  CommandManagerModel
 } from '@syncfusion/ej2-react-diagrams';
 import { NodeConfig } from '../../types';
 import './DiagramEditor.css';
@@ -30,7 +33,12 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   nodes: nodeFromPalette,
   connectors: connectorsFromPalette
 }) => {
+
   const diagramRef = useRef<DiagramComponent>(null);
+  const [previousDiagramTool, setPreviousDiagramTool] = useState<DiagramTools>(
+    DiagramTools.SingleSelect | DiagramTools.MultipleSelect
+  );
+  const [isPanning, setIsPanning] = useState(false);
 
   // Grid and Snap Settings
   const snapSettings: SnapSettingsModel = {
@@ -259,6 +267,31 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     }
   };
 
+  const getCommandManagerSettings = () => {
+    const commandManager: CommandManagerModel = {
+      commands: [
+        {
+          name: 'spacePan',
+          canExecute: () => {
+            return diagramRef.current != null && !isPanning;
+          },
+          execute: () => {
+            if (diagramRef.current && !isPanning) {
+              setPreviousDiagramTool(diagramRef.current.tool);
+              diagramRef.current.tool = DiagramTools.ZoomPan;
+              setIsPanning(true);
+            }
+          },
+          gesture: { 
+            key: Keys.Space,
+            keyModifiers: KeyModifiers.None
+          }
+        }
+      ]
+    };
+    return commandManager;
+  };
+
   const addStickyNote = (position: { x: number; y: number }) => {
     // Validate position parameter
     if (!position || typeof position !== 'object' || 
@@ -350,6 +383,23 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     }
   }, []);
 
+  useEffect(() => {
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (event.code === 'Space' && isPanning) {
+        event.preventDefault();
+        if (diagramRef.current) {
+          diagramRef.current.tool = previousDiagramTool;
+          setIsPanning(false);
+        }
+      }
+    };
+
+    document.addEventListener('keyup', handleKeyUp);
+    return () => {
+      document.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [isPanning, previousDiagramTool]);
+
   return (
     <div className="diagram-editor-container">
       <DiagramComponent
@@ -365,6 +415,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         contextMenuSettings={contextMenuSettings}
         selectionChange={handleSelectionChange}
         contextMenuClick={handleContextMenuClick}
+        commandManager={getCommandManagerSettings()}
         backgroundColor="transparent"
         pageSettings={{
           background: {

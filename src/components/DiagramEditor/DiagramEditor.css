@@ -53,20 +53,6 @@
   background: transparent !important;
 }
 
-/* Node Styles */
-.e-diagram .e-node {
-  transition: all 0.3s ease;
-}
-
-.e-diagram .e-node:hover {
-  transform: scale(1.02);
-}
-
-.e-diagram .e-node.e-selected {
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
-}
-
-
 /* Context Menu Styles */
 .e-contextmenu .e-menu-item {
   color: var(--text-primary) !important;
@@ -76,89 +62,6 @@
 .e-contextmenu .e-menu-item:hover {
   background-color: var(--background-color) !important;
   color: var(--text-primary) !important;
-}
-
-.e-contextmenu .e-menu-item .e-caret {
-  color: var(--text-secondary) !important;
-}
-
-/* Port Styles */
-.e-diagram .e-port {
-  transition: all 0.3s ease;
-}
-
-.e-diagram .e-port:hover {
-  transform: scale(1.5);
-  fill: var(--primary-color) !important;
-}
-
-/* Selection Handles */
-.e-diagram .e-selector .e-resize {
-  fill: var(--primary-color) !important;
-  stroke: white !important;
-  stroke-width: 2px !important;
-}
-
-.e-diagram .e-selector .e-rotate {
-  fill: var(--secondary-color) !important;
-  stroke: white !important;
-}
-
-/* Grid Lines */
-.e-diagram .e-gridlines {
-  stroke: var(--border-color) !important;
-  opacity: 0.3;
-}
-
-[data-theme="dark"] .e-diagram .e-gridlines {
-  stroke: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Node Animation */
-@keyframes node-execution {
-  0% {
-    box-shadow: 0 0 0 0 rgba(72, 187, 120, 0.7);
-  }
-  50% {
-    box-shadow: 0 0 0 10px rgba(72, 187, 120, 0.3);
-  }
-  100% {
-    box-shadow: 0 0 0 20px rgba(72, 187, 120, 0);
-  }
-}
-
-.e-diagram .e-node.executing {
-  animation: node-execution 2s infinite;
-}
-
-/* Sticky Note Styles */
-.e-diagram .e-node[id*="sticky"] {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  z-index: -1 !important;
-}
-
-.e-diagram .e-node[id*="sticky"]:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  transform: scale(1.02) rotate(1deg);
-}
-
-/* Scrollbar Styles */
-.e-diagram::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.e-diagram::-webkit-scrollbar-track {
-  background: var(--background-color);
-}
-
-.e-diagram::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 4px;
-}
-
-.e-diagram::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
 }
 
 /* Overview Panel Container */
