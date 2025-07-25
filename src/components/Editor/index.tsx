@@ -107,8 +107,9 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     }
   };
 
-  const handleNodeSelect = (nodeId: string | null) => {
+  const handleNodeDoubleClick = (nodeId: string) => {
     setSelectedNodeId(nodeId);
+    setConfigPanelOpen(true);
   };
 
   const handleNodeConfigChange = (nodeId: string, config: NodeConfig) => {
@@ -211,7 +212,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         <div className="diagram-container">
           <DiagramEditor 
             onAddNode={() => setNodePaletteSidebarOpen(true)}
-            onNodeSelect={handleNodeSelect}
+            onNodeDoubleClick={handleNodeDoubleClick}
             nodes={diagramNodes}
             connectors={diagramConnectors}
           />

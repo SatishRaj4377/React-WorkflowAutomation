@@ -26,14 +26,14 @@ import './DiagramEditor.css';
 
 interface DiagramEditorProps {
   onAddNode?: () => void;
-  onNodeSelect: (nodeId: string | null) => void;
+  onNodeDoubleClick: (nodeId: string) => void;
   nodes?: NodeModel[];
   connectors?: ConnectorModel[];
 }
 
 const DiagramEditor: React.FC<DiagramEditorProps> = ({
   onAddNode,
-  onNodeSelect,
+  onNodeDoubleClick,
   nodes: nodeFromPalette,
   connectors: connectorsFromPalette
 }) => {
@@ -183,7 +183,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
   // Get default styles for connectors
   const getConnectorDefaults = (obj: ConnectorModel): ConnectorModel => {
-    debugger
     // Ensure obj exists before modifying it
     if (!obj || typeof obj !== 'object') {
       return obj;
@@ -250,22 +249,9 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   };
 
   // Event Handlers
-  const handleSelectionChange = (args: any) => {
-    // Add null/undefined checks for args and its properties
-    if (!args || typeof args !== 'object') {
-      onNodeSelect(null);
-      return;
-    }
-
-    if (args.newValue && Array.isArray(args.newValue) && args.newValue.length > 0) {
-      const selectedNode = args.newValue[0];
-      if (selectedNode && typeof selectedNode === 'object' && selectedNode.id) {
-        onNodeSelect(selectedNode.id);
-      } else {
-        onNodeSelect(null);
-      }
-    } else {
-      onNodeSelect(null);
+  const handleDoubleClick = (args: any) => {
+    if (args && args.source && args.source.id && onNodeDoubleClick) {
+      onNodeDoubleClick(args.source.id);
     }
   };
 
@@ -466,9 +452,9 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         snapSettings={snapSettings}
         scrollSettings={scrollSettings}
         contextMenuSettings={contextMenuSettings}
-        selectionChange={handleSelectionChange}
         scrollChange={handleScrollChange}
         contextMenuClick={handleContextMenuClick}
+        doubleClick={handleDoubleClick}
         commandManager={getCommandManagerSettings()}
         backgroundColor="transparent"
         pageSettings={{
