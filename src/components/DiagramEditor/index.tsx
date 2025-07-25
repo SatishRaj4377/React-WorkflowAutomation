@@ -295,7 +295,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       case 'addSticky':
         console.log(args);
         const position = args.event && typeof args.event === 'object' 
-          ? {x: args.event.x, y: args.event.y} : { x: 300, y: 300 };
+          ? {x: args.event.pageX, y: args.event.pageY} : { x: 300, y: 300 };
         addStickyNote(position);
         break;
       case 'lockWorkflow':
@@ -341,14 +341,14 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         typeof position.x !== 'number' || typeof position.y !== 'number') {
       position = { x: 300, y: 300 };
     }
-
+    console.log(diagramRef.current?.scrollSettings);
     const timestamp = Date.now();
     const stickyNote: NodeModel = {
       id: `sticky-${timestamp}`,
       width: 120,
       height: 120,
       offsetX: position.x,
-      offsetY: position.y,
+      offsetY: position.y - 64, // removing the header height
       zIndex: -1,
       constraints: (NodeConstraints.Default & ~NodeConstraints.Rotate),
       addInfo: {
