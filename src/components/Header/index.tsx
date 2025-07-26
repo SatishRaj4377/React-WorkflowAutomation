@@ -70,7 +70,7 @@ const AppBar: React.FC<AppBarProps> = ({
             />
           ) : (
             <h1 className="project-name" onClick={handleProjectNameEdit} title="Click to edit">
-              {projectName}
+              <span className="project-name-text">{projectName}</span>
               <span className="e-icons e-edit edit-icon"></span>
             </h1>
           )}

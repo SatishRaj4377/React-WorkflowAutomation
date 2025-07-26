@@ -31,9 +31,25 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     });
   };
 
+  // Function to update EJ2 CSS theme
+  const updateEJ2Theme = (currentTheme: 'light' | 'dark') => {
+    const cssLink = document.getElementById('css-link') as HTMLLinkElement;
+    if (cssLink) {
+      const baseUrl = 'https://cdn.syncfusion.com/ej2/30.1.37/';
+      const themeUrl = currentTheme === 'dark' 
+        ? `${baseUrl}tailwind-dark.css`
+        : `${baseUrl}tailwind.css`;
+      
+      cssLink.href = themeUrl;
+    }
+  };
+
   useEffect(() => {
     // Apply theme to the document element
     document.documentElement.setAttribute('data-theme', theme);
+    
+    // Update EJ2 CSS theme
+    updateEJ2Theme(theme);
   }, [theme]);
 
   // Listen for system preference changes
@@ -61,6 +77,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     }
     
     return undefined;
+  }, []);
+
+  // Initialize EJ2 theme on component mount
+  useEffect(() => {
+    updateEJ2Theme(theme);
   }, []);
 
   return (

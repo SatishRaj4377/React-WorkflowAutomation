@@ -11,12 +11,7 @@
   height: 64px;
 }
 
-.appbar-left {
-  display: flex;
-  align-items: center;
-}
-
-.appbar-right {
+.appbar-left, .appbar-right {
   display: flex;
   align-items: center;
 }
@@ -54,16 +49,26 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  position: relative;
 }
 
 .project-name:hover {
   background-color: var(--background-color);
 }
 
+.project-name-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
 .project-name .edit-icon {
   opacity: 0;
   transition: opacity 0.3s ease;
   font-size: 1.2rem;
+  flex-shrink: 0;
 }
 
 .project-name:hover .edit-icon {
@@ -81,58 +86,9 @@
   outline: none;
   min-width: 200px;
   max-width: 300px;
-}
-
-.save-button {
-  background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  border: none;
-}
-
-.save-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-.settings-dropdown {
-  position: relative;
-}
-
-.settings-trigger {
-  padding: 0.5rem;
-  border-radius: 50%;
-  transition: all 0.3s ease;
-}
-
-.settings-trigger:hover {
-  background-color: var(--background-color);
-  transform: rotate(90deg);
-}
-
-.settings-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 0.5rem;
-  background: var(--surface-color);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  box-shadow: var(--shadow);
-  min-width: 200px;
-  z-index: 1001;
-}
-
-.settings-menu .e-menu-item {
-  padding: 0.75rem 1rem;
-  transition: background-color 0.3s ease;
-}
-
-.settings-menu .e-menu-item:hover {
-  background-color: var(--background-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Theme-specific styles */
@@ -145,11 +101,6 @@
   background: var(--surface-color);
   color: var(--text-primary);
   border-color: var(--primary-color);
-}
-
-[data-theme="dark"] .settings-menu {
-  background: var(--surface-color);
-  border-color: var(--border-color);
 }
 
 /* Responsive Design */
@@ -166,22 +117,12 @@
     font-size: 1.1rem;
     max-width: 200px;
   }
-  
-  .save-button {
-    padding: 0.5rem;
-  }
-  
-  .save-button .e-btn-content {
-    display: none;
-  }
+
 }
 
 @media (max-width: 480px) {
   .project-name {
     max-width: 150px;
   }
-  
-  .settings-menu {
-    min-width: 160px;
-  }
+
 }
