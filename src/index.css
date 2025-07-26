@@ -118,6 +118,7 @@ body {
 .modern-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-hover);
+  background-color: var(--surface-color);
 }
 
 .modern-card:hover::before {

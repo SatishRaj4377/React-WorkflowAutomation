@@ -1,6 +1,4 @@
-/* Diagram Editor Component Styles */
-
-/* Removing Selector Styles */
+/* Removing Default Selector Styles */
 .e-diagram-selector{
   display: none !important;
   stroke: none !important;
@@ -19,7 +17,7 @@
   display: none !important;
 }
 
-/* Node Selected Custom Styles */
+/* Node Template Selection Custom Styles */
 .node-template {
   transition: all 0.1s ease-in-out;
 }
@@ -29,19 +27,10 @@
   transform: scale(1.02);
 }
 
-/* Custom Port hover effects */
-.node-template:hover .port-left,
-.node-template:hover .port-right {
-  background-color: #4CAF50;
-  border-color: #45a049;
-}
-
-
 .diagram-editor-container {
   width: 100%;
   height: 100%;
   position: relative;
-  overflow: hidden; /* Prevent scrolling of the entire page */
   background: 
     linear-gradient(90deg, rgba(102, 126, 234, 0.03) 1px, transparent 1px),
     linear-gradient(rgba(102, 126, 234, 0.03) 1px, transparent 1px);
@@ -96,14 +85,6 @@
   box-shadow: 0 2px 8px var(--box-shadow);
   z-index: 1000;
   transition: 'opacity 0.3s ease-in-out, visibility 0.3s ease-in-out'
-}
-
-.overview-resizer {
-  fill: var(--border-color);
-}
-
-#overview_canvasoverviewrect{
-  fill: rgba(177, 220, 255, 0.226);
 }
 
 /* Responsive Adjustments */
