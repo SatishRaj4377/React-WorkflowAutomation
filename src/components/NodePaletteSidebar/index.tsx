@@ -25,12 +25,12 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
   const searchRef = useRef<TextBoxComponent>(null);
 
   const handleSearchCreated = () => {
-      setTimeout(() => {
-        if (searchRef.current) {
-          searchRef.current.addIcon('prepend', 'e-icons e-search search-icon');
-        }
-      });
-    };
+    setTimeout(() => {
+      if (searchRef.current) {
+        searchRef.current.addIcon('prepend', 'e-icons e-search search-icon');
+      }
+    });
+  };
   // Sample node templates
   const nodeCategories: PaletteCategory[] = [
     {

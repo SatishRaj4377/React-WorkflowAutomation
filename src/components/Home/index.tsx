@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
+import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
+import { DropDownButtonComponent } from '@syncfusion/ej2-react-splitbuttons';
 import { ProjectData } from '../../types';
 import './Home.css';
 
@@ -16,7 +18,64 @@ const Home: React.FC<HomeProps> = ({
   onOpenProject,
   onDeleteProject
 }) => {
+  const searchRef = useRef<TextBoxComponent>(null);
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('lastModified');
+  const [sortText, setSortText] = useState('Last Modified');
+
+  const sortOptions = [
+    { text: 'Last Modified', id: 'lastModified' },
+    { text: 'Last Created', id: 'created' },
+    { text: 'Name (A-Z)', id: 'nameAsc' },
+    { text: 'Name (Z-A)', id: 'nameDesc' }
+  ];
+
+  const handleSearchCreated = () => {
+    setTimeout(() => {
+      if (searchRef.current) {
+        searchRef.current.addIcon('prepend', 'e-icons e-search search-icon');
+      }
+    });
+  };
+
+  const handleSortSelect = (args: any) => {
+    setSortBy(args.item.id);
+    setSortText(args.item.text);
+  };
+
+  const filteredAndSortedProjects = useMemo(() => {
+    const filteredProjects = projects.filter(project =>
+      project.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    return filteredProjects.sort((projectA, projectB) => {
+      switch (sortBy) {
+        case 'lastModified':
+          // Use lastModified from ProjectData
+          const lastModifiedA = new Date(projectA.lastModified).getTime();
+          const lastModifiedB = new Date(projectB.lastModified).getTime();
+          return lastModifiedB - lastModifiedA;
+          
+        case 'created':
+          // Use created from WorkflowData metadata
+          const createdDateA = projectA.workflowData?.metadata?.created || projectA.lastModified;
+          const createdDateB = projectB.workflowData?.metadata?.created || projectB.lastModified;
+          const createdTimeA = new Date(createdDateA).getTime();
+          const createdTimeB = new Date(createdDateB).getTime();
+          return createdTimeB - createdTimeA;
+          
+        case 'nameAsc':
+          return projectA.name.localeCompare(projectB.name);
+          
+        case 'nameDesc':
+          return projectB.name.localeCompare(projectA.name);
+          
+        default:
+          return 0;
+      }
+    });
+  }, [projects, searchTerm, sortBy]);
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
@@ -96,37 +155,71 @@ const Home: React.FC<HomeProps> = ({
         {/* Recent Projects Section */}
         <section className="recent-projects-section animate-fade-in-up">
           <div className="section-header">
+          <div className="section-title-container">
             <h2 className="section-title">Recent Projects</h2>
-            <div className="view-toggle">
-              <ButtonComponent
-                cssClass={`view-toggle-btn ${viewMode === 'card' ? 'active' : ''}`}
-                onClick={() => setViewMode('card')}
-                iconCss="e-icons e-grid-view"
-              >
-                Card
-              </ButtonComponent>
-              <ButtonComponent
-                cssClass={`view-toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
-                onClick={() => setViewMode('list')}
-                iconCss="e-icons e-list-unordered"
-              >
-                List
-              </ButtonComponent>
+            <span className="projects-count">
+              {filteredAndSortedProjects.length > 0
+                && `${filteredAndSortedProjects.length} projects`
+              }
+            </span>
+          </div>
+            <div className="section-controls">
+                <div className="search-container">
+                  <TextBoxComponent
+                    ref={searchRef}
+                    placeholder="Search projects..."
+                    value={searchTerm}
+                    change={(args: any) => setSearchTerm(args.value)}
+                    cssClass="project-search"
+                    showClearButton={true}
+                    created={handleSearchCreated}
+                  />
+                </div>
+                <div className="sort-container">
+                  <DropDownButtonComponent
+                    items={sortOptions}
+                    select={handleSortSelect}
+                    cssClass="sort-dropdown-btn"
+                  >
+                    {sortText}
+                  </DropDownButtonComponent>
+                </div>
+              <div className="view-toggle">
+                <ButtonComponent
+                  cssClass={`view-toggle-btn ${viewMode === 'card' ? 'active' : ''}`}
+                  onClick={() => setViewMode('card')}
+                  iconCss="e-icons e-grid-view"
+                  title="Card View"
+                />
+                <ButtonComponent
+                  cssClass={`view-toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
+                  onClick={() => setViewMode('list')}
+                  iconCss="e-icons e-list-unordered"
+                  title="List View"
+                />
+              </div>
             </div>
           </div>
 
-          {projects.length === 0 ? (
+          {filteredAndSortedProjects.length === 0 ? (
             <div className="empty-state animate-fade-in-up">
-              <div className="empty-icon">🚀</div>
-              <h3>No projects yet</h3>
-              <p>Create your first workflow to get started and unlock the power of automation</p>
-              <ButtonComponent onClick={onCreateNew} cssClass="e-btn">
-                ✨ Create New Workflow
-              </ButtonComponent>
+              <div className="empty-icon">{projects.length === 0 ? '🚀' : '🔍'}</div>
+              <h3>{projects.length === 0 ? 'No projects yet' : 'No projects found'}</h3>
+              <p>
+                {projects.length === 0 
+                  ? 'Create your first workflow to get started and unlock the power of automation'
+                  : 'Try adjusting your search terms or filters'
+                }
+              </p>
+              {projects.length === 0 && (
+                <ButtonComponent onClick={onCreateNew} cssClass="e-btn">
+                  ✨ Create New Workflow
+                </ButtonComponent>
+              )}
             </div>
           ) : (
             <div className={`projects-container ${viewMode === 'list' ? 'list-view' : 'card-view'}`}>
-              {projects.map((project) => (
+              {filteredAndSortedProjects.map((project) => (
                 <div
                   key={project.id}
                   className={`e-card modern-card project-card ${viewMode}-item`}
