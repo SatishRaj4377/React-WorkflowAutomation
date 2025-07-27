@@ -102,7 +102,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     showErrorToast('Execution Cancelled', 'Workflow execution has been cancelled.');
   };
 
-  const handleAddNode = (nodeTemplate: NodeTemplate, position: { x: number; y: number }) => {
+  const handleAddNode = (nodeTemplate: NodeTemplate) => {
     const nodeId = `${nodeTemplate.id}-${Date.now()}`;
     
     // Create new node configuration
@@ -123,8 +123,6 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     if (diagramRef) {
       const newNode = {
         id: nodeId,
-        offsetX: position.x,
-        offsetY: position.y,
         addInfo: { nodeConfig: newNodeConfig }
       };
       

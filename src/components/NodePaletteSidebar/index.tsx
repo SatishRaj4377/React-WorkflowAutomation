@@ -13,7 +13,7 @@ import './NodePaletteSidebar.css';
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
-  onNodeDrag?: (nodeTemplate: NodeTemplate, position: { x: number; y: number }) => void;
+  onNodeDrag?: (nodeTemplate: NodeTemplate) => void;
 }
 
 const NodePaletteSidebar: React.FC<SidebarProps> = ({
@@ -182,7 +182,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
   const handleNodeClick = (nodeTemplate: NodeTemplate) => {
     console.log('Node clicked:', nodeTemplate.name);
     if (onNodeDrag) {
-      onNodeDrag(nodeTemplate, { x: 300, y: 200 });
+      onNodeDrag(nodeTemplate);
     }
   };
 
