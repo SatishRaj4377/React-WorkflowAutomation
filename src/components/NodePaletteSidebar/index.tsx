@@ -13,13 +13,13 @@ import './NodePaletteSidebar.css';
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
-  onNodeDrag?: (nodeTemplate: NodeTemplate) => void;
+  onAddNode?: (nodeTemplate: NodeTemplate) => void;
 }
 
 const NodePaletteSidebar: React.FC<SidebarProps> = ({
   isOpen,
   onClose,
-  onNodeDrag
+  onAddNode
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const searchRef = useRef<TextBoxComponent>(null);
@@ -181,8 +181,8 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
 
   const handleNodeClick = (nodeTemplate: NodeTemplate) => {
     console.log('Node clicked:', nodeTemplate.name);
-    if (onNodeDrag) {
-      onNodeDrag(nodeTemplate);
+    if (onAddNode) {
+      onAddNode(nodeTemplate);
     }
   };
 

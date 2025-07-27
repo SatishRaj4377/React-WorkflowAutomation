@@ -190,8 +190,12 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         };
       }
       obj.constraints = (NodeConstraints.Default & ~NodeConstraints.Rotate & ~NodeConstraints.Resize & ~NodeConstraints.InConnect & ~NodeConstraints.OutConnect) | NodeConstraints.HideThumbs;
-      obj.width = 80;
-      obj.height = 80;
+      if (!obj.width) {
+        obj.width = 80;
+      }
+      if (!obj.height) {
+        obj.height = 80;
+      }
       
       // Only set default position if not already set
       if (!obj.offsetX) {
@@ -200,6 +204,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       if (!obj.offsetY) {
         obj.offsetY = (diagramRef.current as any)?.scrollSettings.viewPortHeight / 2 || 200;
       }
+      if (nodeConfig.type !== 'sticky') {
       obj.annotations = [
         {
           id: `${nodeConfig.id}-label`,
@@ -210,6 +215,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
           constraints: AnnotationConstraints.ReadOnly & ~AnnotationConstraints.Select
         }
       ];
+    }
     }
 
     // Set default ports for all nodes except sticky notes
@@ -448,15 +454,14 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         typeof position.x !== 'number' || typeof position.y !== 'number') {
       position = { x: 300, y: 300 };
     }
-    console.log(diagramRef.current?.scrollSettings);
     const timestamp = Date.now();
     const stickyNote: NodeModel = {
       id: `sticky-${timestamp}`,
-      width: 120,
-      height: 120,
+      width: 240,
+      height: 240,
       offsetX: position.x,
       offsetY: position.y - 64, // removing the header height
-      zIndex: -1,
+      zIndex: -10000,
       constraints: (NodeConstraints.Default & ~NodeConstraints.Rotate),
       addInfo: {
         nodeConfig: {

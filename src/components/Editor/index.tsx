@@ -151,7 +151,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         <NodePaletteSidebar 
           isOpen={nodePaletteSidebarOpen}
           onClose={() => setNodePaletteSidebarOpen(false)}
-          onNodeDrag={handleAddNode}
+          onAddNode={handleAddNode}
         />
         
         {/* Right Sidebar for Configuration */}
