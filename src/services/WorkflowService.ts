@@ -1,4 +1,4 @@
-import { WorkflowData, ProjectData, NodeConfig } from '../types';
+import { WorkflowData, ProjectData } from '../types';
 
 /**
  * Service for managing workflow data and operations
@@ -121,8 +121,7 @@ export class WorkflowService {
           modified: now,
           version: 1
         },
-        diagram: {},
-        nodeConfigs: {}
+        diagramString: '' // Empty diagram initially
       }
     };
     
@@ -161,9 +160,9 @@ export class WorkflowService {
   }
 
   /**
-   * Update a node configuration
+   * Update diagram string for a project
    */
-  updateNodeConfig(projectId: string, nodeId: string, config: NodeConfig): ProjectData | null {
+  updateDiagramString(projectId: string, diagramString: string): ProjectData | null {
     const project = this.getProjectById(projectId);
     if (!project) return null;
     
@@ -171,10 +170,7 @@ export class WorkflowService {
       ...project,
       workflowData: {
         ...project.workflowData,
-        nodeConfigs: {
-          ...project.workflowData.nodeConfigs,
-          [nodeId]: config
-        }
+        diagramString: diagramString
       }
     };
     
@@ -224,7 +220,7 @@ export class WorkflowService {
     try {
       const workflow = JSON.parse(json) as WorkflowData;
       // Validate workflow structure
-      if (!workflow.metadata || !workflow.nodeConfigs) {
+      if (!workflow.metadata || !workflow.diagramString) {
         throw new Error('Invalid workflow format');
       }
       return workflow;

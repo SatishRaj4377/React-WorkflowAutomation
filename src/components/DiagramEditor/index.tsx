@@ -28,15 +28,15 @@ import './DiagramEditor.css';
 interface DiagramEditorProps {
   onAddNode?: () => void;
   onNodeDoubleClick: (nodeId: string) => void;
-  nodes?: NodeModel[];
-  connectors?: ConnectorModel[];
+  onDiagramRef?: (ref: any) => void;
+  project?: any;
 }
 
 const DiagramEditor: React.FC<DiagramEditorProps> = ({
   onAddNode,
   onNodeDoubleClick,
-  nodes: nodeFromPalette,
-  connectors: connectorsFromPalette
+  onDiagramRef,
+  project
 }) => {
 
   const diagramRef = useRef<DiagramComponent>(null);
@@ -45,6 +45,29 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   const [showOverview, setShowOverview] = useState(false);
   const overviewTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Pass diagram ref to parent component
+  useEffect(() => {
+    if (diagramRef.current && onDiagramRef) {
+      onDiagramRef(diagramRef.current);
+    }
+  }, [diagramRef.current, onDiagramRef]);
+
+  // Load diagram from project if available
+  useEffect(() => {
+    if (diagramRef.current && project && project.workflowData.diagramString && !isLoaded) {
+      try {
+        diagramRef.current.loadDiagram(project.workflowData.diagramString);
+        setIsLoaded(true);
+      } catch (error) {
+        console.error('Failed to load diagram:', error);
+        setIsLoaded(true); // Set as loaded even if failed to prevent infinite loop
+      }
+    } else if (diagramRef.current && !project.workflowData.diagramString) {
+      setIsLoaded(true);
+    }
+  }, [project, diagramRef.current, isLoaded]);
 
   const handleScrollChange = () => {
     setShowOverview(true);
@@ -169,8 +192,14 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       obj.constraints = (NodeConstraints.Default & ~NodeConstraints.Rotate & ~NodeConstraints.Resize & ~NodeConstraints.InConnect & ~NodeConstraints.OutConnect) | NodeConstraints.HideThumbs;
       obj.width = 80;
       obj.height = 80;
-      obj.offsetX = (diagramRef.current as any)?.scrollSettings.viewPortWidth / 2;
-      obj.offsetY = (diagramRef.current as any)?.scrollSettings.viewPortHeight / 2;
+      
+      // Only set default position if not already set
+      if (!obj.offsetX) {
+        obj.offsetX = (diagramRef.current as any)?.scrollSettings.viewPortWidth / 2 || 300;
+      }
+      if (!obj.offsetY) {
+        obj.offsetY = (diagramRef.current as any)?.scrollSettings.viewPortHeight / 2 || 200;
+      }
       obj.annotations = [
         {
           id: `${nodeConfig.id}-label`,
@@ -345,7 +374,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         updateNodeSelection(selectedNodeIds);
       }, 100);
     }
-  }, [nodeFromPalette, selectedNodeIds]);
+  }, [selectedNodeIds]);
 
   const handleContextMenuClick = (args: any) => {
     // Add null/undefined checks for args and its properties
@@ -536,8 +565,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         ref={diagramRef}
         width="100%"
         height="100%"
-        nodes={nodeFromPalette || []}
-        connectors={connectorsFromPalette || []}
+        nodes={[]}
+        connectors={[]}
         getNodeDefaults={getNodeDefaults}
         getConnectorDefaults={getConnectorDefaults}
         elementDraw={removeDisConnectedConnectors}
@@ -550,6 +579,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         selectionChange={handleSelectionChange}
         commandManager={getCommandManagerSettings()}
         backgroundColor="transparent"
+        serializationSettings={{ preventDefaults: true }}
         pageSettings={{
           background: {
             color: 'transparent',

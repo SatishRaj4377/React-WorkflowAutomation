@@ -22,46 +22,46 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const [configPanelOpen, setConfigPanelOpen] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<NodeConfig | null>(null);
-  const [diagramNodes, setDiagramNodes] = useState<any[]>([]);
-  const [diagramConnectors, setDiagramConnectors] = useState<any[]>([]);
   const [isExecuting, setIsExecuting] = useState(false);
   const [projectName, setProjectName] = useState(project.name);
+  const [diagramRef, setDiagramRef] = useState<any>(null);
 
   useEffect(() => {
-    // Update selected node data when ID changes
-    if (selectedNodeId && project.workflowData.nodeConfigs[selectedNodeId]) {
-      setSelectedNode(project.workflowData.nodeConfigs[selectedNodeId]);
-      setConfigPanelOpen(true);
+    // Handle selected node changes - will be managed by DiagramEditor
+    if (selectedNodeId && diagramRef) {
+      // Get node from diagram
+      const nodes = diagramRef.nodes;
+      const node = nodes.find((n: any) => n.id === selectedNodeId);
+      if (node && node.addInfo && node.addInfo.nodeConfig) {
+        setSelectedNode(node.addInfo.nodeConfig);
+        setConfigPanelOpen(true);
+      } else {
+        setConfigPanelOpen(false);
+        setSelectedNode(null);
+      }
     } else {
       setConfigPanelOpen(false);
       setSelectedNode(null);
     }
-    
-    // Transform node configs to diagram nodes
-    if (project.workflowData.nodeConfigs) {
-      const nodes = Object.values(project.workflowData.nodeConfigs).map(nodeConfig => {
-        return {
-          id: nodeConfig.id,
-          addInfo: { nodeConfig }
-        };
-      });
-      
-      setDiagramNodes(nodes);
-      
-      // We would need to handle connectors here as well if they're part of the data
-      // This is just a placeholder
-      setDiagramConnectors([]);
-    }
-  }, [selectedNodeId, project.workflowData.nodeConfigs]);
+  }, [selectedNodeId, diagramRef]);
 
   const handleSave = () => {
     try {
-      const updatedProject = WorkflowService.saveProject({
-        ...project,
-        name: projectName,
-      });
-      onSaveProject(updatedProject);
-      showSuccessToast('Workflow Saved', 'Your workflow has been saved successfully.');
+      if (diagramRef) {
+        // Save diagram as string using EJ2's built-in method
+        const diagramString = diagramRef.saveDiagram();
+        
+        const updatedProject = WorkflowService.saveProject({
+          ...project,
+          name: projectName,
+          workflowData: {
+            ...project.workflowData,
+            diagramString: diagramString
+          }
+        });
+        onSaveProject(updatedProject);
+        showSuccessToast('Workflow Saved', 'Your workflow has been saved successfully.');
+      }
     } catch (error) {
       console.error('Failed to save workflow:', error);
       showErrorToast('Save Failed', 'There was an error saving your workflow.');
@@ -76,19 +76,14 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const handleNodeConfigChange = (nodeId: string, config: NodeConfig) => {
     setSelectedNode(config);
     
-    // Update node configuration in the project
-    const updatedProject = {
-      ...project,
-      workflowData: {
-        ...project.workflowData,
-        nodeConfigs: {
-          ...project.workflowData.nodeConfigs,
-          [nodeId]: config
-        }
+    // Update the node's addInfo in the diagram directly
+    if (diagramRef) {
+      const node = diagramRef.getObject(nodeId);
+      if (node) {
+        node.addInfo = { nodeConfig: config };
+        diagramRef.dataBind();
       }
-    };
-    
-    onSaveProject(updatedProject);
+    }
   };
 
   const handleExecuteWorkflow = () => {
@@ -98,6 +93,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     setTimeout(() => {
       setIsExecuting(false);
       showSuccessToast('Workflow Executed', 'Your workflow has completed successfully.');
+    
     }, 3000);
   };
 
@@ -120,26 +116,25 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         authentication: {},
         advanced: {}
       },
-      disabled: false,
-      position: position
+      disabled: false
     };
     
-    // Update node configurations in the project
-    const updatedProject = {
-      ...project,
-      workflowData: {
-        ...project.workflowData,
-        nodeConfigs: {
-          ...project.workflowData.nodeConfigs,
-          [nodeId]: newNodeConfig
-        }
-      }
-    };
-    
-    onSaveProject(updatedProject);
-    
-    // Select the new node
-    setSelectedNodeId(nodeId);
+    // Add node directly to diagram
+    if (diagramRef) {
+      const newNode = {
+        id: nodeId,
+        offsetX: position.x,
+        offsetY: position.y,
+        addInfo: { nodeConfig: newNodeConfig }
+      };
+      
+      diagramRef.add(newNode);
+      setSelectedNodeId(nodeId);
+    }
+  };
+
+  const handleDiagramRef = (ref: any) => {
+    setDiagramRef(ref);
   };
 
   return (
@@ -174,8 +169,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
           <DiagramEditor 
             onAddNode={() => setNodePaletteSidebarOpen(true)}
             onNodeDoubleClick={handleNodeDoubleClick}
-            nodes={diagramNodes}
-            connectors={diagramConnectors}
+            onDiagramRef={handleDiagramRef}
+            project={project}
           />
         </div>
         

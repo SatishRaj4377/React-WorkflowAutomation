@@ -9,7 +9,6 @@ export interface NodeConfig {
     advanced?: any;
   };
   disabled: boolean;
-  position: { x: number; y: number };
 }
 
 export interface WorkflowData {
@@ -20,8 +19,7 @@ export interface WorkflowData {
     modified: Date;
     version: number;
   };
-  diagram: any; // DiagramModel from Syncfusion
-  nodeConfigs: Record<string, NodeConfig>;
+  diagramString: string; // Serialized diagram string from saveDiagram()
 }
 
 export interface ProjectData {
