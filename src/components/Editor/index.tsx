@@ -8,7 +8,6 @@ import NodeConfigSidebar from '../NodeConfigSidebar';
 import { useTheme } from '../../contexts/ThemeContext';
 import { ProjectData, NodeConfig, NodeTemplate } from '../../types';
 import WorkflowService from '../../services/WorkflowService';
-import { NodeConstraints, PortVisibility } from '@syncfusion/ej2-react-diagrams';
 import './Editor.css';
 
 interface EditorProps {
@@ -43,44 +42,6 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       const nodes = Object.values(project.workflowData.nodeConfigs).map(nodeConfig => {
         return {
           id: nodeConfig.id,
-          width: 80,
-          height: 80,
-          offsetX: nodeConfig.position.x,
-          offsetY: nodeConfig.position.y,
-          constraints: (NodeConstraints.Default & ~NodeConstraints.Rotate & ~NodeConstraints.Resize & ~NodeConstraints.InConnect & ~NodeConstraints.OutConnect) | NodeConstraints.HideThumbs,
-          annotations: [
-            {
-              id: `${nodeConfig.id}-label`,
-              content: nodeConfig.name,
-              style: { color: 'Black', fontWeight: 'bold', textWrapping: 'NoWrap' },
-              offset: { x: 0.5, y: 1 },
-              margin: { top: 15 },
-            }
-          ],
-          shape: { type: 'Flow', shape: nodeConfig.type === 'trigger' ? 'Terminator' : 'Process' },
-          style: {
-            fill: nodeConfig.type === 'trigger' 
-              ? 'linear-gradient(45deg, #2563eb, #1d4ed8)'
-              : 'linear-gradient(45deg, #3b82f6, #1e40af)',
-            strokeColor: nodeConfig.type === 'trigger' ? '#1d4ed8' : '#1e40af',
-            strokeWidth: 2,
-          },
-          ports: [
-            {
-              offset: { x: 0, y: 0.5 },
-              shape: 'Circle',
-              height: 12,
-              width: 12,
-              visibility: PortVisibility.Visible,
-            },
-            {
-              offset: { x: 1, y: 0.5 },
-              shape: 'Circle',
-              height: 12,
-              width: 12,
-              visibility: PortVisibility.Visible,
-            }
-          ],
           addInfo: { nodeConfig }
         };
       });

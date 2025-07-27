@@ -19,7 +19,8 @@ import {
   Keys,
   KeyModifiers,
   CommandManagerModel,
-  ScrollSettingsModel
+  ScrollSettingsModel,
+  AnnotationConstraints
 } from '@syncfusion/ej2-react-diagrams';
 import { NodeConfig } from '../../types';
 import './DiagramEditor.css';
@@ -165,6 +166,21 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
           content: getNodeTemplate(nodeConfig, obj.id as string),
         };
       }
+      obj.constraints = (NodeConstraints.Default & ~NodeConstraints.Rotate & ~NodeConstraints.Resize & ~NodeConstraints.InConnect & ~NodeConstraints.OutConnect) | NodeConstraints.HideThumbs;
+      obj.width = 80;
+      obj.height = 80;
+      obj.offsetX = (diagramRef.current as any)?.scrollSettings.viewPortWidth / 2;
+      obj.offsetY = (diagramRef.current as any)?.scrollSettings.viewPortHeight / 2;
+      obj.annotations = [
+        {
+          id: `${nodeConfig.id}-label`,
+          content: nodeConfig.name,
+          style: { color: 'Black', bold: true, textWrapping: 'NoWrap' },
+          offset: { x: 0.5, y: 1 },
+          margin: { top: 15 },
+          constraints: AnnotationConstraints.ReadOnly & ~AnnotationConstraints.Select
+        }
+      ];
     }
 
     // Set default ports for all nodes except sticky notes
@@ -324,7 +340,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
   // Update useEffect to handle selection updates when nodes change
   useEffect(() => {
-    debugger
     if (selectedNodeIds.length > 0) {
       setTimeout(() => {
         updateNodeSelection(selectedNodeIds);
