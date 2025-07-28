@@ -111,6 +111,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       type: nodeTemplate.type,
       name: nodeTemplate.name,
       icon: nodeTemplate.icon,
+      iconUrl: nodeTemplate.iconUrl,
       settings: {
         general: {},
         authentication: {},

@@ -1,3 +1,9 @@
+.node-icon-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  display: block;
+}
 /* EJ2 Sidebar Component Styles */
 .custom-sidebar {
   background: var(--surface-color);

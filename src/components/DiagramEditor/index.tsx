@@ -147,11 +147,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       position: relative;
     `;
 
-    let gradient = 'linear-gradient(135deg, #ffffff, #f0f0f0)';
+    let background = '#ffffff';
     let borderColor = '#9193a2ff';
-    
-    // Safely access nodeConfig.icon with fallback
-    const icon = nodeConfig.icon || '❓';
 
     // Port styles
     const portStyle = `
@@ -185,10 +182,10 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     }
     
     return `
-      <div class="node-template" data-node-id="${nodeId}" style="${baseStyle} background: ${gradient}; border-color: ${borderColor};">
+      <div class="node-template" data-node-id="${nodeId}" style="${baseStyle} background: ${background}; border-color: ${borderColor};">
         ${portsHtml}
-        <div>
-          <div style="font-size: 2.5rem;">${icon}</div>
+        <div style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+          <img src="${nodeConfig.iconUrl}" alt="${nodeConfig.name}" style="width: 100%; height: 100%; object-fit: contain;" />
         </div>
       </div>
     `;

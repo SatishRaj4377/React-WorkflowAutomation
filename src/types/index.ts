@@ -2,7 +2,8 @@ export interface NodeConfig {
   id: string;
   type: 'trigger' | 'action' | 'sticky' | 'form' | 'condition';
   name: string;
-  icon: string;
+  icon?: string;
+  iconUrl?: string;
   settings: {
     general: any;
     authentication?: any;
@@ -31,7 +32,7 @@ export interface ProjectData {
 }
 
 export interface PaletteCategory {
-  name: 'Triggers' | 'Core' | 'Flow' | 'Custom';
+  name: 'Triggers' | 'Core' | 'Flow';
   nodes: NodeTemplate[];
   collapsed: boolean;
 }
@@ -39,7 +40,7 @@ export interface PaletteCategory {
 export interface NodeTemplate {
   id: string;
   name: string;
-  icon: string;
+  icon?: string;
   type: 'trigger' | 'action' | 'sticky' | 'form';
   iconUrl?: string;
   category: string;

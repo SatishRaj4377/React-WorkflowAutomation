@@ -1,14 +1,14 @@
-import React, { useRef, useState } from 'react';
-import { 
-  SidebarComponent, 
-  AccordionComponent, 
-  AccordionItemDirective, 
-  AccordionItemsDirective 
-} from '@syncfusion/ej2-react-navigations';
-import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
-import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
-import { NodeTemplate, PaletteCategory } from '../../types';
-import './NodePaletteSidebar.css';
+import React, { useRef, useState } from "react";
+import {
+  SidebarComponent,
+  AccordionComponent,
+  AccordionItemDirective,
+  AccordionItemsDirective,
+} from "@syncfusion/ej2-react-navigations";
+import { ButtonComponent } from "@syncfusion/ej2-react-buttons";
+import { TextBoxComponent } from "@syncfusion/ej2-react-inputs";
+import { NodeTemplate, PaletteCategory } from "../../types";
+import "./NodePaletteSidebar.css";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -19,170 +19,185 @@ interface SidebarProps {
 const NodePaletteSidebar: React.FC<SidebarProps> = ({
   isOpen,
   onClose,
-  onAddNode
+  onAddNode,
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const searchRef = useRef<TextBoxComponent>(null);
 
   const handleSearchCreated = () => {
     setTimeout(() => {
       if (searchRef.current) {
-        searchRef.current.addIcon('prepend', 'e-icons e-search search-icon');
+        searchRef.current.addIcon("prepend", "e-icons e-search search-icon");
       }
     });
   };
   // Sample node templates
   const nodeCategories: PaletteCategory[] = [
     {
-      name: 'Triggers',
+      name: "Triggers",
       collapsed: false,
       nodes: [
         {
-          id: 'webhook-trigger',
-          name: 'Webhook',
-          icon: '🌐',
-          type: 'trigger',
-          category: 'Triggers',
-          description: 'Receive HTTP requests from external services'
+          id: "webhook-trigger",
+          name: "Webhook",
+          iconUrl: "/images/webhook.png",
+          type: "trigger",
+          category: "Triggers",
+          description: "Receive HTTP requests from external services",
         },
         {
-          id: 'schedule-trigger',
-          name: 'Schedule',
-          icon: '⏰',
-          type: 'trigger',
-          category: 'Triggers',
-          description: 'Trigger workflow on a schedule'
+          id: "schedule-trigger",
+          name: "Schedule",
+          iconUrl: "/images/schedule.png",
+          type: "trigger",
+          category: "Triggers",
+          description: "Trigger workflow on a schedule",
         },
         {
-          id: 'email-trigger',
-          name: 'Email Received',
-          icon: '📧',
-          type: 'trigger',
-          category: 'Triggers',
-          description: 'Trigger when email is received'
+          id: "manual-trigger",
+          name: "Manual Click",
+          iconUrl: "/images/manual.png",
+          type: "trigger",
+          category: "Triggers",
+          description: "When clicked, trigger the workflow",
         },
         {
-          id: 'file-trigger',
-          name: 'File Watcher',
-          icon: '📁',
-          type: 'trigger',
-          category: 'Triggers',
-          description: 'Watch for file changes'
-        }
-      ]
+          id: "chat-trigger",
+          name: "Chat Trigger",
+          iconUrl: "/images/chat.png",
+          type: "trigger",
+          category: "Triggers",
+          description: "Trigger workflow from chat messages",
+        },
+      ],
     },
     {
-      name: 'Core',
-      collapsed: false,
-      nodes: [
-        {
-          id: 'http-request',
-          name: 'HTTP Request',
-          icon: '🔗',
-          type: 'action',
-          category: 'Core',
-          description: 'Make HTTP requests to APIs'
-        },
-        {
-          id: 'send-email',
-          name: 'Send Email',
-          icon: '✉️',
-          type: 'action',
-          category: 'Core',
-          description: 'Send email notifications'
-        },
-        {
-          id: 'data-transform',
-          name: 'Transform Data',
-          icon: '🔄',
-          type: 'action',
-          category: 'Core',
-          description: 'Transform and manipulate data'
-        },
-        {
-          id: 'condition',
-          name: 'Condition',
-          icon: '❓',
-          type: 'action',
-          category: 'Core',
-          description: 'Add conditional logic'
-        },
-        {
-          id: 'delay',
-          name: 'Delay',
-          icon: '⏱️',
-          type: 'action',
-          category: 'Core',
-          description: 'Add delays to workflow'
-        }
-      ]
-    },
-    {
-      name: 'Flow',
+      name: "Core",
       collapsed: true,
       nodes: [
         {
-          id: 'merge',
-          name: 'Merge',
-          icon: '🔀',
-          type: 'action',
-          category: 'Flow',
-          description: 'Merge multiple data streams'
+          id: "ai-agent",
+          name: "AI Agent",
+          iconUrl: "/images/ai-agent.png",
+          type: "action",
+          category: "Core",
+          description: "Use AI agents to process data",
         },
         {
-          id: 'split',
-          name: 'Split',
-          icon: '🔃',
-          type: 'action',
-          category: 'Flow',
-          description: 'Split data into multiple streams'
+          id: "azure-chat",
+          name: "Azure Chat Model",
+          iconUrl: "/images/azure-chat.png",
+          type: "action",
+          category: "Core",
+          description: "Use Azure OpenAI chat models",
         },
         {
-          id: 'loop',
-          name: 'Loop',
-          icon: '🔁',
-          type: 'action',
-          category: 'Flow',
-          description: 'Loop through data items'
-        }
-      ]
+          id: "http-request",
+          name: "HTTP Request",
+          iconUrl: "/images/http.png",
+          type: "action",
+          category: "Core",
+          description: "Make HTTP requests to APIs",
+        },
+        {
+          id: "send-email",
+          name: "Send Mail",
+          iconUrl: "/images/gmail.png",
+          type: "action",
+          category: "Core",
+          description: "Send email notifications",
+        },
+        {
+          id: "telegram",
+          name: "Telegram",
+          iconUrl: "/images/telegram.png",
+          type: "action",
+          category: "Core",
+          description: "Send messages via Telegram",
+        },
+        {
+          id: "calendar",
+          name: "Calendar",
+          iconUrl: "/images/calendar.png",
+          type: "action",
+          category: "Core",
+          description: "Manage calendar events",
+        },
+        {
+          id: "docs",
+          name: "Docs",
+          iconUrl: "/images/docs.png",
+          type: "action",
+          category: "Core",
+          description: "Google Docs integration",
+        },
+        {
+          id: "twilio",
+          name: "Twilio",
+          iconUrl: "/images/twilio.png",
+          type: "action",
+          category: "Core",
+          description: "Send SMS messages via Twilio",
+        },
+      ],
     },
     {
-      name: 'Custom',
+      name: "Flow",
       collapsed: true,
       nodes: [
         {
-          id: 'custom-code',
-          name: 'Custom Code',
-          icon: '💻',
-          type: 'action',
-          category: 'Custom',
-          description: 'Execute custom JavaScript code'
+          id: "if-condition",
+          name: "If Condition",
+          iconUrl: "/images/if.png",
+          type: "action",
+          category: "Flow",
+          description: "Evaluate conditions and branch logic",
         },
         {
-          id: 'form-node',
-          name: 'Form',
-          icon: '📝',
-          type: 'form',
-          category: 'Custom',
-          description: 'Create interactive forms'
-        }
-      ]
+          id: "switch-case",
+          name: "Switch Case",
+          iconUrl: "/images/switch.png",
+          type: "action",
+          category: "Flow",
+          description: "Switch between multiple cases based on conditions",
+        },
+        {
+          id: "filter",
+          name: "Filter",
+          iconUrl: "/images/filter.png",
+          type: "action",
+          category: "Flow",
+          description: "Filter data based on criteria",
+        },
+        {
+          id: "delay",
+          name: "Delay",
+          iconUrl: "/images/delay.png",
+          type: "action",
+          category: "Flow",
+          description: "Delay execution for a specified time",
+        },
+      ],
     }
   ];
 
-  const filteredCategories = nodeCategories.map(category => ({
-    ...category,
-    nodes: category.nodes.filter(node =>
-      node.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      node.description.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  })).filter(category => category.nodes.length > 0);
+  const filteredCategories = nodeCategories
+    .map((category) => ({
+      ...category,
+      nodes: category.nodes.filter(
+        (node) =>
+          node.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          node.description.toLowerCase().includes(searchTerm.toLowerCase())
+      ),
+    }))
+    .filter((category) => category.nodes.length > 0);
 
   const handleNodeClick = (nodeTemplate: NodeTemplate) => {
-    console.log('Node clicked:', nodeTemplate.name);
+    console.log("Node clicked:", nodeTemplate.name);
+    // Remove icon property if present, ensure iconUrl is used
+    const { icon, ...nodeWithoutIcon } = nodeTemplate as any;
     if (onAddNode) {
-      onAddNode(nodeTemplate);
+      onAddNode(nodeWithoutIcon);
     }
   };
 
@@ -197,14 +212,20 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
             onClick={() => handleNodeClick(node)}
             title={node.description}
           >
-            <div className="node-icon">{node.icon}</div>
+            <div className="node-icon">
+              {node.iconUrl && (
+                <img
+                  src={node.iconUrl}
+                  alt={node.name}
+                  className="node-icon-img"
+                />
+              )}
+            </div>
             <div className="node-info">
               <div className="node-name">{node.name}</div>
               <div className="node-description">{node.description}</div>
             </div>
-            <div className={`node-type-badge ${node.type}`}>
-              {node.type}
-            </div>
+            <div className={`node-type-badge ${node.type}`}>{node.type}</div>
           </div>
         ))}
       </div>
@@ -228,7 +249,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
       position="Left"
       type="Over"
       isOpen={isOpen}
-      closeOnDocumentClick= {true}
+      closeOnDocumentClick={true}
       close={onClose}
       target=".editor-content"
     >
@@ -258,7 +279,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
           {filteredCategories.length > 0 ? (
             <AccordionComponent
               className="custom-accordion"
-              expandMode="Multiple"
+              expandMode="Single"
             >
               <AccordionItemsDirective>
                 {filteredCategories.map((category) => (
