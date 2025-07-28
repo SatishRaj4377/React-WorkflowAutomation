@@ -1,13 +1,11 @@
 import React, { useRef, useState } from 'react';
 import { 
   SidebarComponent, 
-  AccordionComponent, 
-  AccordionItemDirective, 
-  AccordionItemsDirective 
+  TabComponent
 } from '@syncfusion/ej2-react-navigations';
 import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
 import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
-import { NodeTemplate, PaletteCategory } from '../../types';
+import { NodeTemplate } from '../../types';
 import './NodePaletteSidebar.css';
 
 interface SidebarProps {
@@ -31,153 +29,156 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
       }
     });
   };
-  // Sample node templates
-  const nodeCategories: PaletteCategory[] = [
+
+  // Sample node templates organized by category
+  const triggerNodes: NodeTemplate[] = [
     {
-      name: 'Triggers',
-      collapsed: false,
-      nodes: [
-        {
-          id: 'webhook-trigger',
-          name: 'Webhook',
-          icon: '🌐',
-          type: 'trigger',
-          category: 'Triggers',
-          description: 'Receive HTTP requests from external services'
-        },
-        {
-          id: 'schedule-trigger',
-          name: 'Schedule',
-          icon: '⏰',
-          type: 'trigger',
-          category: 'Triggers',
-          description: 'Trigger workflow on a schedule'
-        },
-        {
-          id: 'email-trigger',
-          name: 'Email Received',
-          icon: '📧',
-          type: 'trigger',
-          category: 'Triggers',
-          description: 'Trigger when email is received'
-        },
-        {
-          id: 'file-trigger',
-          name: 'File Watcher',
-          icon: '📁',
-          type: 'trigger',
-          category: 'Triggers',
-          description: 'Watch for file changes'
-        }
-      ]
+      id: 'webhook-trigger',
+      name: 'Webhook',
+      icon: '🌐',
+      iconUrl: '/icons/webhook.png',
+      type: 'trigger',
+      category: 'Triggers',
+      description: 'Receive HTTP requests from external services'
     },
     {
-      name: 'Core',
-      collapsed: false,
-      nodes: [
-        {
-          id: 'http-request',
-          name: 'HTTP Request',
-          icon: '🔗',
-          type: 'action',
-          category: 'Core',
-          description: 'Make HTTP requests to APIs'
-        },
-        {
-          id: 'send-email',
-          name: 'Send Email',
-          icon: '✉️',
-          type: 'action',
-          category: 'Core',
-          description: 'Send email notifications'
-        },
-        {
-          id: 'data-transform',
-          name: 'Transform Data',
-          icon: '🔄',
-          type: 'action',
-          category: 'Core',
-          description: 'Transform and manipulate data'
-        },
-        {
-          id: 'condition',
-          name: 'Condition',
-          icon: '❓',
-          type: 'action',
-          category: 'Core',
-          description: 'Add conditional logic'
-        },
-        {
-          id: 'delay',
-          name: 'Delay',
-          icon: '⏱️',
-          type: 'action',
-          category: 'Core',
-          description: 'Add delays to workflow'
-        }
-      ]
+      id: 'schedule-trigger',
+      name: 'Schedule',
+      icon: '⏰',
+      iconUrl: '/icons/schedule.png',
+      type: 'trigger',
+      category: 'Triggers',
+      description: 'Trigger workflow on a schedule'
     },
     {
-      name: 'Flow',
-      collapsed: true,
-      nodes: [
-        {
-          id: 'merge',
-          name: 'Merge',
-          icon: '🔀',
-          type: 'action',
-          category: 'Flow',
-          description: 'Merge multiple data streams'
-        },
-        {
-          id: 'split',
-          name: 'Split',
-          icon: '🔃',
-          type: 'action',
-          category: 'Flow',
-          description: 'Split data into multiple streams'
-        },
-        {
-          id: 'loop',
-          name: 'Loop',
-          icon: '🔁',
-          type: 'action',
-          category: 'Flow',
-          description: 'Loop through data items'
-        }
-      ]
+      id: 'email-trigger',
+      name: 'Email Received',
+      icon: '📧',
+      iconUrl: '/icons/email.png',
+      type: 'trigger',
+      category: 'Triggers',
+      description: 'Trigger when email is received'
     },
     {
-      name: 'Custom',
-      collapsed: true,
-      nodes: [
-        {
-          id: 'custom-code',
-          name: 'Custom Code',
-          icon: '💻',
-          type: 'action',
-          category: 'Custom',
-          description: 'Execute custom JavaScript code'
-        },
-        {
-          id: 'form-node',
-          name: 'Form',
-          icon: '📝',
-          type: 'form',
-          category: 'Custom',
-          description: 'Create interactive forms'
-        }
-      ]
+      id: 'file-trigger',
+      name: 'File Watcher',
+      icon: '📁',
+      iconUrl: '/icons/file.png',
+      type: 'trigger',
+      category: 'Triggers',
+      description: 'Watch for file changes'
     }
   ];
 
-  const filteredCategories = nodeCategories.map(category => ({
-    ...category,
-    nodes: category.nodes.filter(node =>
+  const coreNodes: NodeTemplate[] = [
+    {
+      id: 'http-request',
+      name: 'HTTP Request',
+      icon: '🔗',
+      iconUrl: '/icons/http.png',
+      type: 'action',
+      category: 'Core',
+      description: 'Make HTTP requests to APIs'
+    },
+    {
+      id: 'send-email',
+      name: 'Send Email',
+      icon: '✉️',
+      iconUrl: '/icons/send-email.png',
+      type: 'action',
+      category: 'Core',
+      description: 'Send email notifications'
+    },
+    {
+      id: 'data-transform',
+      name: 'Transform Data',
+      icon: '🔄',
+      iconUrl: '/icons/transform.png',
+      type: 'action',
+      category: 'Core',
+      description: 'Transform and manipulate data'
+    },
+    {
+      id: 'condition',
+      name: 'Condition',
+      icon: '❓',
+      iconUrl: '/icons/condition.png',
+      type: 'action',
+      category: 'Core',
+      description: 'Add conditional logic'
+    },
+    {
+      id: 'delay',
+      name: 'Delay',
+      icon: '⏱️',
+      iconUrl: '/icons/delay.png',
+      type: 'action',
+      category: 'Core',
+      description: 'Add delays to workflow'
+    }
+  ];
+
+  const flowNodes: NodeTemplate[] = [
+    {
+      id: 'merge',
+      name: 'Merge',
+      icon: '🔀',
+      iconUrl: '/icons/merge.png',
+      type: 'action',
+      category: 'Flow',
+      description: 'Merge multiple data streams'
+    },
+    {
+      id: 'split',
+      name: 'Split',
+      icon: '🔃',
+      iconUrl: '/icons/split.png',
+      type: 'action',
+      category: 'Flow',
+      description: 'Split data into multiple streams'
+    },
+    {
+      id: 'loop',
+      name: 'Loop',
+      icon: '🔁',
+      iconUrl: '/icons/loop.png',
+      type: 'action',
+      category: 'Flow',
+      description: 'Loop through data items'
+    }
+  ];
+
+  const customNodes: NodeTemplate[] = [
+    {
+      id: 'custom-code',
+      name: 'Custom Code',
+      icon: '💻',
+      iconUrl: '/icons/code.png',
+      type: 'action',
+      category: 'Custom',
+      description: 'Execute custom JavaScript code'
+    },
+    {
+      id: 'form-node',
+      name: 'Form',
+      icon: '📝',
+      iconUrl: '/icons/form.png',
+      type: 'form',
+      category: 'Custom',
+      description: 'Create interactive forms'
+    }
+  ];
+
+  // Get all nodes for search
+  const allNodes = [...triggerNodes, ...coreNodes, ...flowNodes, ...customNodes];
+
+  const filterNodes = (nodes: NodeTemplate[]) => {
+    if (!searchTerm) return nodes;
+    return nodes.filter(node =>
       node.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       node.description.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  })).filter(category => category.nodes.length > 0);
+    );
+  };
 
   const handleNodeClick = (nodeTemplate: NodeTemplate) => {
     console.log('Node clicked:', nodeTemplate.name);
@@ -186,36 +187,72 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
     }
   };
 
-  // Create content for each accordion item
-  const createCategoryContent = (category: PaletteCategory) => {
-    return (
-      <div className="category-nodes">
-        {category.nodes.map((node) => (
-          <div
-            key={node.id}
-            className="node-item"
-            onClick={() => handleNodeClick(node)}
-            title={node.description}
-          >
-            <div className="node-icon">{node.icon}</div>
-            <div className="node-info">
-              <div className="node-name">{node.name}</div>
-              <div className="node-description">{node.description}</div>
-            </div>
-            <div className={`node-type-badge ${node.type}`}>
-              {node.type}
-            </div>
-          </div>
-        ))}
+  const renderNodeItem = (node: NodeTemplate) => (
+    <div
+      key={node.id}
+      className="node-item"
+      onClick={() => handleNodeClick(node)}
+      title={node.description}
+    >
+      <div className="node-icon">
+        {node.iconUrl ? (
+          <img 
+            src={node.iconUrl} 
+            alt={node.name} 
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              const placeholder = target.nextElementSibling as HTMLElement;
+              target.style.display = 'none';
+              if (placeholder) {
+                placeholder.style.display = 'flex';
+              }
+            }} 
+          />
+        ) : null}
+        <div className="icon-placeholder" style={{ display: node.iconUrl ? 'none' : 'flex' }}>
+          {node.icon}
+        </div>
       </div>
-    );
-  };
+      <div className="node-info">
+        <div className="node-name">{node.name}</div>
+        <div className="node-description">{node.description}</div>
+      </div>
+      <div className={`node-type-badge ${node.type}`}>
+        {node.type}
+      </div>
+    </div>
+  );
 
-  // Create header template for each accordion item
-  const createCategoryHeader = (category: PaletteCategory) => {
-    return () => (
-      <div className="accordion-header-content">
-        <span className="category-title">{category.name}</span>
+  const renderNodeList = (nodes: NodeTemplate[], categoryName: string) => (
+    <div className="tab-content">
+      <div className="category-header">
+        <h4>{categoryName}</h4>
+        <span className="node-count">{filterNodes(nodes).length}</span>
+      </div>
+      <div className="node-list">
+        {filterNodes(nodes).map(renderNodeItem)}
+      </div>
+    </div>
+  );
+
+  const renderSearchResults = () => {
+    const searchResults = filterNodes(allNodes);
+    return (
+      <div className="tab-content">
+        <div className="category-header">
+          <h4>Search Results</h4>
+          <span className="node-count">{searchResults.length}</span>
+        </div>
+        <div className="node-list">
+          {searchResults.length > 0 ? (
+            searchResults.map(renderNodeItem)
+          ) : (
+            <div className="no-results">
+              <div className="no-results-icon">🔍</div>
+              <p>No nodes found matching "{searchTerm}"</p>
+            </div>
+          )}
+        </div>
       </div>
     );
   };
@@ -228,7 +265,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
       position="Left"
       type="Over"
       isOpen={isOpen}
-      closeOnDocumentClick= {true}
+      closeOnDocumentClick={true}
       close={onClose}
       target=".editor-content"
     >
@@ -254,29 +291,35 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
           />
         </div>
 
-        <div className="categories-container">
-          {filteredCategories.length > 0 ? (
-            <AccordionComponent
-              className="custom-accordion"
-              expandMode="Multiple"
-            >
-              <AccordionItemsDirective>
-                {filteredCategories.map((category) => (
-                  <AccordionItemDirective
-                    key={category.name}
-                    expanded={!category.collapsed}
-                    header={createCategoryHeader(category)}
-                    content={() => createCategoryContent(category)}
-                  />
-                ))}
-              </AccordionItemsDirective>
-            </AccordionComponent>
-          ) : searchTerm ? (
-            <div className="no-results">
-              <div className="no-results-icon">🔍</div>
-              <p>No nodes found matching "{searchTerm}"</p>
-            </div>
-          ) : null}
+        <div className="tabs-container">
+          {searchTerm ? (
+            // Show search results in a single view
+            renderSearchResults()
+          ) : (
+            // Show normal tabs when not searching
+            <TabComponent id="palette-tabs" cssClass="palette-tabs" heightAdjustMode='Auto' overflowMode='Popup'>
+              <div className="e-tab-header">
+                <div>Triggers</div>
+                <div>Core</div>
+                <div>Flow</div>
+                <div>Custom</div>
+              </div>
+              <div className="e-content">
+                <div>
+                  {renderNodeList(triggerNodes, 'Trigger Nodes')}
+                </div>
+                <div>
+                  {renderNodeList(coreNodes, 'Core Nodes')}
+                </div>
+                <div>
+                  {renderNodeList(flowNodes, 'Flow Control Nodes')}
+                </div>
+                <div>
+                  {renderNodeList(customNodes, 'Custom Nodes')}
+                </div>
+              </div>
+            </TabComponent>
+          )}
         </div>
       </div>
     </SidebarComponent>

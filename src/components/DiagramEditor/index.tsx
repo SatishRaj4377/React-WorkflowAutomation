@@ -23,7 +23,6 @@ import {
   AnnotationConstraints,
   UserHandleModel,
   UserHandleEventsArgs,
-  ConnectorConstraints
 } from '@syncfusion/ej2-react-diagrams';
 import { NodeConfig } from '../../types';
 import './DiagramEditor.css';

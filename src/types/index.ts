@@ -41,6 +41,7 @@ export interface NodeTemplate {
   name: string;
   icon: string;
   type: 'trigger' | 'action' | 'sticky' | 'form';
+  iconUrl?: string;
   category: string;
   description: string;
 }
