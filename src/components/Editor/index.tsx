@@ -179,6 +179,9 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
             onAddNode={() => setNodePaletteSidebarOpen(true)}
             onExecute={handleExecuteWorkflow}
             onCancel={handleCancelExecution}
+            onFitToPage={() => diagramRef?.fitToPage({canZoomIn: true, canZoomOut: true, margin:{top: 100, left: 100, bottom: 100, right: 100} })}
+            onZoomIn={() => diagramRef?.zoomIn()}
+            onZoomOut={() => diagramRef?.zoomOut()}
             isExecuting={isExecuting}
           />
         </div>
