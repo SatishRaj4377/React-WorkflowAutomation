@@ -110,40 +110,6 @@
 .e-tab .e-tab-header .e-toolbar-item .e-tab-wrap:hover .e-tab-text{
   color: var(--secondary-color);
 }
-.e-tab .e-tab-header .e-toolbar-item.e-active .e-tab-wrap:hover .e-tab-text{
-  color: var(--secondary-color);
-}
-
-.category-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem;
-  background: var(--background-color);
-  border-bottom: 1px solid var(--border-color);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.category-info {
-  flex: 1;
-}
-
-.category-info h4 {
-  margin: 0 0 0.25rem 0;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.category-description {
-  margin: 0;
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  line-height: 1.3;
-}
-
 .node-count {
   font-size: 0.75rem;
   color: var(--text-secondary);
@@ -151,8 +117,6 @@
   padding: 0.25rem 0.5rem;
   border-radius: 12px;
   border: 1px solid var(--border-color);
-  margin-left: 1rem;
-  flex-shrink: 0;
 }
 
 .node-list {

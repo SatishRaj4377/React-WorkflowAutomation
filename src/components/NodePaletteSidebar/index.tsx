@@ -14,11 +14,6 @@ interface SidebarProps {
   onAddNode?: (nodeTemplate: NodeTemplate) => void;
 }
 
-interface CategoryInfo {
-  title: string;
-  description: string;
-}
-
 const NodePaletteSidebar: React.FC<SidebarProps> = ({
   isOpen,
   onClose,
@@ -228,63 +223,24 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
     </div>
   );
 
-  const getCategoryInfo = (categoryName: string): CategoryInfo => {
-    const categoryDescriptions: Record<string, CategoryInfo> = {
-      'Trigger Nodes': {
-        title: 'Triggers',
-        description: 'Start your workflow when specific events occur'
-      },
-      'Core Nodes': {
-        title: 'Core Actions',
-        description: 'Essential building blocks for data processing and communication'
-      },
-      'Flow Control Nodes': {
-        title: 'Flow Control',
-        description: 'Control the execution path and data flow in your workflow'
-      },
-      'Custom Nodes': {
-        title: 'Custom',
-        description: 'Advanced nodes for specialized functionality and forms'
-      },
-      'Search Results': {
-        title: 'Search Results',
-        description: 'Nodes matching your search criteria'
-      }
-    };
-    
-    return categoryDescriptions[categoryName] || { title: categoryName, description: '' };
-  };
-
-  const renderNodeList = (nodes: NodeTemplate[], categoryName: string) => {
-    const categoryInfo = getCategoryInfo(categoryName);
-    
-    return (
-      <div className="tab-content">
-        <div className="category-header">
-          <div className="category-info">
-            <h4>{categoryInfo.title}</h4>
-            <p className="category-description">{categoryInfo.description}</p>
-          </div>
-          <span className="node-count">{filterNodes(nodes).length}</span>
-        </div>
-        <div className="node-list">
-          {filterNodes(nodes).map(renderNodeItem)}
-        </div>
+  const renderNodeList = (nodes: NodeTemplate[], categoryName: string) => (
+    <div className="tab-content">
+      <div className="category-header">
+        <h4>{categoryName}</h4>
+        <span className="node-count">{filterNodes(nodes).length}</span>
       </div>
-    );
-  };
+      <div className="node-list">
+        {filterNodes(nodes).map(renderNodeItem)}
+      </div>
+    </div>
+  );
 
   const renderSearchResults = () => {
     const searchResults = filterNodes(allNodes);
-    const categoryInfo = getCategoryInfo('Search Results');
-    
     return (
       <div className="tab-content">
         <div className="category-header">
-          <div className="category-info">
-            <h4>{categoryInfo.title}</h4>
-            <p className="category-description">{categoryInfo.description}</p>
-          </div>
+          <h4>Search Results</h4>
           <span className="node-count">{searchResults.length}</span>
         </div>
         <div className="node-list">
