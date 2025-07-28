@@ -16,6 +16,9 @@
 .e-diagram-highlighter{
   display: none !important;
 }
+/* .e-diagram-endpoint-handle.e-disabled {
+  display: none !important;
+} */
 
 /* Node Template Selection Custom Styles */
 .node-template {

@@ -20,7 +20,10 @@ import {
   KeyModifiers,
   CommandManagerModel,
   ScrollSettingsModel,
-  AnnotationConstraints
+  AnnotationConstraints,
+  UserHandleModel,
+  UserHandleEventsArgs,
+  ConnectorConstraints
 } from '@syncfusion/ej2-react-diagrams';
 import { NodeConfig } from '../../types';
 import './DiagramEditor.css';
@@ -46,6 +49,27 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   const overviewTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  // User handles for Connectors
+  let userHandles: UserHandleModel[] =  [
+    {
+      name: 'deleteConnector',
+      pathData:
+        'M0.97,3.04 L12.78,3.04 L12.78,12.21 C12.78,12.64,12.59,13,12.2,13.3 C11.82,13.6,11.35,13.75,10.8,13.75 L2.95,13.75 C2.4,13.75,1.93,13.6,1.55,13.3 C1.16,13,0.97,12.64,0.97,12.21 Z M4.43,0 L9.32,0 L10.34,0.75 L13.75,0.75 L13.75,2.29 L0,2.29 L0,0.75 L3.41,0.75 Z ',
+      tooltip: { content: 'Delete' },
+      offset: 0.5,
+      backgroundColor: '#effdff',
+      pathColor: '#656565ff',
+      borderColor: '#333333ff',
+      disableNodes: true,
+    }
+  ];
+
+  const handleUserHandleMouseDown = (args: UserHandleEventsArgs) => {
+    if (args.element){
+      (diagramRef.current as any).remove();
+    }
+  };
 
   // Pass diagram ref to parent component
   useEffect(() => {
@@ -272,13 +296,13 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
     obj.type = 'Bezier';
     obj.style = {
-      strokeColor: '#b4b4b4ff',
+      strokeColor: '#9193a2ff',
       strokeWidth: 2,
     };
     obj.targetDecorator = {
       style: {
-        fill: '#b4b4b4ff',
-        strokeColor: '#b4b4b4ff',
+        fill: '#9193a2ff',
+        strokeColor: '#9193a2ff',
       }
     };
     return obj;
@@ -583,14 +607,9 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         doubleClick={handleDoubleClick}
         selectionChange={handleSelectionChange}
         commandManager={getCommandManagerSettings()}
-        backgroundColor="transparent"
+        selectedItems={{ userHandles: userHandles}}
+        onUserHandleMouseDown={ handleUserHandleMouseDown }
         serializationSettings={{ preventDefaults: true }}
-        pageSettings={{
-          background: {
-            color: 'transparent',
-          },
-          showPageBreaks: false,
-        }}
       >
         <Inject services={[
           UndoRedo,
