@@ -25,6 +25,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const [isExecuting, setIsExecuting] = useState(false);
   const [projectName, setProjectName] = useState(project.name);
   const [diagramRef, setDiagramRef] = useState<any>(null);
+  const [isDirty, setIsDirty] = useState(false);
+  const [isNavigatingAway, setIsNavigatingAway] = useState(false);
 
   useEffect(() => {
     // Handle selected node changes - will be managed by DiagramEditor
@@ -60,12 +62,18 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
           }
         });
         onSaveProject(updatedProject);
+        setIsDirty(false);
         showSuccessToast('Workflow Saved', 'Your workflow has been saved successfully.');
       }
     } catch (error) {
       console.error('Failed to save workflow:', error);
       showErrorToast('Save Failed', 'There was an error saving your workflow.');
     }
+  };
+
+  const handleDiagramChange = () => {
+    // Mark as dirty when diagram changes
+    setIsDirty(true);
   };
 
   const handleNodeDoubleClick = (nodeId: string) => {
@@ -82,6 +90,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       if (node) {
         node.addInfo = { nodeConfig: config };
         diagramRef.dataBind();
+        setIsDirty(true); // Mark as dirty when node config changes
       }
     }
   };
@@ -93,7 +102,6 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     setTimeout(() => {
       setIsExecuting(false);
       showSuccessToast('Workflow Executed', 'Your workflow has completed successfully.');
-    
     }, 3000);
   };
 
@@ -129,6 +137,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       
       diagramRef.add(newNode);
       setSelectedNodeId(nodeId);
+      setIsDirty(true); // Mark as dirty when adding node
     }
   };
 
@@ -136,13 +145,76 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     setDiagramRef(ref);
   };
 
+  const handleBackToHome = () => {
+    if (isDirty && !isNavigatingAway) {
+      const shouldSave = window.confirm(
+        'You have unsaved changes. Do you want to save before leaving?'
+      );
+      
+      if (shouldSave) {
+        handleSave();
+      }
+    }
+    setIsNavigatingAway(true);
+    onBackToHome();
+  };
+
+  // Handle browser navigation (back button)
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (isDirty && !isNavigatingAway) {
+        const message = 'You have unsaved changes. Are you sure you want to leave?';
+        event.preventDefault();
+        event.returnValue = message;
+        return message;
+      }
+    };
+
+    const handlePopState = (event: PopStateEvent) => {
+      if (isDirty && !isNavigatingAway) {
+        // Prevent the navigation
+        event.preventDefault();
+        
+        window.history.pushState(null, '', window.location.href);
+        
+        const shouldSave = window.confirm(
+          'You have unsaved changes. Do you want to save before leaving?'
+        );
+        
+        if (shouldSave) {
+          handleSave();
+        }
+        
+        // Now allow navigation
+        setIsNavigatingAway(true);
+        setTimeout(() => {
+          window.history.back();
+        }, 100);
+      }
+    };
+
+    // Add a state to the history when component mounts
+    window.history.pushState(null, '', window.location.href);
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [isDirty, isNavigatingAway]);
+
   return (
     <div className="editor-container" data-theme={theme}>
       <AppBar
         projectName={projectName}
-        onBack={onBackToHome}
+        onBack={handleBackToHome}
         onSave={handleSave}
-        onProjectNameChange={setProjectName}
+        onProjectNameChange={(name) => {
+          setProjectName(name);
+          setIsDirty(true); // Mark as dirty when project name changes
+        }}
         onThemeToggle={toggleTheme}
         showBackButton={true}
       />
@@ -170,6 +242,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
             onNodeDoubleClick={handleNodeDoubleClick}
             onDiagramRef={handleDiagramRef}
             project={project}
+            onDiagramChange={handleDiagramChange}
           />
         </div>
         

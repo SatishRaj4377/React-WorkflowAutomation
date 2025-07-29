@@ -193,7 +193,6 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
     .filter((category) => category.nodes.length > 0);
 
   const handleNodeClick = (nodeTemplate: NodeTemplate) => {
-    console.log("Node clicked:", nodeTemplate.name);
     // Remove icon property if present, ensure iconUrl is used
     const { icon, ...nodeWithoutIcon } = nodeTemplate as any;
     if (onAddNode) {

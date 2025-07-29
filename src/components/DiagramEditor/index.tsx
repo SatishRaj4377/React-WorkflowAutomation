@@ -32,13 +32,15 @@ interface DiagramEditorProps {
   onNodeDoubleClick: (nodeId: string) => void;
   onDiagramRef?: (ref: any) => void;
   project?: any;
+  onDiagramChange?: (args: any) => void;
 }
 
 const DiagramEditor: React.FC<DiagramEditorProps> = ({
   onAddNode,
   onNodeDoubleClick,
   onDiagramRef,
-  project
+  project,
+  onDiagramChange
 }) => {
 
   const diagramRef = useRef<DiagramComponent>(null);
@@ -291,6 +293,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     }
 
     obj.type = 'Bezier';
+    obj.segments= [{ type: 'Bezier' }];
     obj.style = {
       strokeColor: '#9193a2ff',
       strokeWidth: 2,
@@ -426,7 +429,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         }
         break;
       case 'addSticky':
-        console.log(args);
         const position = args.event && typeof args.event === 'object' 
           ? {x: args.event.pageX, y: args.event.pageY} : { x: 300, y: 300 };
         addStickyNote(position);
@@ -605,6 +607,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         commandManager={getCommandManagerSettings()}
         selectedItems={{ userHandles: userHandles}}
         onUserHandleMouseDown={ handleUserHandleMouseDown }
+        historyChange={onDiagramChange}
       >
         <Inject services={[
           UndoRedo,
