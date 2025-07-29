@@ -5,7 +5,7 @@
   pointer-events: none !important;
 }
 .e-diagram-resize-handle{
-  display: none !important;
+  fill: rgb(148, 149, 159) !important;
   stroke: none !important;
   stroke-dasharray: none !important;
 }

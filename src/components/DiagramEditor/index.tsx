@@ -125,12 +125,31 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
      scrollLimit: 'Infinity',
   };
 
+  // Set the ZIndex of sticky nodes
+  function setStickyNodeZIndex(nodeId: string) {
+    debugger
+    // Find the node-template element
+    const nodeTemplate = document.querySelector(`.node-template[data-node-id="${nodeId}"]`);
+    if (!nodeTemplate) return;
+
+    // Traverse up to the parent with id ending in '_content_html_element'
+    let parent = nodeTemplate.parentElement;
+    while (parent && !parent.id.endsWith('_content_html_element')) {
+      parent = parent.parentElement;
+    }
+    if (parent) {
+      parent.style.zIndex = String(-100000);
+    }
+  }
+
   // HTML Templates for different node types
   const getNodeTemplate = (nodeConfig: NodeConfig, nodeId: string): string => {
     if (!nodeConfig || typeof nodeConfig !== 'object') {
       console.warn('Invalid nodeConfig provided to getNodeTemplate');
       return '<div>Invalid Node</div>';
     }
+
+    const isStickyNode = nodeConfig.type === 'sticky'
 
     const baseStyle = [
       'width: 100%',
@@ -169,7 +188,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
     // Ports HTML
     let portsHtml = '';
-    if (nodeConfig.type !== 'sticky') {
+    if (!isStickyNode) {
       if (nodeConfig.type === 'trigger') {
         portsHtml = `<div style="${rightPortStyle}"></div>`;
       } else {
@@ -182,8 +201,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
     // Node content
     let contentHtml = '';
-    if (nodeConfig.type === 'sticky') {
-      // Placeholder for sticky note (RichTextEditor will be rendered here)
+    if (isStickyNode) {
+      setTimeout(() => setStickyNodeZIndex(nodeId));
       contentHtml = `<div id="sticky-rte-${nodeId}" style="width:100%;height:100%;background:#fffbe7;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>`;
     } else {
       contentHtml = `
@@ -214,14 +233,19 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         type: "HTML",
         content: getNodeTemplate(nodeConfig, obj.id as string),
       };
-      obj.constraints =
-        (NodeConstraints.Default &
-          ~NodeConstraints.Rotate &
-          ~NodeConstraints.Resize &
-          ~NodeConstraints.InConnect &
-          ~NodeConstraints.OutConnect) |
-        NodeConstraints.HideThumbs;
+      
+      let baseConstraints =
+        NodeConstraints.Default &
+        ~NodeConstraints.Rotate &
+        ~NodeConstraints.InConnect &
+        ~NodeConstraints.OutConnect;
 
+      if (nodeType === 'sticky') {
+        obj.constraints = baseConstraints;
+      } else {
+        obj.constraints = (baseConstraints & ~NodeConstraints.Resize) | NodeConstraints.HideThumbs;
+      }
+      
       obj.width = obj.width || (nodeType === 'sticky' ? 200 : 80);
       obj.height = obj.height || (nodeType === 'sticky' ? 120 : 80);
 
