@@ -189,6 +189,49 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     }
   };
 
+  const handleAutoAlignNodes = () => {
+    if (!diagramRef) {
+      return;
+    }
+
+    const nodes = diagramRef.nodes;
+    if (!nodes || !Array.isArray(nodes)) {
+      console.warn('No nodes available for alignment');
+      return;
+    }
+
+    let x = 100;
+    let y = 100;
+    const spacing = 200;
+
+    nodes.forEach((node, index) => {
+      if (!node || typeof node !== 'object') {
+        return;
+      }
+
+      const addInfo = node.addInfo as any;
+      const nodeConfig = addInfo?.nodeConfig;
+      const nodeType = nodeConfig?.type;
+
+      if (nodeType !== 'sticky') {
+        node.offsetX = x;
+        node.offsetY = y;
+
+        x += spacing;
+        if ((index + 1) % 4 === 0) {
+          x = 100;
+          y += spacing;
+        }
+      }
+    });
+
+    try {
+      diagramRef.dataBind();
+    } catch (error) {
+      console.error('Error during data binding:', error);
+    }
+  };
+
   // Handle browser navigation (back button)
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -274,6 +317,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
             project={project}
             onDiagramChange={handleDiagramChange}
             onAddStickyNote= {handleAddStickyNote}
+            onAutoAlignNodes={handleAutoAlignNodes}
           />
         </div>
         
@@ -287,6 +331,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
             onZoomIn={() => diagramRef?.zoomTo({type: 'ZoomIn', zoomFactor: 0.2})}
             onZoomOut={() => diagramRef?.zoomTo({type: 'ZoomOut', zoomFactor: 0.2})}
             onAddSticky={handleAddStickyNote}
+            onAutoAlign={handleAutoAlignNodes}
             isExecuting={isExecuting}
           />
         </div>

@@ -33,6 +33,7 @@ interface DiagramEditorProps {
   project?: any;
   onDiagramChange?: (args: any) => void;
   onAddStickyNote?: (position: { x: number; y: number }) => void;
+  onAutoAlignNodes?: () => void;
 }
 
 const DiagramEditor: React.FC<DiagramEditorProps> = ({
@@ -41,7 +42,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   onDiagramRef,
   project,
   onDiagramChange,
-  onAddStickyNote
+  onAddStickyNote,
+  onAutoAlignNodes
 }) => {
 
   const diagramRef = useRef<DiagramComponent>(null);
@@ -468,7 +470,9 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         console.log('Lock workflow');
         break;
       case 'autoAlign':
-        autoAlignNodes();
+        if (onAutoAlignNodes){
+          onAutoAlignNodes();
+        }
         break;
       default:
         console.warn(`Unknown context menu item: ${itemId}`);
@@ -501,49 +505,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     return commandManager;
   };
 
-  const autoAlignNodes = () => {
-    if (!diagramRef.current) {
-      console.warn('Diagram reference is not available');
-      return;
-    }
 
-    const nodes = diagramRef.current.nodes;
-    if (!nodes || !Array.isArray(nodes)) {
-      console.warn('No nodes available for alignment');
-      return;
-    }
-
-    let x = 100;
-    let y = 100;
-    const spacing = 200;
-
-    nodes.forEach((node, index) => {
-      if (!node || typeof node !== 'object') {
-        return;
-      }
-
-      const addInfo = node.addInfo as any;
-      const nodeConfig = addInfo?.nodeConfig;
-      const nodeType = nodeConfig?.type;
-
-      if (nodeType !== 'sticky') {
-        node.offsetX = x;
-        node.offsetY = y;
-
-        x += spacing;
-        if ((index + 1) % 4 === 0) {
-          x = 100;
-          y += spacing;
-        }
-      }
-    });
-
-    try {
-      diagramRef.current.dataBind();
-    } catch (error) {
-      console.error('Error during data binding:', error);
-    }
-  };
 
   useEffect(() => {
     if (diagramRef.current) {
