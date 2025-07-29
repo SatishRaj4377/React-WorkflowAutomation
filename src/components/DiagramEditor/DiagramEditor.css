@@ -169,6 +169,23 @@
   fill: rgba(177, 220, 255, 0.226);
 }
 
+/* Zoom Percentage Display */
+.zoom-percentage-display {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--text-secondary);
+  color: var(--surface-color);
+  padding: 5px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: bold;
+  z-index: 1001;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
 /* Responsive Adjustments */
 @media (max-width: 768px) {
   .e-contextmenu .e-menu-item {

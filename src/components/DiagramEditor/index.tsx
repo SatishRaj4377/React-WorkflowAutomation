@@ -20,7 +20,6 @@ import {
   KeyModifiers,
   CommandManagerModel,
   ScrollSettingsModel,
-  AnnotationConstraints,
   UserHandleModel,
   UserHandleEventsArgs,
 } from '@syncfusion/ej2-react-diagrams';
@@ -52,6 +51,10 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   const overviewTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [zoomPercentage, setZoomPercentage] = useState<number>(100);
+  const [showZoomPercentage, setShowZoomPercentage] = useState<boolean>(false);
+  const zoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [previousZoom, setPreviousZoom] = useState<number>(100);
 
   // User handles for Connectors
   let userHandles: UserHandleModel[] =  [
@@ -96,13 +99,37 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     }
   }, [project, diagramRef.current, isLoaded]);
 
-  const handleScrollChange = () => {
+  const handleScrollChange = (args: any) => {
+    if (diagramRef.current) {
+      const currentZoom = Math.round((diagramRef.current as any)?.scrollSettings.currentZoom * 100);
+      
+      // Only show zoom percentage if zoom level changed
+      if (currentZoom !== previousZoom) {
+        setZoomPercentage(currentZoom);
+        setShowZoomPercentage(true);
+        setPreviousZoom(currentZoom);
+        
+        // Clear existing zoom timeout
+        if (zoomTimeoutRef.current) {
+          clearTimeout(zoomTimeoutRef.current);
+        }
+        
+        // Hide zoom percentage after 2 seconds
+        zoomTimeoutRef.current = setTimeout(() => {
+          setShowZoomPercentage(false);
+        }, 2000);
+      }
+    }
+    
+    // Always show overview during scrolling (panning)
     setShowOverview(true);
-    // Clear existing timeout
+    
+    // Clear existing overview timeout
     if (overviewTimeoutRef.current) {
       clearTimeout(overviewTimeoutRef.current);
     }
-    // Hide overview after 2 seconds of no scroll/pan activity
+    
+    // Hide overview after 2 seconds
     overviewTimeoutRef.current = setTimeout(() => {
       setShowOverview(false);
     }, 2000);
@@ -543,10 +570,13 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
   useEffect(() => {
     return () => {
-      if (overviewTimeoutRef.current) {
-        clearTimeout(overviewTimeoutRef.current);
-      }
-    };
+        if (overviewTimeoutRef.current) {
+          clearTimeout(overviewTimeoutRef.current);
+        }
+        if (zoomTimeoutRef.current) {
+          clearTimeout(zoomTimeoutRef.current);
+        }
+      };
   }, []);
 
   return (
@@ -581,13 +611,18 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         ]} />
       </DiagramComponent>
 
-      {/* Overview Panel */}
+      {/* Overview Panel with integrated zoom percentage */}
       <div className='diagram-overview-container'
         style={{
           opacity: showOverview ? 1 : 0,
           visibility: showOverview ? 'visible' : 'hidden',
         }}
       >
+        {showZoomPercentage && (
+          <div className="zoom-percentage-display">
+            {zoomPercentage}%
+          </div>
+        )}
         <OverviewComponent
           id="overview"
           sourceID="workflow-diagram"
