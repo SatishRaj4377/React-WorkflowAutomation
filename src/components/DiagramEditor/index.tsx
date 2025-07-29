@@ -149,52 +149,17 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       return '<div>Invalid Node</div>';
     }
 
-    const isStickyNode = nodeConfig.type === 'sticky'
-
-    const baseStyle = [
-      'width: 100%',
-      'height: 100%',
-      'display: flex',
-      'align-items: center',
-      'justify-content: center',
-      'border-radius: 8px',
-      'box-shadow: 0 2px 8px rgba(0,0,0,0.1)',
-      'border: 2px solid',
-      'color: white',
-      'font-weight: bold',
-      'font-size: 12px',
-      'text-align: center',
-      'pointer-events: none',
-      'user-select: none',
-      'position: relative'
-    ].join(';');
-
-    const background = '#ffffff';
-    const borderColor = '#9193a2ff';
-
-    // Port styles
-    const portStyle = [
-      'position: absolute',
-      'width: 12px',
-      'height: 12px',
-      `background-color: ${borderColor}`,
-      'top: 50%',
-      'transform: translateY(-50%)',
-      'z-index: 10'
-    ].join(';');
-
-    const leftPortStyle = `${portStyle}; left: -8px; border-radius: 2px;`;
-    const rightPortStyle = `${portStyle}; right: -8px; border-radius: 50%;`;
+    const isStickyNode = nodeConfig.type === 'sticky';
 
     // Ports HTML
     let portsHtml = '';
     if (!isStickyNode) {
       if (nodeConfig.type === 'trigger') {
-        portsHtml = `<div style="${rightPortStyle}"></div>`;
+        portsHtml = `<div class="node-port-right"></div>`;
       } else {
         portsHtml = `
-          <div style="${leftPortStyle}"></div>
-          <div style="${rightPortStyle}"></div>
+          <div class="node-port-left"></div>
+          <div class="node-port-right"></div>
         `;
       }
     }
@@ -203,19 +168,22 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     let contentHtml = '';
     if (isStickyNode) {
       setTimeout(() => setStickyNodeZIndex(nodeId));
-      contentHtml = `<div id="sticky-rte-${nodeId}" style="width:100%;height:100%;background:#fffbe7;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>`;
+      contentHtml = `<div id="sticky-rte-${nodeId}" class="sticky-node-content"></div>`;
     } else {
       contentHtml = `
-        <div style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
-          <img src="${nodeConfig.iconUrl}" alt="${nodeConfig.name}" style="width: 100%; height: 100%; object-fit: contain;" />
+        <div class="node-img-content">
+          <img src="${nodeConfig.iconUrl}" alt="${nodeConfig.name}" />
         </div>
       `;
     }
 
     return `
-      <div class="node-template" data-node-id="${nodeId}" style="${baseStyle}; background: ${background}; border-color: ${borderColor};">
-        ${portsHtml}
-        ${contentHtml}
+      <div class="node-template-container">
+        <div class="node-template" data-node-id="${nodeId}">
+          ${portsHtml}
+          ${contentHtml}
+        </div>
+        ${nodeConfig.type !== 'sticky' ? `<div class="node-name-bar">${nodeConfig.name ? nodeConfig.name : ''}</div>` : ''}
       </div>
     `;
   };
@@ -243,9 +211,9 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       if (nodeType === 'sticky') {
         obj.constraints = baseConstraints;
       } else {
-        obj.constraints = (baseConstraints & ~NodeConstraints.Resize) | NodeConstraints.HideThumbs;
+        obj.constraints = (baseConstraints & ~NodeConstraints.Resize) | NodeConstraints.HideThumbs | NodeConstraints.ReadOnly;
       }
-      
+
       obj.width = obj.width || (nodeType === 'sticky' ? 200 : 80);
       obj.height = obj.height || (nodeType === 'sticky' ? 120 : 80);
 
@@ -254,19 +222,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       }
       if (!obj.offsetY) {
         obj.offsetY = (diagramRef.current as any)?.scrollSettings.viewPortHeight / 2 || 200;
-      }
-
-      if (nodeType !== 'sticky') {
-        obj.annotations = [
-          {
-            id: `${nodeConfig.id}-label`,
-            content: nodeConfig.name,
-            style: { color: 'Black', bold: true, textWrapping: 'NoWrap' },
-            offset: { x: 0.5, y: 1 },
-            margin: { top: 15 },
-            constraints: AnnotationConstraints.ReadOnly & ~AnnotationConstraints.Select,
-          },
-        ];
       }
     }
 
@@ -319,7 +274,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     if (!obj || typeof obj !== 'object') {
       return obj;
     }
-
+    obj.zIndex =  1000;
     obj.type = 'Bezier';
     obj.segments= [{ type: 'Bezier' }];
     obj.style = {

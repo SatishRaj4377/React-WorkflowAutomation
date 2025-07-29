@@ -42,6 +42,7 @@ body {
   --node-selector-outline: #ccd5e2ad;
   --node-selector-background: #effdff;
   --node-handle: #a8adb3;
+  --node-border-color: #9193a2ff;
 }
 
 /* Dark theme - Professional Blue Dark Palette */
