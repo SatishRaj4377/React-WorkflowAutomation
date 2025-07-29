@@ -125,21 +125,44 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
      scrollLimit: 'Infinity',
   };
 
-  // Set the ZIndex of sticky nodes
-  function setStickyNodeZIndex(nodeId: string) {
-    debugger
-    // Find the node-template element
-    const nodeTemplate = document.querySelector(`.node-template[data-node-id="${nodeId}"]`);
-    if (!nodeTemplate) return;
-
-    // Traverse up to the parent with id ending in '_content_html_element'
-    let parent = nodeTemplate.parentElement;
-    while (parent && !parent.id.endsWith('_content_html_element')) {
-      parent = parent.parentElement;
-    }
-    if (parent) {
-      parent.style.zIndex = String(-100000);
-    }
+  // Set up styles for sticky notes node
+  const setUpStickyNoteStyles = (stickyNode: NodeModel) => {
+    stickyNode.minWidth = 160;
+    stickyNode.minHeight = 80;
+    stickyNode.style= {
+      fill: '#fffbe7',
+      strokeColor: '#9193a2ff',
+      strokeWidth: 2,
+      strokeDashArray: '10 4',
+      opacity: 0.7,
+    };
+    stickyNode.annotations= [
+      {
+        content: 'Type your content here...',
+        horizontalAlignment: 'Left',
+        verticalAlignment: 'Top',
+        offset: {x: 0, y: 0},
+        margin: {left: 20, top: 60, bottom: 0, right: 0},
+        width: 160,
+        style: {
+          fontSize: 14,
+          textAlign: 'Left',
+          textWrapping: 'Wrap',
+          textOverflow: 'Ellipsis',
+        },  
+      },
+      {
+        content: "Note",
+        horizontalAlignment: 'Left',
+        verticalAlignment: 'Top',
+        margin: {left: 20, top: 20, bottom: 0, right: 0},
+        offset: {x: 0, y: 0},
+        style: {
+          fontSize: 20,
+          bold: true,
+        },
+      },
+    ]
   }
 
   // HTML Templates for different node types
@@ -149,33 +172,23 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       return '<div>Invalid Node</div>';
     }
 
-    const isStickyNode = nodeConfig.type === 'sticky';
-
     // Ports HTML
     let portsHtml = '';
-    if (!isStickyNode) {
-      if (nodeConfig.type === 'trigger') {
-        portsHtml = `<div class="node-port-right"></div>`;
-      } else {
-        portsHtml = `
-          <div class="node-port-left"></div>
-          <div class="node-port-right"></div>
-        `;
-      }
+    if (nodeConfig.type === 'trigger') {
+      portsHtml = `<div class="node-port-right"></div>`;
+    } else {
+      portsHtml = `
+        <div class="node-port-left"></div>
+        <div class="node-port-right"></div>
+      `;
     }
 
     // Node content
-    let contentHtml = '';
-    if (isStickyNode) {
-      setTimeout(() => setStickyNodeZIndex(nodeId));
-      contentHtml = `<div id="sticky-rte-${nodeId}" class="sticky-node-content"></div>`;
-    } else {
-      contentHtml = `
+    let contentHtml = `
         <div class="node-img-content">
           <img src="${nodeConfig.iconUrl}" alt="${nodeConfig.name}" />
         </div>
       `;
-    }
 
     return `
       <div class="node-template-container">
@@ -197,10 +210,16 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     const nodeType = nodeConfig?.type;
 
     if (nodeConfig && typeof nodeConfig === "object") {
-      obj.shape = {
-        type: "HTML",
-        content: getNodeTemplate(nodeConfig, obj.id as string),
-      };
+      if (nodeType === "sticky") {
+        setUpStickyNoteStyles(obj);
+      }
+      else
+      {
+        obj.shape = {
+          type: "HTML",
+          content: getNodeTemplate(nodeConfig, obj.id as string),
+        };
+      }
       
       let baseConstraints =
         NodeConstraints.Default &
