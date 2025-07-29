@@ -127,127 +127,128 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
   // HTML Templates for different node types
   const getNodeTemplate = (nodeConfig: NodeConfig, nodeId: string): string => {
-    // Validate nodeConfig parameter
     if (!nodeConfig || typeof nodeConfig !== 'object') {
       console.warn('Invalid nodeConfig provided to getNodeTemplate');
       return '<div>Invalid Node</div>';
     }
 
-    const baseStyle = `
-      width: 100%; 
-      height: 100%; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      border: 2px solid;
-      color: white;
-      font-weight: bold;
-      font-size: 12px;
-      text-align: center;
-      pointer-events: none;
-      user-select: none;
-      position: relative;
-    `;
+    const baseStyle = [
+      'width: 100%',
+      'height: 100%',
+      'display: flex',
+      'align-items: center',
+      'justify-content: center',
+      'border-radius: 8px',
+      'box-shadow: 0 2px 8px rgba(0,0,0,0.1)',
+      'border: 2px solid',
+      'color: white',
+      'font-weight: bold',
+      'font-size: 12px',
+      'text-align: center',
+      'pointer-events: none',
+      'user-select: none',
+      'position: relative'
+    ].join(';');
 
-    let background = '#ffffff';
-    let borderColor = '#9193a2ff';
+    const background = '#ffffff';
+    const borderColor = '#9193a2ff';
 
     // Port styles
-    const portStyle = `
-      position: absolute;
-      width: 12px;
-      height: 12px;
-      background-color: ${borderColor};
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 10;
-    `;
+    const portStyle = [
+      'position: absolute',
+      'width: 12px',
+      'height: 12px',
+      `background-color: ${borderColor}`,
+      'top: 50%',
+      'transform: translateY(-50%)',
+      'z-index: 10'
+    ].join(';');
 
-    const leftPortStyle = `${portStyle} left: -8px; border-radius: 2px;`;
-    const rightPortStyle = `${portStyle} right: -8px; border-radius: 50%;`;
+    const leftPortStyle = `${portStyle}; left: -8px; border-radius: 2px;`;
+    const rightPortStyle = `${portStyle}; right: -8px; border-radius: 50%;`;
 
-    // Check if it's a trigger node (only right port) or sticky note (no ports)
-    const nodeType = nodeConfig.type;
+    // Ports HTML
     let portsHtml = '';
-    
-    if (nodeType !== 'sticky') {
-      if (nodeType === 'trigger') {
-        // Only right port for trigger nodes
+    if (nodeConfig.type !== 'sticky') {
+      if (nodeConfig.type === 'trigger') {
         portsHtml = `<div style="${rightPortStyle}"></div>`;
       } else {
-        // Both ports for regular nodes
         portsHtml = `
           <div style="${leftPortStyle}"></div>
           <div style="${rightPortStyle}"></div>
         `;
       }
     }
-    
-    return `
-      <div class="node-template" data-node-id="${nodeId}" style="${baseStyle} background: ${background}; border-color: ${borderColor};">
-        ${portsHtml}
+
+    // Node content
+    let contentHtml = '';
+    if (nodeConfig.type === 'sticky') {
+      // Placeholder for sticky note (RichTextEditor will be rendered here)
+      contentHtml = `<div id="sticky-rte-${nodeId}" style="width:100%;height:100%;background:#fffbe7;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>`;
+    } else {
+      contentHtml = `
         <div style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
           <img src="${nodeConfig.iconUrl}" alt="${nodeConfig.name}" style="width: 100%; height: 100%; object-fit: contain;" />
         </div>
+      `;
+    }
+
+    return `
+      <div class="node-template" data-node-id="${nodeId}" style="${baseStyle}; background: ${background}; border-color: ${borderColor};">
+        ${portsHtml}
+        ${contentHtml}
       </div>
     `;
   };
 
   // Get default styles for nodes
   const getNodeDefaults = (obj: NodeModel): NodeModel => {
-    // Ensure obj and addInfo exist before accessing properties
     if (!obj) return obj;
 
-    // Set HTML template based on node configuration
-    if (
-      obj.addInfo &&
-      typeof obj.addInfo === "object" &&
-      (obj.addInfo as any).nodeConfig
-    ) {
-      const nodeConfig = (obj.addInfo as any).nodeConfig as NodeConfig;
-      if (nodeConfig && typeof nodeConfig === "object") {
-        obj.shape = {
-          type: "HTML",
-          content: getNodeTemplate(nodeConfig, obj.id as string),
-        };
-      }
-      obj.constraints = (NodeConstraints.Default & ~NodeConstraints.Rotate & ~NodeConstraints.Resize & ~NodeConstraints.InConnect & ~NodeConstraints.OutConnect) | NodeConstraints.HideThumbs;
-      if (!obj.width) {
-        obj.width = 80;
-      }
-      if (!obj.height) {
-        obj.height = 80;
-      }
-      
-      // Only set default position if not already set
+    const addInfo = obj.addInfo as any;
+    const nodeConfig = addInfo?.nodeConfig as NodeConfig | undefined;
+    const nodeType = nodeConfig?.type;
+
+    if (nodeConfig && typeof nodeConfig === "object") {
+      obj.shape = {
+        type: "HTML",
+        content: getNodeTemplate(nodeConfig, obj.id as string),
+      };
+      obj.constraints =
+        (NodeConstraints.Default &
+          ~NodeConstraints.Rotate &
+          ~NodeConstraints.Resize &
+          ~NodeConstraints.InConnect &
+          ~NodeConstraints.OutConnect) |
+        NodeConstraints.HideThumbs;
+
+      obj.width = obj.width || (nodeType === 'sticky' ? 200 : 80);
+      obj.height = obj.height || (nodeType === 'sticky' ? 120 : 80);
+
       if (!obj.offsetX) {
         obj.offsetX = (diagramRef.current as any)?.scrollSettings.viewPortWidth / 2 || 300;
       }
       if (!obj.offsetY) {
         obj.offsetY = (diagramRef.current as any)?.scrollSettings.viewPortHeight / 2 || 200;
       }
-      if (nodeConfig.type !== 'sticky') {
-      obj.annotations = [
-        {
-          id: `${nodeConfig.id}-label`,
-          content: nodeConfig.name,
-          style: { color: 'Black', bold: true, textWrapping: 'NoWrap' },
-          offset: { x: 0.5, y: 1 },
-          margin: { top: 15 },
-          constraints: AnnotationConstraints.ReadOnly & ~AnnotationConstraints.Select
-        }
-      ];
-    }
+
+      if (nodeType !== 'sticky') {
+        obj.annotations = [
+          {
+            id: `${nodeConfig.id}-label`,
+            content: nodeConfig.name,
+            style: { color: 'Black', bold: true, textWrapping: 'NoWrap' },
+            offset: { x: 0.5, y: 1 },
+            margin: { top: 15 },
+            constraints: AnnotationConstraints.ReadOnly & ~AnnotationConstraints.Select,
+          },
+        ];
+      }
     }
 
     // Set default ports for all nodes except sticky notes
-    const addInfo = obj.addInfo as any;
-    const nodeConfig = addInfo?.nodeConfig;
-    const nodeType = nodeConfig?.type;
     if (!nodeType || nodeType !== "sticky") {
-      if (nodeType == "trigger") {
+      if (nodeType === "trigger") {
         obj.ports = [
           {
             id: "right-port",
@@ -284,6 +285,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         ];
       }
     }
+
     return obj;
   };
 

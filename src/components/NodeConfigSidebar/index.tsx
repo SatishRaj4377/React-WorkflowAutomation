@@ -115,7 +115,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
         {selectedNode.type === 'trigger' && renderTriggerConfig()}
         {selectedNode.type === 'action' && renderActionConfig()}
         {selectedNode.type === 'form' && renderFormConfig()}
-        {selectedNode.type === 'sticky' && renderStickyConfig()}
+        {/* {selectedNode.type === 'sticky' && renderStickyConfig()} */}
       </div>
     );
   };
