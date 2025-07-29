@@ -35,6 +35,8 @@
   z-index: 1000;
   padding: 0.5rem;
   margin-top: 1rem;
+  pointer-events: none;
+  user-select: none;
 }
 
 /* Responsive Design */
