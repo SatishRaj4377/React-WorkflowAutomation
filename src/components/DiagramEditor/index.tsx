@@ -605,7 +605,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         commandManager={getCommandManagerSettings()}
         selectedItems={{ userHandles: userHandles}}
         onUserHandleMouseDown={ handleUserHandleMouseDown }
-        serializationSettings={{ preventDefaults: true }}
       >
         <Inject services={[
           UndoRedo,
