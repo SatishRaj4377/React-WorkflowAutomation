@@ -9,6 +9,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { ProjectData, NodeConfig, NodeTemplate } from '../../types';
 import WorkflowService from '../../services/WorkflowService';
 import './Editor.css';
+import { NodeConstraints, NodeModel } from '@syncfusion/ej2-react-diagrams';
 
 interface EditorProps {
   project: ProjectData;
@@ -159,6 +160,35 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     onBackToHome();
   };
 
+  const handleAddStickyNote = (position: { x: number; y: number }) => {
+    if (diagramRef) {
+      // Validate position parameter
+      if (!position || typeof position !== 'object' || 
+          typeof position.x !== 'number' || typeof position.y !== 'number') {
+        // Position the sticky note to center of the diagram
+        position = { x: diagramRef.scrollSettings.viewPortWidth / 2 , y:  diagramRef.scrollSettings.viewPortHeight / 2 };
+      }
+      const timestamp = Date.now();
+      const stickyNote: NodeModel = {
+        id: `sticky-${timestamp}`,
+        width: 240,
+        height: 240,
+        offsetX: position.x,
+        offsetY: position.y - 64, // removing the header height
+        zIndex: -10000,
+        constraints: (NodeConstraints.Default & ~NodeConstraints.Rotate),
+        addInfo: {
+          nodeConfig: {
+            id: `sticky-${timestamp}`,
+            type: 'sticky',
+            name: 'Sticky Note',
+          } as NodeConfig
+        }
+      };
+      diagramRef.add(stickyNote);
+    }
+  };
+
   // Handle browser navigation (back button)
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -243,6 +273,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
             onDiagramRef={handleDiagramRef}
             project={project}
             onDiagramChange={handleDiagramChange}
+            onAddStickyNote= {handleAddStickyNote}
           />
         </div>
         
@@ -253,8 +284,9 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
             onExecute={handleExecuteWorkflow}
             onCancel={handleCancelExecution}
             onFitToPage={() => diagramRef?.fitToPage({canZoomIn: true, canZoomOut: true, margin:{top: 100, left: 100, bottom: 100, right: 100} })}
-            onZoomIn={() => diagramRef?.zoomIn()}
-            onZoomOut={() => diagramRef?.zoomOut()}
+            onZoomIn={() => diagramRef?.zoomTo({type: 'ZoomIn', zoomFactor: 0.2})}
+            onZoomOut={() => diagramRef?.zoomTo({type: 'ZoomOut', zoomFactor: 0.2})}
+            onAddSticky={handleAddStickyNote}
             isExecuting={isExecuting}
           />
         </div>

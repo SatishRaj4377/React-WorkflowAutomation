@@ -9,7 +9,7 @@ interface ToolbarProps {
   onZoomIn?: () => void;
   onZoomOut?: () => void;
   onAutoAlign?: () => void;
-  onAddSticky?: () => void;
+  onAddSticky?: (position: {x: number; y: number}) => void;
   onSearch?: () => void;
   onExecute?: () => void;
   onCancel?: () => void;

@@ -33,6 +33,7 @@ interface DiagramEditorProps {
   onDiagramRef?: (ref: any) => void;
   project?: any;
   onDiagramChange?: (args: any) => void;
+  onAddStickyNote?: (position: { x: number; y: number }) => void;
 }
 
 const DiagramEditor: React.FC<DiagramEditorProps> = ({
@@ -40,7 +41,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   onNodeDoubleClick,
   onDiagramRef,
   project,
-  onDiagramChange
+  onDiagramChange,
+  onAddStickyNote
 }) => {
 
   const diagramRef = useRef<DiagramComponent>(null);
@@ -429,9 +431,11 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         }
         break;
       case 'addSticky':
-        const position = args.event && typeof args.event === 'object' 
-          ? {x: args.event.pageX, y: args.event.pageY} : { x: 300, y: 300 };
-        addStickyNote(position);
+        if (onAddStickyNote){
+          const position = args.event && typeof args.event === 'object' 
+            ? {x: args.event.pageX, y: args.event.pageY} : { x: 300, y: 300 };
+          onAddStickyNote(position);
+        }
         break;
       case 'lockWorkflow':
         console.log('Lock workflow');
@@ -468,46 +472,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       ]
     };
     return commandManager;
-  };
-
-  const addStickyNote = (position: { x: number; y: number }) => {
-    // Validate position parameter
-    if (!position || typeof position !== 'object' || 
-        typeof position.x !== 'number' || typeof position.y !== 'number') {
-      position = { x: 300, y: 300 };
-    }
-    const timestamp = Date.now();
-    const stickyNote: NodeModel = {
-      id: `sticky-${timestamp}`,
-      width: 240,
-      height: 240,
-      offsetX: position.x,
-      offsetY: position.y - 64, // removing the header height
-      zIndex: -10000,
-      constraints: (NodeConstraints.Default & ~NodeConstraints.Rotate),
-      addInfo: {
-        nodeConfig: {
-          id: `sticky-${timestamp}`,
-          type: 'sticky',
-          name: 'Sticky Note',
-          icon: '📝',
-          settings: { 
-            general: { 
-              color: '#fff59d', 
-              text: 'Sticky Note' 
-            },
-            authentication: {},
-            advanced: {}
-          },
-          disabled: false,
-          position: position
-        } as NodeConfig
-      }
-    };
-
-    if (diagramRef.current) {
-      diagramRef.current.add(stickyNote);
-    }
   };
 
   const autoAlignNodes = () => {
