@@ -159,8 +159,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     stickyNode.minWidth = 160;
     stickyNode.minHeight = 80;
     stickyNode.style= {
-      fill: '#fffbe7',
-      strokeColor: '#9193a2ff',
+      fill: '#e7f8ffff',
+      strokeColor: '#778a9fff',
       strokeWidth: 2,
       strokeDashArray: '10 4',
       opacity: 0.7,
@@ -174,6 +174,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         margin: {left: 20, top: 60, bottom: 0, right: 0},
         width: 160,
         style: {
+          color: '#585b5fff',
           fontSize: 14,
           textAlign: 'Left',
           textWrapping: 'Wrap',
@@ -187,6 +188,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         margin: {left: 20, top: 20, bottom: 0, right: 0},
         offset: {x: 0, y: 0},
         style: {
+          color: '#142336ff',
           fontSize: 20,
           bold: true,
         },
