@@ -328,13 +328,23 @@
   min-height: 100px;
 }
 
+.e-card-header {
+  border: 0 !important;
+}
+
+.e-card-actions {
+  border: 0 !important;
+}
+
 .project-card.list-item .e-card-header {
   flex: 1;
   margin-right: 2rem;
+  border: 0 !important;
 }
 
 .project-card.list-item .e-card-actions {
   flex-shrink: 0;
+  border: 0 !important
 }
 
 .project-thumbnail {

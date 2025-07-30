@@ -37,8 +37,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     if (cssLink) {
       const baseUrl = 'https://cdn.syncfusion.com/ej2/30.1.37/';
       const themeUrl = currentTheme === 'dark' 
-        ? `${baseUrl}tailwind-dark.css`
-        : `${baseUrl}tailwind.css`;
+        ? `${baseUrl}tailwind3-dark.css`
+        : `${baseUrl}tailwind3.css`;
       
       cssLink.href = themeUrl;
     }
