@@ -330,6 +330,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
             onFitToPage={() => diagramRef?.fitToPage({canZoomIn: true, canZoomOut: true, margin:{top: 100, left: 100, bottom: 100, right: 100} })}
             onZoomIn={() => diagramRef?.zoomTo({type: 'ZoomIn', zoomFactor: 0.2})}
             onZoomOut={() => diagramRef?.zoomTo({type: 'ZoomOut', zoomFactor: 0.2})}
+            onResetZoom={() => diagramRef?.reset()}
             onAddSticky={handleAddStickyNote}
             onAutoAlign={handleAutoAlignNodes}
             isExecuting={isExecuting}

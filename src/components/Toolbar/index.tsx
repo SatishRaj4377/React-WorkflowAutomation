@@ -6,6 +6,7 @@ import './Toolbar.css';
 interface ToolbarProps {
   onAddNode?: () => void;
   onFitToPage?: () => void;
+  onResetZoom?: () => void;
   onZoomIn?: () => void;
   onZoomOut?: () => void;
   onAutoAlign?: () => void;
@@ -13,13 +14,13 @@ interface ToolbarProps {
   onSearch?: () => void;
   onExecute?: () => void;
   onCancel?: () => void;
-  onVersionHistory?: () => void;
   isExecuting?: boolean;
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({
   onAddNode,
   onFitToPage,
+  onResetZoom,
   onZoomIn,
   onZoomOut,
   onAutoAlign,
@@ -45,6 +46,12 @@ const Toolbar: React.FC<ToolbarProps> = ({
       tooltipText: 'Fit to Page',
       id: 'fit-page',
       click: onFitToPage,
+    },
+    {
+      prefixIcon: 'e-icons e-reset',
+      tooltipText: 'Reset Zoom',
+      id: 'reset-zoom',
+      click: onResetZoom,
     },
     {
       prefixIcon: 'e-icons e-zoom-in',
