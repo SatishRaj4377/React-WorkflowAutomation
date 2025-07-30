@@ -67,6 +67,10 @@ body {
   color: var(--text-primary);
 }
 
+.e-icons{
+  font-size: 1.2rem !important;
+}
+
 /* Modern gradient backgrounds */
 .gradient-bg {
   background: var(--gradient-primary);
