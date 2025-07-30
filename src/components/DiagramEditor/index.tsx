@@ -201,27 +201,60 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       return '<div>Invalid Node</div>';
     }
 
-    // Ports HTML
+    // Determine ports HTML based on node type
     let portsHtml = '';
-    if (nodeConfig.type === 'trigger') {
+    
+    // Check if the ID contains specific node types
+    const isIfCondition = nodeConfig.type === 'condition' || 
+                          (nodeConfig.id && nodeConfig.id.includes('if-condition'));
+    
+    const isAiAgent = nodeConfig.id && nodeConfig.id.includes('ai-agent');
+    
+    // Special case for If node with two output ports
+    if (isIfCondition) {
+      portsHtml = `
+        <div class="node-port-left"></div>
+        <div class="node-port-right-top true-port"></div>
+        <div class="node-port-right-bottom false-port"></div>
+      `;
+    } 
+    // Special case for AI Agent with multiple ports
+    else if (isAiAgent) {
+      portsHtml = `
+        <div class="node-port-left"></div>
+        <div class="node-port-right"></div>
+        <div class="node-port-bottom-left"></div>
+        <div class="node-port-bottom-middle"></div>
+        <div class="node-port-bottom-right"></div>
+      `;
+    }
+    // Default case for trigger nodes
+    else if (nodeConfig.type === 'trigger') {
       portsHtml = `<div class="node-port-right"></div>`;
-    } else {
+    } 
+    // Default case for action nodes
+    else {
       portsHtml = `
         <div class="node-port-left"></div>
         <div class="node-port-right"></div>
       `;
     }
 
-    // Node content
+    // Node content based on type
     let contentHtml = `
-        <div class="node-img-content">
-          <img src="${nodeConfig.iconUrl}" alt="${nodeConfig.name}" />
-        </div>
-      `;
+      <div class="node-img-content">
+        <img src="${nodeConfig.iconUrl}" alt="${nodeConfig.name}" />
+      </div>
+    `;
+
+    // Add a special class for different node types
+    const nodeTypeClass = 
+      isIfCondition ? 'condition-node' : 
+      isAiAgent ? 'ai-agent-node' : '';
 
     return `
       <div class="node-template-container">
-        <div class="node-template" data-node-id="${nodeId}">
+        <div class="node-template ${nodeTypeClass}" data-node-id="${nodeId}">
           ${portsHtml}
           ${contentHtml}
         </div>
@@ -237,79 +270,186 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     const addInfo = obj.addInfo as any;
     const nodeConfig = addInfo?.nodeConfig as NodeConfig | undefined;
     const nodeType = nodeConfig?.type;
-
+    const nodeId = nodeConfig?.id || '';
+    
     if (nodeConfig && typeof nodeConfig === "object") {
+      // Check if the ID contains specific node types
+      const isIfCondition = nodeType === 'condition' || nodeId.includes('if-condition');
+      const isAiAgent = nodeId.includes('ai-agent');
+      
       if (nodeType === "sticky") {
         setUpStickyNoteStyles(obj);
       }
-      else
-      {
+      else {
         obj.shape = {
           type: "HTML",
           content: getNodeTemplate(nodeConfig, obj.id as string),
         };
       }
       
+      // Set node size based on node type
+      if (isAiAgent) {
+        obj.width = 160;  // Larger for AI agent
+        obj.height = 80;
+      } else if (isIfCondition) {
+        obj.width = 80;  // Width for condition node
+        obj.height = 80;
+      } else if (nodeType === 'sticky') {
+        obj.width = 200;
+        obj.height = 120;
+      } else {
+        obj.width = 80;
+        obj.height = 80;
+      }
+
+      // Base constraints remain the same
       let baseConstraints =
         NodeConstraints.Default &
         ~NodeConstraints.Rotate &
         ~NodeConstraints.InConnect &
         ~NodeConstraints.OutConnect;
 
-      if (nodeType === 'sticky') {
-        obj.constraints = baseConstraints;
-      } else {
-        obj.constraints = (baseConstraints & ~NodeConstraints.Resize) | NodeConstraints.HideThumbs | NodeConstraints.ReadOnly;
-      }
+      obj.constraints = nodeType === 'sticky' 
+        ? baseConstraints 
+        : (baseConstraints & ~NodeConstraints.Resize) | NodeConstraints.HideThumbs | NodeConstraints.ReadOnly;
 
-      obj.width = obj.width || (nodeType === 'sticky' ? 200 : 80);
-      obj.height = obj.height || (nodeType === 'sticky' ? 120 : 80);
-
+      // Set position if not already set
       if (!obj.offsetX) {
         obj.offsetX = (diagramRef.current as any)?.scrollSettings.viewPortWidth / 2 || 300;
       }
       if (!obj.offsetY) {
         obj.offsetY = (diagramRef.current as any)?.scrollSettings.viewPortHeight / 2 || 200;
       }
-    }
 
-    // Set default ports for all nodes except sticky notes
-    if (!nodeType || nodeType !== "sticky") {
-      if (nodeType === "trigger") {
-        obj.ports = [
-          {
-            id: "right-port",
-            offset: { x: 1, y: 0.5 },
-            shape: "Circle",
-            height: 12,
-            width: 12,
-            style: { fill: "transparent", strokeColor: "transparent" },
-            visibility: PortVisibility.Visible,
-            constraints: PortConstraints.Draw | PortConstraints.OutConnect,
-          },
-        ];
-      } else {
-        obj.ports = [
-          {
-            id: "left-port",
-            offset: { x: 0, y: 0.5 },
-            height: 12,
-            width: 12,
-            style: { fill: "transparent", strokeColor: "transparent" },
-            visibility: PortVisibility.Visible,
-            constraints: PortConstraints.InConnect,
-          },
-          {
-            id: "right-port",
-            offset: { x: 1, y: 0.5 },
-            shape: "Circle",
-            height: 12,
-            width: 12,
-            style: { fill: "transparent", strokeColor: "transparent" },
-            visibility: PortVisibility.Visible,
-            constraints: PortConstraints.OutConnect | PortConstraints.Draw,
-          },
-        ];
+      // Configure ports based on node type
+      if (!nodeType || nodeType !== "sticky") {
+        if (isAiAgent) {
+          // AI Agent with 5 ports
+          obj.ports = [
+            {
+              id: "left-port",
+              offset: { x: 0, y: 0.5 },
+              height: 12,
+              width: 12,
+              style: { fill: "transparent", strokeColor: "transparent" },
+              visibility: PortVisibility.Visible,
+              constraints: PortConstraints.InConnect,
+            },
+            {
+              id: "right-port",
+              offset: { x: 1, y: 0.5 },
+              shape: "Circle",
+              height: 12,
+              width: 12,
+              style: { fill: "transparent", strokeColor: "transparent" },
+              visibility: PortVisibility.Visible,
+              constraints: PortConstraints.OutConnect | PortConstraints.Draw,
+            },
+            {
+              id: "bottom-left-port",
+              offset: { x: 0.25, y: 1 },
+              shape: "Square",
+              height: 14,
+              width: 14,
+              style: { fill: "transparent", strokeColor: "transparent" },
+              visibility: PortVisibility.Visible,
+              constraints: PortConstraints.OutConnect | PortConstraints.Draw,
+              tooltip: { content: 'Chat Model' },
+            },
+            {
+              id: "bottom-middle-port",
+              offset: { x: 0.5, y: 1 },
+              shape: "Square",
+              height: 14,
+              width: 14,
+              style: { fill: "transparent", strokeColor: "transparent" },
+              visibility: PortVisibility.Visible,
+              constraints: PortConstraints.OutConnect | PortConstraints.Draw,
+              tooltip: { content: 'Memory' },
+            },
+            {
+              id: "bottom-right-port",
+              offset: { x: 0.75, y: 1 },
+              shape: "Square",
+              height: 14,
+              width: 14,
+              style: { fill: "transparent", strokeColor: "transparent" },
+              visibility: PortVisibility.Visible,
+              constraints: PortConstraints.OutConnect | PortConstraints.Draw,
+              tooltip: { content: 'Tools' },
+            },
+          ];
+        } else if (isIfCondition) {
+          // If Condition with 3 ports
+          obj.ports = [
+            {
+              id: "left-port",
+              offset: { x: 0, y: 0.5 },
+              height: 12,
+              width: 12,
+              style: { fill: "transparent", strokeColor: "transparent" },
+              visibility: PortVisibility.Visible,
+              constraints: PortConstraints.InConnect,
+            },
+            {
+              id: "right-top-port",
+              offset: { x: 1, y: 0.3 },
+              shape: "Circle",
+              height: 12,
+              width: 12,
+              style: { fill: "transparent", strokeColor: "transparent" }, // Green for true path
+              visibility: PortVisibility.Visible,
+              constraints: PortConstraints.OutConnect | PortConstraints.Draw,
+            },
+            {
+              id: "right-bottom-port",
+              offset: { x: 1, y: 0.7 },
+              shape: "Circle",
+              height: 12,
+              width: 12,
+              style: { fill: "transparent", strokeColor: "transparent" }, // Red for false path
+              visibility: PortVisibility.Visible,
+              constraints: PortConstraints.OutConnect | PortConstraints.Draw,
+            },
+          ];
+        } else if (nodeType === "trigger") {
+          // Existing trigger ports setup
+          obj.ports = [
+            {
+              id: "right-port",
+              offset: { x: 1, y: 0.5 },
+              shape: "Circle",
+              height: 12,
+              width: 12,
+              style: { fill: "transparent", strokeColor: "transparent" },
+              visibility: PortVisibility.Visible,
+              constraints: PortConstraints.Draw | PortConstraints.OutConnect,
+            },
+          ];
+        } else {
+          // Default action node ports
+          obj.ports = [
+            {
+              id: "left-port",
+              offset: { x: 0, y: 0.5 },
+              height: 12,
+              width: 12,
+              style: { fill: "transparent", strokeColor: "transparent" },
+              visibility: PortVisibility.Visible,
+              constraints: PortConstraints.InConnect,
+            },
+            {
+              id: "right-port",
+              offset: { x: 1, y: 0.5 },
+              shape: "Circle",
+              height: 12,
+              width: 12,
+              style: { fill: "transparent", strokeColor: "transparent" },
+              visibility: PortVisibility.Visible,
+              constraints: PortConstraints.OutConnect | PortConstraints.Draw,
+            },
+          ];
+        }
       }
     }
 

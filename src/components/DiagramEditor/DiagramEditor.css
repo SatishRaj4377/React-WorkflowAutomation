@@ -96,6 +96,90 @@
   pointer-events: none;
 }
 
+/* Port styles for different node types */
+.node-port-right-top {
+  position: absolute;
+  right: -7px;
+  width: 12px;
+  height: 12px;
+  background-color: var(--node-border-color);
+  top: 30%;
+  transform: translateY(-50%);
+  z-index: 10;
+  border-radius: 50%;
+}
+
+.node-port-right-bottom {
+  position: absolute;
+  right: -7px;
+  width: 12px;
+  height: 12px;
+  background-color: var(--node-border-color);
+  top: 70%;
+  transform: translateY(-50%);
+  z-index: 10;
+  border-radius: 50%;
+}
+
+.node-port-bottom-left,
+.node-port-bottom-middle,
+.node-port-bottom-right {
+  position: absolute;
+  bottom: -7px;
+  width: 12px;
+  height: 12px;
+  background-color: var(--node-border-color);
+  transform: translateX(-50%);
+  z-index: 10;
+  border-radius: 0%;
+}
+
+.node-port-bottom-left {
+  left: 25%;
+}
+
+.node-port-bottom-middle {
+  left: 50%;
+}
+
+.node-port-bottom-right {
+  left: 75%;
+}
+
+/* Special styling for specific node types */
+.node-template.ai-agent {
+  width: 180px;
+  height: 120px;
+}
+
+.node-template.if-condition {
+  width: 120px;
+  height: 120px;
+}
+
+/* Icon size adjustments for larger nodes */
+.ai-agent .node-img-content {
+  width: 80px;
+  height: 80px;
+}
+
+/* Color styling for If condition nodes */
+.if-condition .node-port-right-top {
+  background-color: #4CAF50;  /* Green for true path */
+}
+
+.if-condition .node-port-right-bottom {
+  background-color: #F44336;  /* Red for false path */
+}
+
+/* Diamond shape port styling */
+.ai-agent .node-port-bottom-left,
+.ai-agent .node-port-bottom-middle,
+.ai-agent .node-port-bottom-right {
+  transform: translateX(-50%) rotate(45deg);
+  border-radius: 0;
+}
+
 /* Node Template Selection Custom Styles */
 .node-template.selected {
   outline: 5px solid var(--node-selector-outline);
