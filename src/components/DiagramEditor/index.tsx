@@ -34,6 +34,7 @@ interface DiagramEditorProps {
   onDiagramChange?: (args: any) => void;
   onAddStickyNote?: (position: { x: number; y: number }) => void;
   onAutoAlignNodes?: () => void;
+  onPortClick?: (nodeId: string, portId: string) => void; 
 }
 
 const DiagramEditor: React.FC<DiagramEditorProps> = ({
@@ -43,7 +44,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   project,
   onDiagramChange,
   onAddStickyNote,
-  onAutoAlignNodes
+  onAutoAlignNodes,
+  onPortClick
 }) => {
 
   const diagramRef = useRef<DiagramComponent>(null);
@@ -548,6 +550,20 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     }
   };
 
+
+  const handleClick = (args: any) => {
+    console.log('Diagram clicked:', args);
+    // Check if clicked element is a port
+    if (args && args.element && args.element.constructor.name === 'PointPort' && args.actualObject) {
+      const portId = args.element.id;
+      const nodeId = args.actualObject.id;
+      
+      if (onPortClick) {
+        onPortClick(nodeId, portId);
+      }
+    }
+  };
+
   const handleDoubleClick = (args: any) => {
     if (args && args.source && args.source.id && onNodeDoubleClick) {
       const nodeId = args.source.id;
@@ -700,6 +716,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         contextMenuSettings={contextMenuSettings}
         scrollChange={handleScrollChange}
         contextMenuClick={handleContextMenuClick}
+        click={handleClick}
         doubleClick={handleDoubleClick}
         selectionChange={handleSelectionChange}
         commandManager={getCommandManagerSettings()}

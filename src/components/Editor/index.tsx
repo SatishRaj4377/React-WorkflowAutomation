@@ -28,6 +28,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const [diagramRef, setDiagramRef] = useState<any>(null);
   const [isDirty, setIsDirty] = useState(false);
   const [isNavigatingAway, setIsNavigatingAway] = useState(false);
+  const [isPortClickMode, setIsPortClickMode] = useState(false);
+  const [portClickConnection, setPortClickConnection] = useState<{nodeId: string, portId: string} | null>(null);
 
   useEffect(() => {
     // Handle selected node changes - will be managed by DiagramEditor
@@ -111,34 +113,94 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     showErrorToast('Execution Cancelled', 'Workflow execution has been cancelled.');
   };
 
+  const handlePortClick = (nodeId: string, portId: string) => {
+    setPortClickConnection({nodeId, portId});
+    setIsPortClickMode(true);
+    setNodePaletteSidebarOpen(true);
+  };
+
   const handleAddNode = (nodeTemplate: NodeTemplate) => {
-    const nodeId = `${nodeTemplate.id}-${Date.now()}`;
-    
-    // Create new node configuration
-    const newNodeConfig: NodeConfig = {
-      id: nodeId,
-      type: nodeTemplate.type,
-      name: nodeTemplate.name,
-      icon: nodeTemplate.icon,
-      iconUrl: nodeTemplate.iconUrl,
-      settings: {
-        general: {},
-        authentication: {},
-        advanced: {}
-      },
-      disabled: false
-    };
-    
-    // Add node directly to diagram
-    if (diagramRef) {
+    if (isPortClickMode && portClickConnection && diagramRef) {
+      // Handle port click connection
+      const nodeId = `${nodeTemplate.id}-${Date.now()}`;
+      
+      const newNodeConfig: NodeConfig = {
+        id: nodeId,
+        type: nodeTemplate.type,
+        name: nodeTemplate.name,
+        icon: nodeTemplate.icon,
+        iconUrl: nodeTemplate.iconUrl,
+        settings: {
+          general: {},
+          authentication: {},
+          advanced: {}
+        },
+        disabled: false
+      };
+      
+      // Position based on source port
+      const sourceNode = diagramRef.getObject(portClickConnection.nodeId);
+      let offsetX = sourceNode.offsetX + 200;
+      let offsetY = sourceNode.offsetY;
+      
+      if (portClickConnection.portId.includes('bottom')) {
+        offsetX = sourceNode.offsetX;
+        offsetY = sourceNode.offsetY + 150;
+      }
+      
       const newNode = {
         id: nodeId,
+        offsetX: offsetX,
+        offsetY: offsetY,
         addInfo: { nodeConfig: newNodeConfig }
       };
       
       diagramRef.add(newNode);
-      setSelectedNodeId(nodeId);
-      setIsDirty(true); // Mark as dirty when adding node
+      
+      // Create connector
+      const connector = {
+        id: `connector-${Date.now()}`,
+        sourceID: portClickConnection.nodeId,
+        sourcePortID: portClickConnection.portId,
+        targetID: nodeId,
+        targetPortID: 'left-port'
+      };
+      
+      diagramRef.add(connector);
+      
+      // Reset states
+      setIsPortClickMode(false);
+      setPortClickConnection(null);
+      setNodePaletteSidebarOpen(false);
+      setIsDirty(true);
+    } else {
+      // Normal node addition
+      const nodeId = `${nodeTemplate.id}-${Date.now()}`;
+      
+      const newNodeConfig: NodeConfig = {
+        id: nodeId,
+        type: nodeTemplate.type,
+        name: nodeTemplate.name,
+        icon: nodeTemplate.icon,
+        iconUrl: nodeTemplate.iconUrl,
+        settings: {
+          general: {},
+          authentication: {},
+          advanced: {}
+        },
+        disabled: false
+      };
+      
+      if (diagramRef) {
+        const newNode = {
+          id: nodeId,
+          addInfo: { nodeConfig: newNodeConfig }
+        };
+        
+        diagramRef.add(newNode);
+        setSelectedNodeId(nodeId);
+        setIsDirty(true);
+      }
     }
   };
 
@@ -452,6 +514,7 @@ const findBottomOfNodes = (nodes: any[]) => {
             onDiagramChange={handleDiagramChange}
             onAddStickyNote= {handleAddStickyNote}
             onAutoAlignNodes={handleAutoAlignNodes}
+            onPortClick={handlePortClick}
           />
         </div>
         
