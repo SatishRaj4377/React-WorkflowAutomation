@@ -505,6 +505,14 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
                     ~ConnectorConstraints.Drag });
       }
     }
+    if (args.type === 'Addition') {
+      const connector = args.element;
+      if (connector && (connector.sourceID === '' || connector.targetID === '')) {
+        setTimeout(() => {
+          (diagramRef.current as any).remove(connector);
+        });
+      }
+    }
   };
 
   // Removes the disconnected connector

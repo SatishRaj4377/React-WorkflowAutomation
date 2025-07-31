@@ -324,7 +324,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     
     showSuccessToast('Success', 'Workflow has been automatically arranged');
     diagramRef.reset();
-    diagramRef.fitToPage({canZoomIn: true, canZoomOut: true, margin:{top: 100, left: 100, bottom: 200, right: 100} });
+    diagramRef.fitToPage();
   } catch (error) {
     console.error('Error in auto-arrange workflow:', error);
     showErrorToast('Error', 'Failed to arrange workflow');
