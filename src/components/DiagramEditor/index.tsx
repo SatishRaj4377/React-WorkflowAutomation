@@ -23,6 +23,7 @@ import {
   UserHandleModel,
   UserHandleEventsArgs,
   SelectorConstraints,
+  ConnectorConstraints,
 } from '@syncfusion/ej2-react-diagrams';
 import { NodeConfig } from '../../types';
 import './DiagramEditor.css';
@@ -69,9 +70,9 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         'M0.97,3.04 L12.78,3.04 L12.78,12.21 C12.78,12.64,12.59,13,12.2,13.3 C11.82,13.6,11.35,13.75,10.8,13.75 L2.95,13.75 C2.4,13.75,1.93,13.6,1.55,13.3 C1.16,13,0.97,12.64,0.97,12.21 Z M4.43,0 L9.32,0 L10.34,0.75 L13.75,0.75 L13.75,2.29 L0,2.29 L0,0.75 L3.41,0.75 Z ',
       tooltip: { content: 'Delete' },
       offset: 0.5,
-      backgroundColor: '#effdff',
-      pathColor: '#656565ff',
-      borderColor: '#333333ff',
+      backgroundColor: '#9193a2ff',
+      pathColor: '#f8fafc',
+      borderColor: '#9193a2ff',
       disableNodes: true,
     }
   ];
@@ -472,6 +473,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     obj.segments= [{ type: 'Bezier' }];
     obj.style = {
       strokeColor: '#9193a2ff',
+      strokeDashArray: '5 3',
       strokeWidth: 2,
     };
     obj.targetDecorator = {
@@ -481,6 +483,28 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       }
     };
     return obj;
+  };
+
+  // on adding the connector, update the stroke dash and make it not able to disconnect
+  const handleCollectionChange = (args: any) => {
+    if (args.type === 'Addition') {
+      const connector = args.element;
+      
+      // Check if connector has both source and target connections
+      if (connector && connector.sourceID && connector.targetID) {
+        // Update to solid style when connection is completed
+        setTimeout(() => {
+          connector.style = {
+            ...connector.style,
+            strokeDashArray: '', // Remove dotted pattern
+            opacity: 1
+          };
+          connector.constraints = ConnectorConstraints.Default & 
+                    ~ConnectorConstraints.DragSourceEnd & 
+                    ~ConnectorConstraints.DragTargetEnd &
+                    ~ConnectorConstraints.Drag });
+      }
+    }
   };
 
   // Removes the disconnected connector
@@ -710,6 +734,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         getNodeDefaults={getNodeDefaults}
         getConnectorDefaults={getConnectorDefaults}
         elementDraw={removeDisConnectedConnectors}
+        collectionChange={handleCollectionChange}
         snapSettings={snapSettings}
         scrollSettings={scrollSettings}
         contextMenuSettings={contextMenuSettings}
