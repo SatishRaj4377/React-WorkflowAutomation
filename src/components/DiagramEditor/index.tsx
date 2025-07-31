@@ -486,11 +486,10 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   const removeDisConnectedConnectors = (args: any) => {
     if (args.state === 'Completed' && args.objectType === 'Connector') {
       const connector = args.source;
-      if (
-        connector &&
-        (connector.sourceID === '' || connector.targetID === '')
-      ) {
-        (diagramRef.current as any).remove(connector);
+      if (connector && (connector.sourceID === '' || connector.targetID === '')) {
+        setTimeout(() => {
+          (diagramRef.current as any).remove(connector);
+        });
       }
     }
   };
