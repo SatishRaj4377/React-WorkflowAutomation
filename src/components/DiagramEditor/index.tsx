@@ -22,6 +22,7 @@ import {
   ScrollSettingsModel,
   UserHandleModel,
   UserHandleEventsArgs,
+  SelectorConstraints,
 } from '@syncfusion/ej2-react-diagrams';
 import { NodeConfig } from '../../types';
 import './DiagramEditor.css';
@@ -718,7 +719,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         doubleClick={handleDoubleClick}
         selectionChange={handleSelectionChange}
         commandManager={getCommandManagerSettings()}
-        selectedItems={{ userHandles: userHandles}}
+        selectedItems={{ userHandles: userHandles, constraints: SelectorConstraints.All & ~SelectorConstraints.ToolTip}}
         onUserHandleMouseDown={ handleUserHandleMouseDown }
         historyChange={onDiagramChange}
       >
