@@ -552,7 +552,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
 
   const handleClick = (args: any) => {
-    console.log('Diagram clicked:', args);
     // Check if clicked element is a port
     if (args && args.element && args.element.constructor.name === 'PointPort' && args.actualObject) {
       const portId = args.element.id;

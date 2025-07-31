@@ -9,7 +9,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { ProjectData, NodeConfig, NodeTemplate } from '../../types';
 import WorkflowService from '../../services/WorkflowService';
 import './Editor.css';
-import { NodeConstraints, NodeModel } from '@syncfusion/ej2-react-diagrams';
+import { NodeConstraints, NodeModel, PortConstraints, PortModel } from '@syncfusion/ej2-react-diagrams';
 
 interface EditorProps {
   project: ProjectData;
@@ -28,8 +28,10 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const [diagramRef, setDiagramRef] = useState<any>(null);
   const [isDirty, setIsDirty] = useState(false);
   const [isNavigatingAway, setIsNavigatingAway] = useState(false);
-  const [isPortClickMode, setIsPortClickMode] = useState(false);
-  const [portClickConnection, setPortClickConnection] = useState<{nodeId: string, portId: string} | null>(null);
+  // Port selection state for connecting nodes
+  const [isPortSelectionMode, setIsPortSelectionMode] = useState(false);
+  const [selectedPortConnection, setSelectedPortConnection] = useState<{nodeId: string, portId: string} | null>(null);
+  const [selectedPortModel, setSelectedPortModel] = useState<PortModel | null>(null);
 
   useEffect(() => {
     // Handle selected node changes - will be managed by DiagramEditor
@@ -114,16 +116,36 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   };
 
   const handlePortClick = (nodeId: string, portId: string) => {
-    setPortClickConnection({nodeId, portId});
-    setIsPortClickMode(true);
-    setNodePaletteSidebarOpen(true);
+    if (!diagramRef) return;
+    const node = diagramRef.getObject(nodeId);
+    if (!node || !node.ports) return;
+    const port: PortModel = node.ports.find((p: any) => p.id === portId);
+    if (!port || port.constraints === undefined || port.constraints === null) return;
+    
+    // Only allow if port is OutConnect and Draw (connectable)
+    const isConnectable =
+      ((port.constraints & PortConstraints.OutConnect) !== 0) &&
+      ((port.constraints & PortConstraints.Draw) !== 0);
+
+    if (isConnectable) {
+      setSelectedPortConnection({ nodeId, portId });
+      setSelectedPortModel(port);
+      setIsPortSelectionMode(true);
+      setNodePaletteSidebarOpen(true);
+    } else {
+      // Not connectable, do nothing
+      setIsPortSelectionMode(false);
+      setSelectedPortConnection(null);
+      setSelectedPortModel(null);
+      setNodePaletteSidebarOpen(false);
+    }
   };
 
   const handleAddNode = (nodeTemplate: NodeTemplate) => {
-    if (isPortClickMode && portClickConnection && diagramRef) {
+    if (isPortSelectionMode && selectedPortConnection && diagramRef) {
       // Handle port click connection
       const nodeId = `${nodeTemplate.id}-${Date.now()}`;
-      
+
       const newNodeConfig: NodeConfig = {
         id: nodeId,
         type: nodeTemplate.type,
@@ -137,46 +159,47 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         },
         disabled: false
       };
-      
+
       // Position based on source port
-      const sourceNode = diagramRef.getObject(portClickConnection.nodeId);
+      const sourceNode = diagramRef.getObject(selectedPortConnection.nodeId);
       let offsetX = sourceNode.offsetX + 200;
       let offsetY = sourceNode.offsetY;
-      
-      if (portClickConnection.portId.includes('bottom')) {
+
+      if (selectedPortConnection.portId.includes('bottom')) {
         offsetX = sourceNode.offsetX;
         offsetY = sourceNode.offsetY + 150;
       }
-      
+
       const newNode = {
         id: nodeId,
         offsetX: offsetX,
         offsetY: offsetY,
         addInfo: { nodeConfig: newNodeConfig }
       };
-      
+
       diagramRef.add(newNode);
-      
+
       // Create connector
       const connector = {
         id: `connector-${Date.now()}`,
-        sourceID: portClickConnection.nodeId,
-        sourcePortID: portClickConnection.portId,
+        sourceID: selectedPortConnection.nodeId,
+        sourcePortID: selectedPortConnection.portId,
         targetID: nodeId,
         targetPortID: 'left-port'
       };
-      
+
       diagramRef.add(connector);
-      
+
       // Reset states
-      setIsPortClickMode(false);
-      setPortClickConnection(null);
+      setIsPortSelectionMode(false);
+      setSelectedPortConnection(null);
+      setSelectedPortModel(null);
       setNodePaletteSidebarOpen(false);
       setIsDirty(true);
     } else {
       // Normal node addition
       const nodeId = `${nodeTemplate.id}-${Date.now()}`;
-      
+
       const newNodeConfig: NodeConfig = {
         id: nodeId,
         type: nodeTemplate.type,
@@ -190,13 +213,13 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         },
         disabled: false
       };
-      
+
       if (diagramRef) {
         const newNode = {
           id: nodeId,
           addInfo: { nodeConfig: newNodeConfig }
         };
-        
+
         diagramRef.add(newNode);
         setSelectedNodeId(nodeId);
         setIsDirty(true);
@@ -494,6 +517,7 @@ const findBottomOfNodes = (nodes: any[]) => {
           isOpen={nodePaletteSidebarOpen}
           onClose={() => setNodePaletteSidebarOpen(false)}
           onAddNode={handleAddNode}
+          port={isPortSelectionMode ? selectedPortModel : null}
         />
         
         {/* Right Sidebar for Configuration */}

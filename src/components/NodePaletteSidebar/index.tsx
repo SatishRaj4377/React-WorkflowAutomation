@@ -10,16 +10,19 @@ import { TextBoxComponent } from "@syncfusion/ej2-react-inputs";
 import { NodeTemplate, PaletteCategory } from "../../types";
 import "./NodePaletteSidebar.css";
 
+import { PortModel } from '@syncfusion/ej2-react-diagrams';
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
   onAddNode?: (nodeTemplate: NodeTemplate) => void;
+  port?: PortModel | null;
 }
 
 const NodePaletteSidebar: React.FC<SidebarProps> = ({
   isOpen,
   onClose,
   onAddNode,
+  port,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const searchRef = useRef<TextBoxComponent>(null);
@@ -184,11 +187,14 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
   const filteredCategories = nodeCategories
     .map((category) => ({
       ...category,
-      nodes: category.nodes.filter(
-        (node) =>
+      nodes: category.nodes.filter((node) => {
+        // Hide trigger nodes if connecting from a port
+        if (port && node.type === 'trigger') return false;
+        return (
           node.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           node.description.toLowerCase().includes(searchTerm.toLowerCase())
-      ),
+        );
+      }),
     }))
     .filter((category) => category.nodes.length > 0);
 
