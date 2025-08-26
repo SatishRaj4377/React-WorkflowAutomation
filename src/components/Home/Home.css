@@ -48,7 +48,7 @@
   border: none !important;
 }
 .create-workflow-btn {
-  background: var(--gradient-primary) !important;
+  background: var(--primary-color) !important;
   outline: none !important;
   width: 90%;
   margin: 1.5rem auto .5rem auto;

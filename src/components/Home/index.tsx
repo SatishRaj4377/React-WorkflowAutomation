@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
 import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { DropDownButtonComponent, MenuEventArgs } from '@syncfusion/ej2-react-splitbuttons';
@@ -22,6 +22,7 @@ const Home: React.FC<HomeProps> = ({
   onDeleteProject
 }) => {
   const searchRef = useRef<TextBoxComponent>(null);
+  const sidebarRef = useRef<ListViewComponent>(null);
   const contextMenuRef = useRef<ContextMenuComponent>(null);
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [searchTerm, setSearchTerm] = useState('');
@@ -162,6 +163,13 @@ const Home: React.FC<HomeProps> = ({
     }).format(new Date(date));
   };
 
+  // On mount, select the dashboard item
+  useEffect(() => {
+    if (sidebarRef.current) {
+      sidebarRef.current.selectItem({ id: 'dashboard' });
+    }
+  }, []);
+
   return (
     <div className="home-layout">
       <AppBarComponent colorMode="Light" className="home-appbar">
@@ -185,12 +193,13 @@ const Home: React.FC<HomeProps> = ({
           Create Workflow
         </ButtonComponent>
         <ListViewComponent
+          ref={sidebarRef}
           id="sidebar-nav"
           dataSource={sidebarItems}
           fields={{ id: "id", text: "text", iconCss: "icon" }}
           cssClass="sidebar-list"
           showIcon={true}
-          select={handleSidebarSelect}
+          select={handleSidebarSelect} 
         />
       </aside>
       <main className="home-main">
