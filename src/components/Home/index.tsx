@@ -240,7 +240,7 @@ const Home: React.FC<HomeProps> = ({
                     {/* List Header Row */}
                     <div className="project-list-header">
                       <span className="project-col project-icon-header"></span>
-                      <span className="project-col project-title-header">Project Name</span>
+                      <span className="project-col project-title-header">Workflow Name</span>
                       <span className="project-col project-date-header">Created</span>
                       <span className="project-col project-date-header">Modified</span>
                       <span className="project-col project-menu-header"></span>
