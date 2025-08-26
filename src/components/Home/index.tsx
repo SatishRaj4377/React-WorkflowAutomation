@@ -1,9 +1,10 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
 import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
-import { DropDownButtonComponent } from '@syncfusion/ej2-react-splitbuttons';
-import { ListViewComponent } from '@syncfusion/ej2-react-lists';
+import { DropDownButtonComponent, MenuEventArgs } from '@syncfusion/ej2-react-splitbuttons';
+import { ListViewComponent, SelectEventArgs } from '@syncfusion/ej2-react-lists';
 import { AppBarComponent } from '@syncfusion/ej2-react-navigations';
+import { ContextMenuComponent, MenuItemModel } from '@syncfusion/ej2-react-navigations';
 import { ProjectData } from '../../types';
 import './Home.css';
 
@@ -21,16 +22,62 @@ const Home: React.FC<HomeProps> = ({
   onDeleteProject
 }) => {
   const searchRef = useRef<TextBoxComponent>(null);
+  const contextMenuRef = useRef<ContextMenuComponent>(null);
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('lastModified');
   const [sortText, setSortText] = useState('Last Modified');
+  const [activeSection, setActiveSection] = useState('dashboard');
+  const [selectedProject, setSelectedProject] = useState<ProjectData | null>(null);
 
   const sortOptions = [
     { text: 'Last Modified', id: 'lastModified' },
     { text: 'Last Created', id: 'created' },
     { text: 'Name (A-Z)', id: 'nameAsc' },
     { text: 'Name (Z-A)', id: 'nameDesc' }
+  ];
+
+  const sidebarItems = [
+    { text: "Dashboard", id: "dashboard", icon: "e-icons e-home" },
+    { text: "My Workflows", id: "workflows", icon: "e-icons e-folder" },
+    { text: "Templates", id: "templates", icon: "e-icons e-landscape" },
+    { text: "Documentation", id: "docs", icon: "e-icons e-file-document" }
+  ];
+
+  const templateCards = [
+    {
+      id: 'email-automation',
+      title: 'Email Automation',
+      description: 'Template for email-based workflows',
+      image: '/images/template-images/email-automation.jpg',
+      category: 'Communication'
+    },
+    {
+      id: 'api-integration',
+      title: 'API Integration',
+      description: 'Connect and integrate with external APIs',
+      image: '/images/template-images/api-integration.jpg',
+      category: 'Integration'
+    },
+    {
+      id: 'data-processing',
+      title: 'Data Processing',
+      description: 'Process and transform data workflows',
+      image: '/images/template-images/data-processing.jpg',
+      category: 'Data'
+    },
+    {
+      id: 'notification-system',
+      title: 'Notification System',
+      description: 'Automated notification workflows',
+      image: '/images/template-images/notification-system.jpg',
+      category: 'Communication'
+    }
+  ];
+
+  const contextMenuItems: MenuItemModel[] = [
+    { text: 'Edit', iconCss: 'e-icons e-edit' },
+    { text: 'Delete', iconCss: 'e-icons e-trash' }
   ];
 
   const handleSearchCreated = () => {
@@ -44,6 +91,32 @@ const Home: React.FC<HomeProps> = ({
   const handleSortSelect = (args: any) => {
     setSortBy(args.item.id);
     setSortText(args.item.text);
+  };
+
+  const handleSidebarSelect = (args: SelectEventArgs) => {
+    setActiveSection((args.data as any).id);
+  };
+
+  const handleContextMenu = (project: ProjectData, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setSelectedProject(project);
+    if (contextMenuRef.current) {
+      contextMenuRef.current.open(event.pageY, event.pageX);
+    }
+  };
+
+  const handleContextMenuSelect = (args: MenuEventArgs) => {
+    if (!selectedProject) return;
+    
+    switch (args.item.text) {
+      case 'Edit':
+        onOpenProject(selectedProject);
+        break;
+      case 'Delete':
+        onDeleteProject(selectedProject.id);
+        break;
+    }
   };
 
   const filteredAndSortedProjects = useMemo(() => {
@@ -89,12 +162,6 @@ const Home: React.FC<HomeProps> = ({
     }).format(new Date(date));
   };
 
-  const handleDuplicate = (project: ProjectData, e: React.MouseEvent) => {
-    e.stopPropagation();
-    // TODO: Implement duplicate functionality
-    console.log('Duplicate project:', project.name);
-  };
-
   return (
     <div className="home-layout">
       <AppBarComponent colorMode="Light" className="home-appbar">
@@ -119,191 +186,164 @@ const Home: React.FC<HomeProps> = ({
         </ButtonComponent>
         <ListViewComponent
           id="sidebar-nav"
-          dataSource={[
-            { text: "Dashboard", id: "dashboard", icon: "e-icons e-home" },
-            { text: "My Workflows", id: "workflows", icon: "e-icons e-folder" },
-            { text: "Templates", id: "templates", icon: "e-icons e-landscape" },
-            { text: "Documentation", id: "docs", icon: "e-icons e-file-document" }
-          ]}
+          dataSource={sidebarItems}
           fields={{ id: "id", text: "text", iconCss: "icon" }}
           cssClass="sidebar-list"
           showIcon={true}
+          select={handleSidebarSelect}
         />
       </aside>
       <main className="home-main">
         <div className="home-content">
-          {/* Quick Access Section */}
-          <section className="quick-access-section animate-fade-in-up">
-            <h2 className="section-title">Quick Start</h2>
-            <div className="quick-access-grid">
-              <div className="e-card modern-card quick-access-card" onClick={onCreateNew}>
-                <div className="e-card-content">
-                  <div className="quick-access-icon">
-                    ✨
-                  </div>
-                  <h3>Create Blank Workflow</h3>
-                  <p>Start with a blank canvas and build your workflow from scratch</p>
-                </div>
-              </div>
-
-              <div className="e-card modern-card quick-access-card template-card">
-                <div className="e-card-content">
-                  <div className="quick-access-icon">
-                    📧
-                  </div>
-                  <h3>Email Automation</h3>
-                  <p>Template for email-based workflows</p>
-                  <span className="template-badge">Template</span>
-                </div>
-              </div>
-
-              <div className="e-card modern-card quick-access-card template-card">
-                <div className="e-card-content">
-                  <div className="quick-access-icon">
-                    🔄
-                  </div>
-                  <h3>Data Processing</h3>
-                  <p>Process and transform data workflows</p>
-                  <span className="template-badge">Template</span>
-                </div>
-              </div>
-
-              <div className="e-card modern-card quick-access-card template-card">
-                <div className="e-card-content">
-                  <div className="quick-access-icon">
-                    🌐
-                  </div>
-                  <h3>API Integration</h3>
-                  <p>Connect and integrate with external APIs</p>
-                  <span className="template-badge">Template</span>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Recent Projects Section */}
-          <section className="recent-projects-section animate-fade-in-up">
-            <div className="section-header">
-              <div className="section-title-container">
-                <h2 className="section-title">Recent Projects</h2>
-                <span className="projects-count">
-                  {filteredAndSortedProjects.length > 0
-                    && `${filteredAndSortedProjects.length} projects`
-                  }
-                </span>
-              </div>
-              <div className="section-controls">
-                <div className="search-container">
-                  <TextBoxComponent
-                    ref={searchRef}
-                    placeholder="Search projects..."
-                    value={searchTerm}
-                    change={(args: any) => setSearchTerm(args.value)}
-                    cssClass="project-search"
-                    showClearButton={true}
-                    created={handleSearchCreated}
-                  />
-                </div>
-                <div className="sort-container">
-                  <DropDownButtonComponent
-                    items={sortOptions}
-                    select={handleSortSelect}
-                    cssClass="sort-dropdown-btn"
-                  >
-                    {sortText}
-                  </DropDownButtonComponent>
-                </div>
-                <div className="view-toggle">
-                  <ButtonComponent
-                    cssClass={`view-toggle-btn ${viewMode === 'card' ? 'active' : ''}`}
-                    onClick={() => setViewMode('card')}
-                    iconCss="e-icons e-grid-view"
-                    title="Card View"
-                  />
-                  <ButtonComponent
-                    cssClass={`view-toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
-                    onClick={() => setViewMode('list')}
-                    iconCss="e-icons e-list-unordered"
-                    title="List View"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {filteredAndSortedProjects.length === 0 ? (
-              <div className="empty-state animate-fade-in-up">
-                <div className="empty-icon">{projects.length === 0 ? '🚀' : '🔍'}</div>
-                <h3>{projects.length === 0 ? 'No projects yet' : 'No projects found'}</h3>
-                <p>
-                  {projects.length === 0
-                    ? 'Create your first workflow to get started and unlock the power of automation'
-                    : 'Try adjusting your search terms or filters'
-                  }
-                </p>
-                {projects.length === 0 && (
-                  <ButtonComponent onClick={onCreateNew} cssClass="e-btn">
-                    ✨ Create New Workflow
-                  </ButtonComponent>
-                )}
-              </div>
-            ) : (
-              <div className={`projects-container ${viewMode === 'list' ? 'list-view' : 'card-view'}`}>
-                {filteredAndSortedProjects.map((project) => (
-                  <div
-                    key={project.id}
-                    className={`e-card modern-card project-card ${viewMode}-item`}
-                    onClick={() => onOpenProject(project)}
-                  >
-                    {viewMode === 'card' && project.thumbnail && (
-                      <div className="e-card-image project-thumbnail">
-                        <img src={project.thumbnail} alt={project.name} />
+          {activeSection === 'dashboard' && (
+            <>
+              {/* Quick Access Section */}
+              <section className="quick-access-section animate-fade-in-up">
+                <h2 className="section-title">Quick Start</h2>
+                <div className="quick-access-grid">
+                  {templateCards.map((template) => (
+                    <div key={template.id} className="e-card modern-card quick-access-card template-card">
+                      <div className="e-card-image template-image">
+                        {template.image && (
+                          <img src={template.image} alt={template.title} />
+                        )}
                       </div>
-                    )}
+                      <div className="e-card-content">
+                        <h3>{template.title}</h3>
+                        <p>{template.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
 
-                    <div className="e-card-header">
-                      <div className="e-card-header-caption">
-                        <div className="e-card-header-title">{project.name}</div>
-                        <div className="e-card-sub-title">
-                          Modified: {formatDate(project.lastModified)}
+              {/* Recent Projects Section */}
+              <section className="recent-projects-section animate-fade-in-up">
+                <div className="section-header">
+                  <div className="section-title-container">
+                    <h2 className="section-title">Recent Projects</h2>
+                    <span className="projects-count">
+                      {filteredAndSortedProjects.length > 0
+                        && `${filteredAndSortedProjects.length} projects`
+                      }
+                    </span>
+                  </div>
+                  <div className="section-controls">
+                    <div className="search-container">
+                      <TextBoxComponent
+                        ref={searchRef}
+                        placeholder="Search Here"
+                        value={searchTerm}
+                        change={(args: any) => setSearchTerm(args.value)}
+                        cssClass="project-search"
+                        showClearButton={true}
+                        created={handleSearchCreated}
+                      />
+                    </div>
+                    <div className="sort-container">
+                      <DropDownButtonComponent
+                        items={sortOptions}
+                        select={handleSortSelect}
+                        cssClass="sort-dropdown-btn"
+                      >
+                        {sortText}
+                      </DropDownButtonComponent>
+                    </div>
+                    <div className="view-toggle">
+                      <ButtonComponent
+                        cssClass={`view-toggle-btn ${viewMode === 'card' ? 'active' : ''}`}
+                        onClick={() => setViewMode('card')}
+                        iconCss="e-icons e-grid-view"
+                        title="Card View"
+                      />
+                      <ButtonComponent
+                        cssClass={`view-toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
+                        onClick={() => setViewMode('list')}
+                        iconCss="e-icons e-list-unordered"
+                        title="List View"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {filteredAndSortedProjects.length === 0 ? (
+                  <div className="empty-state animate-fade-in-up">
+                    <div className="empty-icon">{projects.length === 0 ? '🚀' : '🔍'}</div>
+                    <h3>{projects.length === 0 ? 'No projects yet' : 'No projects found'}</h3>
+                    <p>
+                      {projects.length === 0
+                        ? 'Create your first workflow to get started and unlock the power of automation'
+                        : 'Try adjusting your search terms or filters'
+                      }
+                    </p>
+                    {projects.length === 0 && (
+                      <ButtonComponent onClick={onCreateNew} cssClass="e-btn">
+                        ✨ Create New Workflow
+                      </ButtonComponent>
+                    )}
+                  </div>
+                ) : (
+                  <div className={`projects-container ${viewMode === 'list' ? 'list-view' : 'card-view'}`}>
+                    {filteredAndSortedProjects.map((project) => (
+                      <div
+                        key={project.id}
+                        className={`e-card modern-card project-card ${viewMode}-item`}
+                        onClick={() => onOpenProject(project)}
+                      >
+                        <div className="e-card-image project-thumbnail">
+                          <img src={project.thumbnail || "/images/template-images/default-image.jpg"} alt={project.name} />
+                          <div className="project-card-overlay">
+                            <ButtonComponent
+                              cssClass="context-menu-btn"
+                              iconCss="e-icons e-more-vertical-1"
+                              onClick={(e) => handleContextMenu(project, e)}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="e-card-content">
+                          <div className="project-info">
+                            <h3 className="project-title">{project.name}</h3>
+                            <p className="project-modified">
+                              Modified: {formatDate(project.lastModified)}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-
-                    <div className="e-card-actions">
-                      <ButtonComponent
-                        cssClass="e-card-btn"
-                        iconCss="e-icons e-folder-open"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onOpenProject(project);
-                        }}
-                      >
-                        Open
-                      </ButtonComponent>
-                      <ButtonComponent
-                        cssClass="e-card-btn"
-                        iconCss="e-icons e-duplicate"
-                        onClick={(e) => handleDuplicate(project, e)}
-                      >
-                        Duplicate
-                      </ButtonComponent>
-                      <ButtonComponent
-                        cssClass="e-card-btn danger"
-                        iconCss="e-icons e-trash"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDeleteProject(project.id);
-                        }}
-                      >
-                        Delete
-                      </ButtonComponent>
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
-          </section>
+                )}
+              </section>
+            </>
+          )}
+
+          {activeSection === 'workflows' && (
+            <section className="content-section animate-fade-in-up">
+              <h2 className="section-title">My Workflows</h2>
+              <p>Manage your existing workflows and automation processes.</p>
+            </section>
+          )}
+
+          {activeSection === 'templates' && (
+            <section className="content-section animate-fade-in-up">
+              <h2 className="section-title">Templates</h2>
+              <p>Browse and use pre-built workflow templates.</p>
+            </section>
+          )}
+
+          {activeSection === 'docs' && (
+            <section className="content-section animate-fade-in-up">
+              <h2 className="section-title">Documentation</h2>
+              <p>Learn how to create and manage workflows effectively.</p>
+            </section>
+          )}
         </div>
+
+        <ContextMenuComponent
+          ref={contextMenuRef}
+          items={contextMenuItems}
+          select={handleContextMenuSelect}
+        />
       </main>
     </div>
   );

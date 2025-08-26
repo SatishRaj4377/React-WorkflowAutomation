@@ -43,7 +43,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "webhook-trigger",
           name: "Webhook",
-          iconUrl: "/images/webhook.png",
+          iconUrl: "/images/node-icons/webhook.png",
           type: "trigger",
           category: "Triggers",
           description: "Receive HTTP requests from external services",
@@ -51,7 +51,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "schedule-trigger",
           name: "Schedule",
-          iconUrl: "/images/schedule.png",
+          iconUrl: "/images/node-icons/schedule.png",
           type: "trigger",
           category: "Triggers",
           description: "Trigger workflow on a schedule",
@@ -59,7 +59,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "manual-trigger",
           name: "Manual Click",
-          iconUrl: "/images/manual.png",
+          iconUrl: "/images/node-icons/manual.png",
           type: "trigger",
           category: "Triggers",
           description: "When clicked, trigger the workflow",
@@ -67,7 +67,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "chat-trigger",
           name: "Chat Trigger",
-          iconUrl: "/images/chat.png",
+          iconUrl: "/images/node-icons/chat.png",
           type: "trigger",
           category: "Triggers",
           description: "Trigger workflow from chat messages",
@@ -81,7 +81,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "ai-agent",
           name: "AI Agent",
-          iconUrl: "/images/ai-agent.png",
+          iconUrl: "/images/node-icons/ai-agent.png",
           type: "action",
           category: "Core",
           description: "Use AI agents to process data",
@@ -89,7 +89,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "azure-chat",
           name: "Azure Chat Model",
-          iconUrl: "/images/azure-chat.png",
+          iconUrl: "/images/node-icons/azure-chat.png",
           type: "action",
           category: "Core",
           description: "Use Azure OpenAI chat models",
@@ -97,7 +97,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "http-request",
           name: "HTTP Request",
-          iconUrl: "/images/http.png",
+          iconUrl: "/images/node-icons/http.png",
           type: "action",
           category: "Core",
           description: "Make HTTP requests to APIs",
@@ -105,7 +105,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "send-email",
           name: "Send Mail",
-          iconUrl: "/images/gmail.png",
+          iconUrl: "/images/node-icons/gmail.png",
           type: "action",
           category: "Core",
           description: "Send email notifications",
@@ -113,7 +113,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "telegram",
           name: "Telegram",
-          iconUrl: "/images/telegram.png",
+          iconUrl: "/images/node-icons/telegram.png",
           type: "action",
           category: "Core",
           description: "Send messages via Telegram",
@@ -121,7 +121,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "calendar",
           name: "Calendar",
-          iconUrl: "/images/calendar.png",
+          iconUrl: "/images/node-icons/calendar.png",
           type: "action",
           category: "Core",
           description: "Manage calendar events",
@@ -129,7 +129,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "docs",
           name: "Docs",
-          iconUrl: "/images/docs.png",
+          iconUrl: "/images/node-icons/docs.png",
           type: "action",
           category: "Core",
           description: "Google Docs integration",
@@ -137,7 +137,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "twilio",
           name: "Twilio",
-          iconUrl: "/images/twilio.png",
+          iconUrl: "/images/node-icons/twilio.png",
           type: "action",
           category: "Core",
           description: "Send SMS messages via Twilio",
@@ -151,7 +151,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "if-condition",
           name: "If Condition",
-          iconUrl: "/images/if.png",
+          iconUrl: "/images/node-icons/if.png",
           type: "action",
           category: "Flow",
           description: "Evaluate conditions and branch logic",
@@ -159,7 +159,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "switch-case",
           name: "Switch Case",
-          iconUrl: "/images/switch.png",
+          iconUrl: "/images/node-icons/switch.png",
           type: "action",
           category: "Flow",
           description: "Switch between multiple cases based on conditions",
@@ -167,7 +167,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "filter",
           name: "Filter",
-          iconUrl: "/images/filter.png",
+          iconUrl: "/images/node-icons/filter.png",
           type: "action",
           category: "Flow",
           description: "Filter data based on criteria",
@@ -175,7 +175,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "delay",
           name: "Delay",
-          iconUrl: "/images/delay.png",
+          iconUrl: "/images/node-icons/delay.png",
           type: "action",
           category: "Flow",
           description: "Delay execution for a specified time",
