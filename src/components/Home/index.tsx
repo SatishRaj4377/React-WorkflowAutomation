@@ -296,7 +296,11 @@ const Home: React.FC<HomeProps> = ({
                     className="show-more-btn"
                     iconCss='e-icons e-arrow-right'
                     iconPosition='right'
-                    onClick={() => setActiveSection('workflows')}
+                    onClick={() => {
+                      setActiveSection('workflows');
+                      // Scroll to top area of the page
+                      document.querySelector('.home-main')?.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
                   >
                     Show all projects 
                   </ButtonComponent>
