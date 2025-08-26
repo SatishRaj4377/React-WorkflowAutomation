@@ -49,7 +49,7 @@ const AppBar: React.FC<AppBarProps> = ({
       <div className="appbar-left">
         {showBackButton && onBack && (
           <ButtonComponent
-            cssClass="e-inherit back-button"
+            cssClass="back-button"
             iconCss="e-icons e-arrow-left"
             onClick={onBack}
             title="Back to Home"
@@ -82,7 +82,6 @@ const AppBar: React.FC<AppBarProps> = ({
       <div className="appbar-right">
         {onSave && (
           <ButtonComponent
-            cssClass="e-inherit"
             iconCss="e-icons e-save"
             onClick={onSave}
             title="Save Workflow"
@@ -91,7 +90,6 @@ const AppBar: React.FC<AppBarProps> = ({
         
         <div className="settings-dropdown">
             <ButtonComponent
-              cssClass="e-inherit"
               iconCss="e-icons e-brightness"
               onClick={onThemeToggle}
               title="Toggle Theme"

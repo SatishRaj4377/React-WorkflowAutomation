@@ -1,49 +1,101 @@
-.home-container {
-  min-height: 100vh;
+.home-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  flex-direction: row;
+}
+
+/* ---- App Bar / Header ---- */
+.home-appbar.e-appbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 56px;
+  z-index: 20;
+  padding: 0 1rem;
+  box-shadow: 0 1px 8px var(--box-shadow);
+  background: var(--surface-color);
+}
+.header-logo{
+  font-size: 2rem;
+  margin-right: .5rem;
+}
+.header-logo svg path{
+  stroke: var(--text-primary);
+}
+.header-title{
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  user-select: none;
+}
+
+
+/* ---- Sidebar ---- */
+.home-sidebar {
+  position: fixed;
+  left: 0;
+  top: 56px;
+  width: 240px;
+  height: calc(100vh - 56px);
+  z-index: 13;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  background: var(--surface-color);
+  border-right: 1px solid var(--border-color);
+}
+.home-sidebar .e-listview, .home-sidebar .e-listview .e-list-item {
+  border: none !important;
+}
+.create-workflow-btn {
+  background: var(--gradient-primary) !important;
+  outline: none !important;
+  width: 90%;
+  margin: 1.5rem auto 1.3rem auto;
+  padding: .55rem 0;
+  display: block;
+  border-radius: 8rem;
+  font-size: 1rem;
+  color: #fff;
+  border: none;
+}
+.sidebar-list .e-list-parent {
+  background: transparent !important;
+  border: none;
+}
+.sidebar-list .e-list-item {
+  border-radius: 8px;
+  margin: 0 10px 5px 10px;
+  font-weight: 500;
+  padding: 9px !important;
+}
+.sidebar-list .e-list-item.e-active,
+.sidebar-list .e-list-item.e-hover {
+  background: var(--btn-hover-bg);
+  color: var(--text-primary);
+}
+.sidebar-list .e-list-icon {
+  font-size: 2rem;
+  color: inherit !important;
+}
+
+
+/* ---- Main Content ---- */
+.home-main {
+  margin-left: 240px; /* Space for sidebar */
+  margin-top: 56px; /* Space for Header */
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   background: var(--background-color);
-  animation: fadeInUp 0.8s ease-out;
 }
-
-.home-header {
-  padding: 4rem 2rem 3rem;
-  text-align: center;
-  color: white;
-  margin-bottom: 3rem;
-  position: relative;
-}
-
-.home-header-content {
-  max-width: 900px;
-  margin: 0 auto;
-  position: relative;
-  z-index: 2;
-}
-
-.home-title {
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  font-weight: 800;
-  margin-bottom: 1.5rem;
-  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-}
-
-.home-subtitle {
-  font-size: clamp(1rem, 2.5vw, 1.4rem);
-  opacity: 0.95;
-  margin-bottom: 0;
-  font-weight: 400;
-  line-height: 1.6;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
 .home-content {
-  max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
-  padding: 0 2rem 4rem;
+  padding: 2rem;
 }
-
 .section-title {
   font-size: clamp(1.5rem, 3vw, 2rem);
   font-weight: 700;
@@ -52,7 +104,6 @@
   position: relative;
   display: inline-block;
 }
-
 .section-title::after {
   content: '';
   position: absolute;
@@ -68,13 +119,11 @@
 .quick-access-section {
   margin-bottom: 4rem;
 }
-
 .quick-access-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
 }
-
 .quick-access-card {
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -84,35 +133,29 @@
   border-radius: 20px;
   border: 1px solid transparent;
 }
-
 .quick-access-card:hover {
   transform: translateY(-6px) scale(1.02);
   box-shadow: var(--shadow-hover);
   border-color: var(--primary-color);
 }
-
 .quick-access-card:first-child {
   background: var(--gradient-secondary);
   color: white;
 }
-
 .quick-access-card:first-child h3,
 .quick-access-card:first-child p {
   color: white;
 }
-
 .quick-access-card:first-child .quick-access-icon {
   color: white;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
-
 .quick-access-card .e-card-content {
   padding: 2.5rem 2rem;
   text-align: center;
   position: relative;
   z-index: 2;
 }
-
 .quick-access-icon {
   font-size: 3.5rem;
   margin-bottom: 1.5rem;
@@ -120,30 +163,25 @@
   display: block;
   transition: transform 0.3s ease;
 }
-
 .quick-access-card:hover .quick-access-icon {
   transform: scale(1.1);
 }
-
 .quick-access-card h3 {
   font-size: 1.4rem;
   font-weight: 700;
   margin-bottom: 0.75rem;
   color: var(--text-primary);
 }
-
 .quick-access-card p {
   color: var(--text-secondary);
   font-size: 1rem;
   line-height: 1.6;
   margin-bottom: 0;
 }
-
 .template-card {
   opacity: 0.85;
   position: relative;
 }
-
 .template-card:hover {
   opacity: 1;
 }
@@ -228,7 +266,7 @@
   width: 100%;
 }
 
-.project-search{
+.project-search {
   padding: 0.5rem;
   border-radius: 12px;
   border: 2px solid var(--border-color);
@@ -485,22 +523,14 @@
   .quick-access-grid {
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   }
-  
+
   .projects-container.card-view {
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   }
 }
 
 @media (max-width: 768px) {
-  .home-header {
-    padding: 3rem 1.5rem 2rem;
-  }
-  
-  .home-content {
-    padding: 0 1.5rem 3rem;
-  }
-  
-  .section-header{
+  .section-header {
     align-items: flex-start;
     justify-content: space-between;
     flex-direction: column;
@@ -515,65 +545,88 @@
     min-width: auto;
     gap: 1rem;
   }
-  
+
   .search-container {
     flex: 2;
     min-width: 0;
   }
-  
+
   .sort-container {
     flex: 1;
     min-width: 120px;
   }
-  
+
   .quick-access-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
-  
+
   .projects-container.card-view {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
-  
+
   .project-card.list-item {
     flex-direction: column;
     align-items: stretch;
     text-align: center;
   }
-  
+
   .project-card.list-item .e-card-header {
     margin-right: 0;
     margin-bottom: 0;
   }
-  
+
   .e-card-actions {
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .e-card-btn {
     flex: none;
   }
-  
+
   .empty-state {
     padding: 4rem 1.5rem;
   }
 }
 
+/* ------ Responsive for Sidebar ------ */
+@media (max-width: 700px) {
+  .home-main {
+    margin-left: 56px;
+  }
+  .home-sidebar {
+    width: 56px;
+    min-width: 56px;
+  }
+
+  .sidebar-list .e-list-item,
+  .sidebar-list .e-list-item span {
+    font-size: 0;
+  }
+
+  .sidebar-list .e-list-icon {
+    margin: 0;
+    font-size: 1.4rem;
+  }
+
+  .create-workflow-btn {
+    width: 80%;
+    padding: 8px;
+    font-size: 0;
+  }
+  .create-workflow-btn .e-btn-icon {
+    margin: 0.1rem !important;
+    width: 80% !important;
+  }
+}
+
 @media (max-width: 480px) {
-  .home-header {
-    padding: 2rem 1rem 1.5rem;
-  }
-  
-  .home-content {
-    padding: 0 1rem 2rem;
-  }
-  
   .quick-access-card .e-card-content {
     padding: 2rem 1.5rem;
   }
-  
+
   .section-title {
     margin-bottom: 1.5rem;
   }
@@ -583,27 +636,88 @@
     gap: 0.5rem;
     align-items: flex-start;
   }
-  
+
   .projects-count {
     font-size: 0.8rem;
   }
+
   .search-container,
   .sort-container {
     flex: none;
     min-width: auto;
   }
-  
+
   .project-search.e-textbox .e-input {
     padding: 0.65rem 0.85rem;
     font-size: 0.9rem;
   }
-  
+
   .view-toggle-btn {
     padding: 0.65rem;
     min-width: 40px;
   }
-  
+
   .view-toggle-btn .e-icons {
     font-size: 1.1rem;
   }
+}
+
+
+/* Card styling */
+.modern-card {
+  background: var(--surface-color);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border-color);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.modern-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient-accent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.modern-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+  background-color: var(--surface-color);
+}
+
+.modern-card:hover::before {
+  opacity: 1;
+}
+
+
+/* Animation utilities */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
 }
