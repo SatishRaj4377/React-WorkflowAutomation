@@ -399,7 +399,7 @@
 }
 
 .context-menu-btn {
-  background: rgba(255, 255, 255, 0.9) !important;
+  background: var(--surface-color) !important;
   border: none !important;
   width: 32px !important;
   height: 32px !important;
@@ -413,7 +413,7 @@
 }
 
 .context-menu-btn .e-icons {
-  color: #333 !important;
+  color: var(--text-primary) !important;
   font-size: 16px !important;
 }
 
