@@ -232,7 +232,7 @@ const Home: React.FC<HomeProps> = ({
               <section className="recent-projects-section animate-fade-in-up">
                 <div className="section-header">
                   <div className="section-title-container">
-                    <h2 className="section-title">Recent Projects</h2>
+                    <h2 className="section-title">Recent Workflows</h2>
                   </div>
                 </div>
                 {filteredAndSortedProjects.length === 0 ? (
@@ -246,7 +246,7 @@ const Home: React.FC<HomeProps> = ({
                     </p>
                     {projects.length === 0 && (
                       <ButtonComponent onClick={onCreateNew} cssClass="e-btn">
-                        ✨ Create New Workflow
+                        Create New Workflow
                       </ButtonComponent>
                     )}
                   </div>
@@ -328,7 +328,7 @@ const Home: React.FC<HomeProps> = ({
                   <h3>No workflows yet</h3>
                   <p>Create your first workflow to get started and unlock the power of automation</p>
                   <ButtonComponent onClick={onCreateNew} cssClass="e-btn">
-                    ✨ Create New Workflow
+                    Create New Workflow
                   </ButtonComponent>
                 </div>
               ) : (
