@@ -230,7 +230,7 @@ const Home: React.FC<HomeProps> = ({
               <section className="recent-projects-section animate-fade-in-up">
                 <div className="section-header">
                   <div className="section-title-container">
-                    <h2 className="section-title">Recent Projects</h2>
+                    <h2 className="section-title">Recent Workflows</h2>
                     <span className="projects-count">
                       {filteredAndSortedProjects.length > 0
                         && `${filteredAndSortedProjects.length} projects`
@@ -278,7 +278,7 @@ const Home: React.FC<HomeProps> = ({
                 {filteredAndSortedProjects.length === 0 ? (
                   <div className="empty-state animate-fade-in-up">
                     <div className="empty-icon">{projects.length === 0 ? '🚀' : '🔍'}</div>
-                    <h3>{projects.length === 0 ? 'No projects yet' : 'No projects found'}</h3>
+                    <h3>{projects.length === 0 ? 'No workflows yet' : 'No projects found'}</h3>
                     <p>
                       {projects.length === 0
                         ? 'Create your first workflow to get started and unlock the power of automation'
@@ -327,21 +327,73 @@ const Home: React.FC<HomeProps> = ({
           )}
 
           {activeSection === 'workflows' && (
-            <section className="content-section animate-fade-in-up">
-              <h2 className="section-title">My Workflows</h2>
-              <p>Manage your existing workflows and automation processes.</p>
+            <section className="workflows-section animate-fade-in-up">
+              <div className="section-header">
+                <h2 className="section-title">My Workflows</h2>
+              </div>
+              {filteredAndSortedProjects.length === 0 ? (
+                <div className="empty-state animate-fade-in-up">
+                  <div className="empty-icon">🚀</div>
+                  <h3>No workflows yet</h3>
+                  <p>Create your first workflow to get started and unlock the power of automation</p>
+                  <ButtonComponent onClick={onCreateNew} cssClass="e-btn">
+                    ✨ Create New Workflow
+                  </ButtonComponent>
+                </div>
+              ) : (
+                <div className={`projects-container ${viewMode === 'list' ? 'list-view' : 'card-view'}`}>
+                  {filteredAndSortedProjects.map((project) => (
+                    <div
+                      key={project.id}
+                      className={`e-card modern-card project-card ${viewMode}-item`}
+                      onClick={() => onOpenProject(project)}
+                    >
+                      <div className="e-card-image project-thumbnail">
+                        <img src={project.thumbnail || "/images/template-images/default-image.jpg"} alt={project.name} />
+                        <div className="project-card-overlay">
+                          <ButtonComponent
+                            cssClass="context-menu-btn"
+                            iconCss="e-icons e-more-vertical-1"
+                            onClick={(e) => handleContextMenu(project, e)}
+                          />
+                        </div>
+                      </div>
+                      <div className="e-card-content">
+                        <div className="project-info">
+                          <h3 className="project-title">{project.name}</h3>
+                          <p className="project-modified">
+                            Modified: {formatDate(project.lastModified)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </section>
           )}
 
           {activeSection === 'templates' && (
-            <section className="content-section animate-fade-in-up">
+            <section className="animate-fade-in-up">
               <h2 className="section-title">Templates</h2>
-              <p>Browse and use pre-built workflow templates.</p>
+              <div className="quick-access-grid">
+                {templateCards.map((template) => (
+                  <div key={template.id} className="e-card modern-card quick-access-card template-card">
+                    <div className="e-card-image template-image">
+                      <img src={template.image} alt={template.title} />
+                    </div>
+                    <div className="e-card-content">
+                      <h3>{template.title}</h3>
+                      <p>{template.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </section>
           )}
 
           {activeSection === 'docs' && (
-            <section className="content-section animate-fade-in-up">
+            <section className="animate-fade-in-up">
               <h2 className="section-title">Documentation</h2>
               <p>Learn how to create and manage workflows effectively.</p>
             </section>

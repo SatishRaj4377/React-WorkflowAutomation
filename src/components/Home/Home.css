@@ -472,24 +472,6 @@
   font-size: 18px !important;
 }
 
-/* Content sections for other sidebar items */
-.content-section {
-  padding: 3rem 0;
-  text-align: center;
-  background: var(--surface-color);
-  border-radius: 16px;
-  margin: 2rem 0;
-}
-
-.content-section h2 {
-  margin-bottom: 1rem;
-}
-
-.content-section p {
-  color: var(--text-secondary);
-  font-size: 1.1rem;
-}
-
 
 /* Empty State */
 .empty-state {
