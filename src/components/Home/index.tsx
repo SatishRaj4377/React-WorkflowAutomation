@@ -167,6 +167,8 @@ const Home: React.FC<HomeProps> = ({
   useEffect(() => {
     if (sidebarRef.current) {
       sidebarRef.current.selectItem({ id: activeSection });
+      // Scroll to top area of the page
+      document.querySelector('.home-main')?.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [activeSection]);
 
@@ -298,8 +300,6 @@ const Home: React.FC<HomeProps> = ({
                     iconPosition='right'
                     onClick={() => {
                       setActiveSection('workflows');
-                      // Scroll to top area of the page
-                      document.querySelector('.home-main')?.scrollTo({ top: 0, behavior: 'smooth' });
                     }}
                   >
                     Show all projects 
