@@ -51,7 +51,7 @@
   background: var(--gradient-primary) !important;
   outline: none !important;
   width: 90%;
-  margin: 1.5rem auto 1.3rem auto;
+  margin: 1.5rem auto .5rem auto;
   padding: .55rem 0;
   display: block;
   border-radius: 8rem;
