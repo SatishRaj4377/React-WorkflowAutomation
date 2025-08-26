@@ -273,7 +273,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
             ref={searchRef}
             placeholder="Search nodes..."
             value={searchTerm}
-            change={(e: any) => setSearchTerm(e.value)}
+            input={(e: any) => setSearchTerm(e.value)}
             cssClass="search-input"
             showClearButton={true}
             created={handleSearchCreated}

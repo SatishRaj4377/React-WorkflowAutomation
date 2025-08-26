@@ -275,46 +275,30 @@
   background: var(--surface-color);
   color: var(--text-primary);
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: 400;
   transition: all 0.3s ease;
 }
 
 /* View Toggle Styles */
 .view-toggle {
   display: flex;
-  background: var(--surface-color);
-  border: 2px solid var(--border-color);
-  border-radius: 12px;
   padding: 4px;
   gap: 1rem;
-  box-shadow: 0 2px 8px var(--box-shadow);
 }
 
 .view-toggle-btn {
   padding: 0.75rem;
-  border: none;
   background: transparent;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 8px;
   color: var(--text-secondary);
   cursor: pointer;
-  min-width: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.view-toggle-btn:hover {
-  background: var(--background-color);
-  color: var(--text-primary);
-  transform: scale(1.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1.5px solid var(--border-color) !important;
 }
 
 .view-toggle-btn.active {
-  background: var(--gradient-primary);
+  background: var(--primary-color);
   color: white;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-  transform: scale(1.05);
 }
 
 .view-toggle-btn .e-icons {
@@ -557,10 +541,6 @@
 [data-theme="dark"] .project-search.e-textbox .e-input::placeholder {
   color: var(--text-secondary);
 }
-[data-theme="dark"] .view-toggle {
-  background: var(--surface-color);
-  border-color: var(--border-color);
-}
 
 /* Responsive Design */
 @media (max-width: 1200px) {
@@ -745,7 +725,7 @@
 }
 
 
-/* Projects Toolbar */
+/* Projects Tools */
 .section-header {
   display: flex;
   align-items: center;
@@ -774,7 +754,7 @@
 .tools-row .sort-dropdown-btn { min-width: 120px; width: 150px; }
 .tools-row .view-toggle { display: flex; gap: 0.4rem; }
 
-@media (max-width: 900px) {
+@media (max-width: 1075px) {
   .section-header {
     flex-direction: column;
     align-items: stretch;
@@ -804,9 +784,18 @@
   }
 }
 
-/* Update the border color of search box */
+/* search box border and color udpated */
 .project-search.e-input-group,
 .project-search.e-input-group.e-control-wrapper {
   border: 1.5px solid var(--border-color) !important;
   box-shadow: none !important;
+  color: var(--text-secondary) !important;
+}
+
+/* filter dropdown border and color updated */
+.sort-dropdown-btn.e-dropdown-btn {
+  background-color: transparent !important;
+  border: 1.5px solid var(--border-color) !important;
+  border-radius: 5px !important;
+  color: var(--text-secondary) !important;
 }

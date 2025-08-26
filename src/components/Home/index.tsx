@@ -307,7 +307,7 @@ const Home: React.FC<HomeProps> = ({
                     ref={searchRef}
                     placeholder="Search Workflows"
                     value={searchTerm}
-                    change={arg => setSearchTerm(arg.value)}
+                    input={arg => setSearchTerm(arg.value)}
                     cssClass="project-search"
                     created={handleSearchCreated}
                   />
@@ -334,7 +334,14 @@ const Home: React.FC<HomeProps> = ({
                   </div>
                 </div>
               </div>
-              {filteredAndSortedProjects.length === 0 ? (
+             {filteredAndSortedProjects.length === 0 ? (
+              searchTerm && projects.length > 0 ? (
+                <div className="empty-state animate-fade-in-up">
+                  <div className="empty-icon">🔍</div>
+                  <h3>No workflows found</h3>
+                  <p>No workflows match your search.</p>
+                </div>
+              ) : (
                 <div className="empty-state animate-fade-in-up">
                   <div className="empty-icon">🚀</div>
                   <h3>No workflows yet</h3>
@@ -343,6 +350,7 @@ const Home: React.FC<HomeProps> = ({
                     Create New Workflow
                   </ButtonComponent>
                 </div>
+              )
               ) : (
                 <div className={`projects-container ${viewMode === 'list' ? 'list-view' : 'card-view'}`}>
                   {viewMode === 'list' ? (
