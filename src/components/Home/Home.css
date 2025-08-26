@@ -65,14 +65,17 @@
 }
 .sidebar-list .e-list-item {
   border-radius: 8px;
-  margin: 0 10px 5px 10px;
+  margin: 10px;
   font-weight: 500;
   padding: 9px !important;
 }
-.sidebar-list .e-list-item.e-active,
 .sidebar-list .e-list-item.e-hover {
-  background: var(--btn-hover-bg);
-  color: var(--text-primary);
+  background: var(--list-hover-bg);
+  color: var(--accent-color);
+}
+.sidebar-list .e-list-item.e-active {
+  background: var(--list-selected-bg);
+  color: var(--primary-color);
 }
 .sidebar-list .e-list-icon {
   font-size: 2rem;

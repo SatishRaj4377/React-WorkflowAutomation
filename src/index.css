@@ -54,7 +54,9 @@ body {
   --node-selector-background: #effdff;
   --node-handle: #a8adb3;
   --node-border-color: #9193a2ff;
-  --btn-hover-bg: #e7f1fe; 
+  --list-hover-bg: #e7f1fe;
+  --list-selected-bg: #dbeafe;
+  --list-selected-color: var(--primary-color);
 }
 
 /* Dark theme - Professional Blue Dark Palette */
@@ -68,7 +70,8 @@ body {
   --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
   --border-color: #334155;
-  --btn-hover-bg: #23395d; 
+  --list-hover-bg: #23395d; 
+  --list-selected-bg: rgba(59, 130, 246, 0.28);; 
   --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
   --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.6);
   --gradient-primary: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #93c5fd 100%);
