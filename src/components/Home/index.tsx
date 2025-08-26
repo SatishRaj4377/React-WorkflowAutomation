@@ -229,86 +229,69 @@ const Home: React.FC<HomeProps> = ({
               </section>
 
               {/* Recent Projects Section */}
-              <section className="recent-projects-section animate-fade-in-up">
-                <div className="section-header">
-                  <div className="section-title-container">
-                    <h2 className="section-title">Recent Workflows</h2>
+              {filteredAndSortedProjects.length > 0 && (
+                <section className="recent-projects-section animate-fade-in-up">
+                  <div className="section-header">
+                    <div className="section-title-container">
+                      <h2 className="section-title">Recent Workflows</h2>
+                    </div>
                   </div>
-                </div>
-                {filteredAndSortedProjects.length === 0 ? (
-                  <div className="empty-state animate-fade-in-up">
-                    <div className="empty-icon">{projects.length === 0 ? '🚀' : '🔍'}</div>
-                    <h3>{projects.length === 0 ? 'No workflows yet' : 'No projects found'}</h3>
-                    <p>
-                      {projects.length === 0
-                        ? 'Create your first workflow to get started and unlock the power of automation'
-                        : 'Try adjusting your search terms or filters'}
-                    </p>
-                    {projects.length === 0 && (
-                      <ButtonComponent onClick={onCreateNew} cssClass="e-btn">
-                        Create New Workflow
+                  <div className="projects-container list-view">
+                    {/* List Header Row */}
+                    <div className="project-list-header">
+                      <span className="project-col project-icon-header"></span>
+                      <span className="project-col project-title-header">Project Name</span>
+                      <span className="project-col project-date-header">Created</span>
+                      <span className="project-col project-date-header">Modified</span>
+                      <span className="project-col project-menu-header"></span>
+                    </div>
+                    {filteredAndSortedProjects.slice(0, 5).map((project) => (
+                      <div
+                        key={project.id}
+                        className="project-list-item"
+                        onClick={() => onOpenProject(project)}
+                        tabIndex={0}
+                      >
+                        <span className="project-col project-icon">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M18.0004 16.98H12.0104C10.9104 16.98 10.0604 17.92 9.53037 18.88C9.11082 19.6672 8.44016 20.2917 7.62499 20.654C6.80982 21.0163 5.89693 21.0957 5.03144 20.8796C4.16594 20.6635 3.39752 20.1643 2.84831 19.4614C2.29911 18.7584 2.00064 17.8921 2.00037 17C2.01037 16.3 2.20037 15.6 2.57037 15" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M6 17.0002L9.13 11.2202C9.66 10.2502 9.23 9.04018 8.63 8.12018C8.34681 7.66728 8.15721 7.16225 8.07236 6.63489C7.98751 6.10753 8.00915 5.56851 8.13599 5.04965C8.26283 4.53078 8.49231 4.04257 8.81088 3.61383C9.12946 3.18509 9.53068 2.82449 9.99087 2.55332C10.4511 2.28215 10.9609 2.10589 11.4903 2.03495C12.0197 1.96401 12.558 1.99982 13.0733 2.14026C13.5887 2.28071 14.0707 2.52296 14.4909 2.8527C14.9111 3.18245 15.261 3.59301 15.52 4.06018" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M12 6L15.13 11.73C15.66 12.7 16.9 13 18 13C19.0609 13 20.0783 13.4214 20.8284 14.1716C21.5786 14.9217 22 15.9391 22 17C22 18.0609 21.5786 19.0783 20.8284 19.8284C20.0783 20.5786 19.0609 21 18 21" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </span>
+                        <span className="project-col project-title">{project.name}</span>
+                        <span className="project-col project-date">{formatDate(project.workflowData?.metadata?.created || project.lastModified)}</span>
+                        <span className="project-col project-date">{formatDate(project.lastModified)}</span>
+                        <span className="project-col project-menu">
+                            <ButtonComponent
+                              cssClass="context-menu-btn"
+                              iconCss="e-icons e-more-vertical-1"
+                              onClick={e => { 
+                                e.stopPropagation();
+                                setSelectedProject(project); 
+                                handleContextMenu(project, e);
+                              }}
+                            />
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  {filteredAndSortedProjects.length > 5 && (
+                    <div className="show-more-container">
+                      <ButtonComponent
+                        className="show-more-btn"
+                        iconCss='e-icons e-arrow-right'
+                        iconPosition='right'
+                        onClick={() => {
+                          setActiveSection('workflows');
+                        }}
+                      >
+                        Show all projects 
                       </ButtonComponent>
-                    )}
-                  </div>
-                ) : (
-                  <>
-              <div className="projects-container list-view">
-                {/* List Header Row */}
-                <div className="project-list-header">
-                  <span className="project-col project-icon-header"></span>
-                  <span className="project-col project-title-header">Project Name</span>
-                  <span className="project-col project-date-header">Created</span>
-                  <span className="project-col project-date-header">Modified</span>
-                  <span className="project-col project-menu-header"></span>
-                </div>
-                {filteredAndSortedProjects.slice(0, 5).map((project) => (
-                  <div
-                    key={project.id}
-                    className="project-list-item"
-                    onClick={() => onOpenProject(project)}
-                    tabIndex={0}
-                  >
-                    <span className="project-col project-icon">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M18.0004 16.98H12.0104C10.9104 16.98 10.0604 17.92 9.53037 18.88C9.11082 19.6672 8.44016 20.2917 7.62499 20.654C6.80982 21.0163 5.89693 21.0957 5.03144 20.8796C4.16594 20.6635 3.39752 20.1643 2.84831 19.4614C2.29911 18.7584 2.00064 17.8921 2.00037 17C2.01037 16.3 2.20037 15.6 2.57037 15" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M6 17.0002L9.13 11.2202C9.66 10.2502 9.23 9.04018 8.63 8.12018C8.34681 7.66728 8.15721 7.16225 8.07236 6.63489C7.98751 6.10753 8.00915 5.56851 8.13599 5.04965C8.26283 4.53078 8.49231 4.04257 8.81088 3.61383C9.12946 3.18509 9.53068 2.82449 9.99087 2.55332C10.4511 2.28215 10.9609 2.10589 11.4903 2.03495C12.0197 1.96401 12.558 1.99982 13.0733 2.14026C13.5887 2.28071 14.0707 2.52296 14.4909 2.8527C14.9111 3.18245 15.261 3.59301 15.52 4.06018" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M12 6L15.13 11.73C15.66 12.7 16.9 13 18 13C19.0609 13 20.0783 13.4214 20.8284 14.1716C21.5786 14.9217 22 15.9391 22 17C22 18.0609 21.5786 19.0783 20.8284 19.8284C20.0783 20.5786 19.0609 21 18 21" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </span>
-                    <span className="project-col project-title">{project.name}</span>
-                    <span className="project-col project-date">{formatDate(project.workflowData?.metadata?.created || project.lastModified)}</span>
-                    <span className="project-col project-date">{formatDate(project.lastModified)}</span>
-                    <span className="project-col project-menu">
-                        <ButtonComponent
-                          cssClass="context-menu-btn"
-                          iconCss="e-icons e-more-vertical-1"
-                          onClick={e => { 
-                            e.stopPropagation();
-                            setSelectedProject(project); 
-                            handleContextMenu(project, e);
-                          }}
-                        />
-                    </span>
-                  </div>
-                ))}
-              </div>
-              {filteredAndSortedProjects.length > 5 && (
-                <div className="show-more-container">
-                  <ButtonComponent
-                    className="show-more-btn"
-                    iconCss='e-icons e-arrow-right'
-                    iconPosition='right'
-                    onClick={() => {
-                      setActiveSection('workflows');
-                    }}
-                  >
-                    Show all projects 
-                  </ButtonComponent>
-                </div>
+                    </div>
+                  )}
+                </section>
               )}
-                  </>
-                )}
-              </section>
             </>
           )}
 
@@ -317,9 +300,12 @@ const Home: React.FC<HomeProps> = ({
               <div className="section-header">
                 <div className="section-title-container">
                   <h2 className="section-title">My Workflows</h2>
-                <span className="projects-count">
-                  {filteredAndSortedProjects.length > 0 && `${filteredAndSortedProjects.length} projects`}
-                </span>
+                  {filteredAndSortedProjects.length > 0 && (
+                    <span className="projects-count">
+                      {/* adding projects count, with singluar/plural consideration */}
+                    {filteredAndSortedProjects.length} project{filteredAndSortedProjects.length === 1 ? '' : 's'}
+                    </span>
+                  )}
                 </div>
               </div>
               {filteredAndSortedProjects.length === 0 ? (
