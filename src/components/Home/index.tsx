@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
-import { Button, ButtonComponent } from '@syncfusion/ej2-react-buttons';
+import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
+import { TooltipComponent } from '@syncfusion/ej2-react-popups';
 import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { DropDownButtonComponent, MenuEventArgs } from '@syncfusion/ej2-react-splitbuttons';
 import { ListViewComponent, SelectEventArgs } from '@syncfusion/ej2-react-lists';
@@ -185,6 +186,25 @@ const Home: React.FC<HomeProps> = ({
     }).format(new Date(date));
   };
 
+  function formatDateForListCell(date: Date|string) {
+    const value = new Date(date);
+    const now = new Date();
+    const diffMs = now.getTime() - value.getTime();
+    const diffSec = Math.round(diffMs / 1000);
+    const diffMin = Math.round(diffSec / 60);
+    const diffHour = Math.round(diffMin / 60);
+    const diffDay = Math.round(diffHour / 24);
+
+    if (diffDay === 0) {
+      if (diffHour > 0) return `${diffHour}h ago`;
+      if (diffMin > 0) return `${diffMin}m ago`;
+      return `Just now`;
+    }
+    if (diffDay === 1) return 'Yesterday';
+    if (diffDay < 7) return `${diffDay}d ago`;
+    return value.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); // e.g. "Aug 27"
+  }
+
   // Save view mode to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('workflow_projects_view_mode', viewMode);
@@ -283,8 +303,20 @@ const Home: React.FC<HomeProps> = ({
                           </svg>
                         </span>
                         <span className="project-col project-title">{project.name}</span>
-                        <span className="project-col project-date">{formatDate(project.workflowData?.metadata?.created || project.lastModified)}</span>
-                        <span className="project-col project-date">{formatDate(project.lastModified)}</span>
+                        <span className="project-col project-date">
+                          <TooltipComponent content={formatDate(project.workflowData?.metadata?.created || project.lastModified)}>
+                            <span className="project-date">
+                              {formatDateForListCell(project.workflowData?.metadata?.created || project.lastModified)}
+                            </span>
+                          </TooltipComponent>
+                        </span>
+                        <span className="project-col project-date">
+                          <TooltipComponent content={formatDate(project.lastModified)}>
+                            <span className="project-date">
+                              {formatDateForListCell(project.lastModified)}
+                            </span>
+                          </TooltipComponent>
+                        </span>
                         <span className="project-col project-bookmark">
                           <ButtonComponent
                             cssClass="bookmark-btn"
@@ -412,8 +444,20 @@ const Home: React.FC<HomeProps> = ({
                             </svg>
                           </span>
                           <span className="project-col project-title">{project.name}</span>
-                          <span className="project-col project-date">{formatDate(project.workflowData?.metadata?.created || project.lastModified)}</span>
-                          <span className="project-col project-date">{formatDate(project.lastModified)}</span>
+                          <span className="project-col project-date">
+                            <TooltipComponent content={formatDate(project.workflowData?.metadata?.created || project.lastModified)}>
+                              <span className="project-date">
+                                {formatDateForListCell(project.workflowData?.metadata?.created || project.lastModified)}
+                              </span>
+                            </TooltipComponent>
+                          </span>
+                          <span className="project-col project-date">
+                            <TooltipComponent content={formatDate(project.lastModified)}>
+                              <span className="project-date">
+                                {formatDateForListCell(project.lastModified)}
+                              </span>
+                            </TooltipComponent>
+                          </span>
                           <span className="project-col project-bookmark">
                             <ButtonComponent
                               cssClass="bookmark-btn"
