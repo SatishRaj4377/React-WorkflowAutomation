@@ -4,7 +4,6 @@ import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { DropDownButtonComponent, MenuEventArgs } from '@syncfusion/ej2-react-splitbuttons';
 import { ListViewComponent, SelectEventArgs } from '@syncfusion/ej2-react-lists';
 import { AppBarComponent } from '@syncfusion/ej2-react-navigations';
-import { ContextMenuComponent, MenuItemModel } from '@syncfusion/ej2-react-navigations';
 import { ProjectData } from '../../types';
 import './Home.css';
 
@@ -23,13 +22,11 @@ const Home: React.FC<HomeProps> = ({
 }) => {
   const searchRef = useRef<TextBoxComponent>(null);
   const sidebarRef = useRef<ListViewComponent>(null);
-  const contextMenuRef = useRef<ContextMenuComponent>(null);
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('lastModified');
   const [sortText, setSortText] = useState('Last Modified');
   const [activeSection, setActiveSection] = useState('dashboard');
-  const [selectedProject, setSelectedProject] = useState<ProjectData | null>(null);
 
   const sortOptions = [
     { text: 'Last Modified', id: 'lastModified' },
@@ -76,7 +73,7 @@ const Home: React.FC<HomeProps> = ({
     }
   ];
 
-  const contextMenuItems: MenuItemModel[] = [
+  const menuItems = [
     { text: 'Edit', iconCss: 'e-icons e-edit' },
     { text: 'Delete', iconCss: 'e-icons e-trash' }
   ];
@@ -98,24 +95,13 @@ const Home: React.FC<HomeProps> = ({
     setActiveSection((args.data as any).id);
   };
 
-  const handleContextMenu = (project: ProjectData, event: React.MouseEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setSelectedProject(project);
-    if (contextMenuRef.current) {
-      contextMenuRef.current.open(event.pageY, event.pageX);
-    }
-  };
-
-  const handleContextMenuSelect = (args: MenuEventArgs) => {
-    if (!selectedProject) return;
-    
+  const handleMenuSelect = (project: ProjectData) => (args: MenuEventArgs) => {
     switch (args.item.text) {
       case 'Edit':
-        onOpenProject(selectedProject);
+        onOpenProject(project);
         break;
       case 'Delete':
-        onDeleteProject(selectedProject.id);
+        onDeleteProject(project.id);
         break;
     }
   };
@@ -259,15 +245,13 @@ const Home: React.FC<HomeProps> = ({
                         <span className="project-col project-date">{formatDate(project.workflowData?.metadata?.created || project.lastModified)}</span>
                         <span className="project-col project-date">{formatDate(project.lastModified)}</span>
                         <span className="project-col project-menu">
-                            <ButtonComponent
-                              cssClass="context-menu-btn"
-                              iconCss="e-icons e-more-vertical-1"
-                              onClick={e => { 
-                                e.stopPropagation();
-                                setSelectedProject(project); 
-                                handleContextMenu(project, e);
-                              }}
-                            />
+                          <DropDownButtonComponent
+                            items={menuItems}
+                            iconCss="e-icons e-more-vertical-1"
+                            cssClass="e-caret-hide project-menu-dropdown"
+                            select={handleMenuSelect(project)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
                         </span>
                       </div>
                     ))}
@@ -381,14 +365,12 @@ const Home: React.FC<HomeProps> = ({
                           <span className="project-col project-date">{formatDate(project.workflowData?.metadata?.created || project.lastModified)}</span>
                           <span className="project-col project-date">{formatDate(project.lastModified)}</span>
                           <span className="project-col project-menu">
-                            <ButtonComponent
-                              cssClass="context-menu-btn"
+                            <DropDownButtonComponent
+                              items={menuItems}
                               iconCss="e-icons e-more-vertical-1"
-                              onClick={e => { 
-                                e.stopPropagation();
-                                setSelectedProject(project); 
-                                handleContextMenu(project, e);
-                              }}
+                              cssClass="e-caret-hide project-menu-dropdown"
+                              select={handleMenuSelect(project)}
+                              onClick={(e) => e.stopPropagation()}
                             />
                           </span>
                         </div>
@@ -404,10 +386,12 @@ const Home: React.FC<HomeProps> = ({
                         <div className="e-card-image project-thumbnail">
                           <img src={project.thumbnail || "/images/template-images/default-image.jpg"} alt={project.name} />
                           <div className="project-card-overlay">
-                            <ButtonComponent
-                              cssClass="context-menu-btn"
+                            <DropDownButtonComponent
+                              items={menuItems}
                               iconCss="e-icons e-more-vertical-1"
-                              onClick={(e) => handleContextMenu(project, e)}
+                              cssClass="e-caret-hide project-menu-dropdown"
+                              select={handleMenuSelect(project)}
+                              onClick={(e) => e.stopPropagation()}
                             />
                           </div>
                         </div>
@@ -454,11 +438,6 @@ const Home: React.FC<HomeProps> = ({
           )}
         </div>
 
-        <ContextMenuComponent
-          ref={contextMenuRef}
-          items={contextMenuItems}
-          select={handleContextMenuSelect}
-        />
       </main>
     </div>
   );
