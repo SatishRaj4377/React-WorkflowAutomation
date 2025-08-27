@@ -286,6 +286,7 @@ const Home: React.FC<HomeProps> = ({
                       <span className="project-col project-title-header">Workflow Name</span>
                       <span className="project-col project-date-header">Created</span>
                       <span className="project-col project-date-header">Modified</span>
+                      <span className="project-col project-bookmark-header"></span>
                       <span className="project-col project-menu-header"></span>
                     </div>
                     {filteredAndSortedProjects.slice(0, 5).map((project) => (
@@ -318,12 +319,13 @@ const Home: React.FC<HomeProps> = ({
                           </TooltipComponent>
                         </span>
                         <span className="project-col project-bookmark">
-                          <ButtonComponent
-                            cssClass="bookmark-btn"
-                            iconCss={`e-icons ${isBookmarked(project.id) ? 'e-star-filled' : 'e-bookmark'}`}
-                            onClick={(e) => handleBookmarkToggle(project.id, e)}
-                            title={isBookmarked(project.id) ? 'Remove from favorites' : 'Add to favorites'}
-                          />
+                          <TooltipComponent content={isBookmarked(project.id) ? 'Remove from favorites' : 'Add to favorites'}>
+                            <ButtonComponent
+                              cssClass="bookmark-btn"
+                              iconCss={`e-icons ${isBookmarked(project.id) ? 'e-star-filled' : 'e-bookmark'}`}
+                              onClick={(e) => handleBookmarkToggle(project.id, e)}
+                              />
+                          </TooltipComponent>
                         </span>
                         <span className="project-col project-menu">
                           <DropDownButtonComponent
