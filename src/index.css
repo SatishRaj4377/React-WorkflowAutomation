@@ -4,24 +4,12 @@
   box-sizing: border-box;
 }
 
-/* Hide Scrollbars */
-::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-  background: transparent;
-}
-html {
-  scrollbar-width: none;
-}
-
-
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
   'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
   sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  -ms-overflow-style: none;
   min-height: 100vh;
 }
 
@@ -57,6 +45,10 @@ body {
   --list-hover-bg: #e7f1fe;
   --list-selected-bg: #dbeafe;
   --list-selected-color: var(--primary-color);
+  --scrollbar-bg: #f5f7fa;
+  --scrollbar-thumb: #bbc7d6;
+  --scrollbar-thumb-hover: #7c9acc;
+  --scrollbar-border-radius: 8px;  
 }
 
 /* Dark theme - Professional Blue Dark Palette */
@@ -77,6 +69,9 @@ body {
   --gradient-primary: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #93c5fd 100%);
   --gradient-secondary: linear-gradient(135deg, #93c5fd 0%, #60a5fa 50%, #3b82f6 100%);
   --gradient-accent: linear-gradient(135deg, #60a5fa 0%, #5c83f6 100%);
+  --scrollbar-bg: #20264b;
+  --scrollbar-thumb: #52627a;
+  --scrollbar-thumb-hover: #6984b9;
 }
 
 [data-theme="dark"] body {
@@ -134,3 +129,32 @@ body {
 }
 
 
+/* Scrollbars Styling */
+/* Webkit browsers (Chrome, Edge, Safari) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background: var(--scrollbar-bg);
+  border-radius: var(--scrollbar-border-radius);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: var(--scrollbar-border-radius);
+  transition: background 0.2s;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-bg);
+  border-radius: var(--scrollbar-border-radius);
+}
+/* Firefox */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-bg);
+}
+/* scrollbars thinner for inner scrolls */
+body, .home-main, .scrollable {
+  scrollbar-width: thin;
+}

@@ -43,6 +43,7 @@
   padding: 0;
   background: var(--surface-color);
   border-right: 1px solid var(--border-color);
+  overflow: hidden;
 }
 .home-sidebar .e-listview, .home-sidebar .e-listview .e-list-item {
   border: none !important;
@@ -391,6 +392,7 @@
   background-color: transparent !important;
   color: var(--text-primary); 
   box-shadow: none;
+  overflow: hidden;
 }
 .project-list-item:hover .project-menu-dropdown,
 .project-list-item:focus .project-menu-dropdown { 
