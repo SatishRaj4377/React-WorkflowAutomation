@@ -26,7 +26,10 @@ const Home: React.FC<HomeProps> = ({
 }) => {
   const searchRef = useRef<TextBoxComponent>(null);
   const sidebarRef = useRef<ListViewComponent>(null);
-  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+  const [viewMode, setViewMode] = useState<'card' | 'list'>(() => {
+    const savedViewMode = localStorage.getItem('workflow_projects_view_mode');
+    return (savedViewMode === 'list' || savedViewMode === 'card') ? savedViewMode : 'card';
+  });
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('lastModified');
   const [sortText, setSortText] = useState('Last Modified');
@@ -172,6 +175,11 @@ const Home: React.FC<HomeProps> = ({
       minute: '2-digit',
     }).format(new Date(date));
   };
+
+  // Save view mode to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('workflow_projects_view_mode', viewMode);
+  }, [viewMode]);
 
   // On mount, select the dashboard item
   useEffect(() => {
