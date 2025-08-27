@@ -39,7 +39,8 @@ const Home: React.FC<HomeProps> = ({
     { text: 'Last Modified', id: 'lastModified' },
     { text: 'Last Created', id: 'created' },
     { text: 'Name (A-Z)', id: 'nameAsc' },
-    { text: 'Name (Z-A)', id: 'nameDesc' }
+    { text: 'Name (Z-A)', id: 'nameDesc' },
+    { text: 'Bookmarked', id: 'bookmarked' }
   ];
 
   const sidebarItems = [
@@ -134,9 +135,14 @@ const Home: React.FC<HomeProps> = ({
   }, []);
 
   const filteredAndSortedProjects = useMemo(() => {
-    const filteredProjects = projects.filter(project =>
+    let filteredProjects = projects.filter(project =>
       project.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    if (sortBy === 'bookmarked') {
+      // Filter to only bookmarked projects
+      filteredProjects = filteredProjects.filter(project => isBookmarked(project.id));
+    }
 
     return filteredProjects.sort((projectA, projectB) => {
       switch (sortBy) {
@@ -160,11 +166,14 @@ const Home: React.FC<HomeProps> = ({
         case 'nameDesc':
           return projectB.name.localeCompare(projectA.name);
 
+        // For 'bookmarked' (handle sort within only bookmarked group)
+        case 'bookmarked':
+          return new Date(projectB.lastModified).getTime() - new Date(projectA.lastModified).getTime();
         default:
           return 0;
       }
     });
-  }, [projects, searchTerm, sortBy]);
+  }, [projects, searchTerm, sortBy, isBookmarked]);
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
