@@ -70,15 +70,41 @@ const AppContent: React.FC = () => {
     navigate(`/workflow/${project.id}`);
   };
 
+  const handleBookmarkToggle = (projectId: string) => {
+    const updatedProject = WorkflowService.toggleBookmark(projectId);
+    if (updatedProject) {
+      // Update the projects state with the new bookmark status
+      // Use functional update to prevent unnecessary re-renders and maintain order
+      setProjects(prev => {
+        const newProjects = prev.map(project => 
+          project.id === projectId 
+            ? { ...project, isBookmarked: updatedProject.isBookmarked }
+            : project
+        );
+        // Maintain the original sort order (by lastModified date)
+        return newProjects.sort((a, b) =>
+          new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime()
+        );
+      });
+    }
+  };
+
+  // Get bookmarked project IDs for the Home component
+  const bookmarkedProjects = projects
+    .filter(project => project.isBookmarked)
+    .map(project => project.id);
+
   return (
     <div className="app-container" data-theme={theme}>
       <Routes>
         <Route path="/" element={
           <Home
             projects={projects}
+            bookmarkedProjects={bookmarkedProjects}
             onCreateNew={handleCreateNew}
             onOpenProject={handleOpenProject}
             onDeleteProject={handleDeleteProject}
+            onBookmarkToggle={handleBookmarkToggle}
           />
         } />
         <Route path="/workflow/:id" element={

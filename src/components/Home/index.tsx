@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { Button, ButtonComponent } from '@syncfusion/ej2-react-buttons';
 import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { DropDownButtonComponent, MenuEventArgs } from '@syncfusion/ej2-react-splitbuttons';
@@ -12,13 +12,17 @@ interface HomeProps {
   onCreateNew: () => void;
   onOpenProject: (project: ProjectData) => void;
   onDeleteProject: (projectId: string) => void;
+  onBookmarkToggle?: (projectId: string) => void;
+  bookmarkedProjects?: string[];
 }
 
 const Home: React.FC<HomeProps> = ({
   projects,
   onCreateNew,
   onOpenProject,
-  onDeleteProject
+  onDeleteProject,
+  onBookmarkToggle,
+  bookmarkedProjects = []
 }) => {
   const searchRef = useRef<TextBoxComponent>(null);
   const sidebarRef = useRef<ListViewComponent>(null);
@@ -105,6 +109,26 @@ const Home: React.FC<HomeProps> = ({
         break;
     }
   };
+
+  const handleBookmarkToggle = useCallback((projectId: string, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    // Use setTimeout to ensure the UI update happens after the current event cycle
+    // This prevents conflicts with other UI elements like dropdowns
+    setTimeout(() => {
+      if (onBookmarkToggle) {
+        onBookmarkToggle(projectId);
+      }
+    }, 0);
+  }, [onBookmarkToggle]);
+
+  const isBookmarked = useCallback((projectId: string) => bookmarkedProjects.includes(projectId), [bookmarkedProjects]);
+
+  // Generate stable keys that don't cause unnecessary re-renders
+  const getProjectKey = useCallback((project: ProjectData, index: number, prefix: string = '') => {
+    return `${prefix}${project.id}-${index}`;
+  }, []);
 
   const filteredAndSortedProjects = useMemo(() => {
     const filteredProjects = projects.filter(project =>
@@ -244,6 +268,14 @@ const Home: React.FC<HomeProps> = ({
                         <span className="project-col project-title">{project.name}</span>
                         <span className="project-col project-date">{formatDate(project.workflowData?.metadata?.created || project.lastModified)}</span>
                         <span className="project-col project-date">{formatDate(project.lastModified)}</span>
+                        <span className="project-col project-bookmark">
+                          <ButtonComponent
+                            cssClass="bookmark-btn"
+                            iconCss={`e-icons ${isBookmarked(project.id) ? 'e-star-filled' : 'e-bookmark'}`}
+                            onClick={(e) => handleBookmarkToggle(project.id, e)}
+                            title={isBookmarked(project.id) ? 'Remove from favorites' : 'Add to favorites'}
+                          />
+                        </span>
                         <span className="project-col project-menu">
                           <DropDownButtonComponent
                             items={menuItems}
@@ -345,11 +377,12 @@ const Home: React.FC<HomeProps> = ({
                         <span className="project-col project-title-header">Workflow Name</span>
                         <span className="project-col project-date-header">Created</span>
                         <span className="project-col project-date-header">Modified</span>
+                        <span className="project-col project-bookmark-header"></span>
                         <span className="project-col project-menu-header"></span>
                       </div>
-                      {filteredAndSortedProjects.map((project) => (
+                      {filteredAndSortedProjects.map((project, index) => (
                         <div
-                          key={project.id}
+                          key={getProjectKey(project, index, 'list-')}
                           className="project-list-item"
                           onClick={() => onOpenProject(project)}
                           tabIndex={0}
@@ -364,6 +397,14 @@ const Home: React.FC<HomeProps> = ({
                           <span className="project-col project-title">{project.name}</span>
                           <span className="project-col project-date">{formatDate(project.workflowData?.metadata?.created || project.lastModified)}</span>
                           <span className="project-col project-date">{formatDate(project.lastModified)}</span>
+                          <span className="project-col project-bookmark">
+                            <ButtonComponent
+                              cssClass="bookmark-btn"
+                              iconCss={`e-icons ${isBookmarked(project.id) ? 'e-star-filled' : 'e-bookmark'}`}
+                              onClick={(e) => handleBookmarkToggle(project.id, e)}
+                              title={isBookmarked(project.id) ? 'Remove from favorites' : 'Add to favorites'}
+                            />
+                          </span>
                           <span className="project-col project-menu">
                             <DropDownButtonComponent
                               items={menuItems}
@@ -377,9 +418,9 @@ const Home: React.FC<HomeProps> = ({
                       ))}
                     </>
                   ) : (
-                    filteredAndSortedProjects.map((project) => (
+                    filteredAndSortedProjects.map((project, index) => (
                       <div
-                        key={project.id}
+                        key={getProjectKey(project, index, 'card-')}
                         className={`e-card modern-card project-card card-item`}
                         onClick={() => onOpenProject(project)}
                       >
@@ -401,6 +442,14 @@ const Home: React.FC<HomeProps> = ({
                             <p className="project-modified">
                               Modified: {formatDate(project.lastModified)}
                             </p>
+                          </div>
+                          <div className="project-bookmark-card">
+                            <ButtonComponent
+                              cssClass="bookmark-btn-card"
+                              iconCss={`e-icons ${isBookmarked(project.id) ? 'e-star-filled' : 'e-bookmark'}`}
+                              onClick={(e) => handleBookmarkToggle(project.id, e)}
+                              title={isBookmarked(project.id) ? 'Remove from favorites' : 'Add to favorites'}
+                            />
                           </div>
                         </div>
                       </div>

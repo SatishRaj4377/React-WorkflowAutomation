@@ -29,6 +29,7 @@ export interface ProjectData {
   lastModified: Date;
   thumbnail?: string;
   workflowData: WorkflowData;
+  isBookmarked?: boolean;
 }
 
 export interface PaletteCategory {

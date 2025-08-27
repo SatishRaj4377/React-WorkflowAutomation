@@ -370,6 +370,10 @@
   font-size: 0.97rem;
   color: var(--text-secondary); 
 }
+.project-bookmark-header, .project-bookmark {
+  width: 38px;
+  justify-content: center;
+}
 .project-menu-header, .project-menu {
   width: 38px;
   justify-content: flex-end;
@@ -386,6 +390,7 @@
   overflow: auto;
   background-color: transparent !important;
   color: var(--text-primary); 
+  box-shadow: none;
 }
 .project-list-item:hover .project-menu-dropdown,
 .project-list-item:focus .project-menu-dropdown { 
@@ -476,9 +481,11 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  position: relative;
 }
 .project-info {
   flex: 1;
+  padding-right: 0.5rem;
 }
 .project-title {
   font-size: 1.1rem;
@@ -825,4 +832,107 @@
   border: 1.5px solid var(--border-color) !important;
   border-radius: 5px !important;
   color: var(--text-secondary) !important;
+}
+
+/* Bookmark Button Styling for List View */
+.bookmark-btn.e-btn {
+  background: transparent !important;
+  border: none !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 32px !important;
+  transition: all 0.2s ease;
+  box-shadow: none;
+}
+
+.bookmark-btn.e-btn .e-btn-icon {
+  color: var(--text-secondary) !important;
+  font-size: 16px !important;
+  margin: 0 !important;
+}
+
+.bookmark-btn.e-btn .e-star-filled {
+  color: var(--box-shadow2) !important;
+}
+
+/* Bookmark Button Styling for Card View */
+.project-bookmark-card {
+  position: absolute;
+  bottom: 1.5rem;
+  right: 1.5rem;
+}
+
+.bookmark-btn-card.e-btn {
+  background: var(--surface-color) !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 8px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 36px !important;
+  transition: all 0.2s ease;
+  box-shadow: none !important;
+}
+
+.bookmark-btn-card.e-btn .e-btn-icon {
+  color: var(--text-secondary) !important;
+  font-size: 18px !important;
+  margin: 0 !important;
+}
+
+.bookmark-btn-card.e-btn:hover {
+  background: var(--list-hover-bg) !important;
+  transform: scale(1.05);
+}
+
+.bookmark-btn-card.e-btn .e-star-filled {
+  color: var(--box-shadow2) !important;
+}
+
+/* Show bookmark button on card hover */
+.project-card .project-bookmark-card {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.project-card:hover .project-bookmark-card {
+  opacity: 1;
+}
+
+/* Always show bookmark if it's bookmarked */
+.project-bookmark-card .e-star-filled {
+  opacity: 1 !important;
+}
+
+.project-card:has(.e-star-filled) .project-bookmark-card {
+  opacity: 1;
+}
+
+/* List view bookmark styling - show only on hover or when bookmarked */
+.project-list-item .project-bookmark {
+  opacity: 0;
+  transition: opacity 0.16s;
+  box-shadow: none !important;
+}
+
+.project-list-item:hover .project-bookmark,
+.project-list-item:focus .project-bookmark {
+  opacity: 1;
+  box-shadow: none !important;
+}
+
+/* Always show bookmark in list if it's bookmarked */
+.project-list-item .bookmark-btn .e-star-filled {
+  opacity: 1 !important;
+}
+
+.project-list-item:has(.e-star-filled) .project-bookmark {
+  opacity: 1;
 }

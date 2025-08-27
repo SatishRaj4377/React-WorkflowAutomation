@@ -193,6 +193,46 @@ export class WorkflowService {
   }
 
   /**
+   * Toggle bookmark status for a project
+   */
+  toggleBookmark(projectId: string): ProjectData | null {
+    try {
+      const projects = this.getProjects();
+      const projectIndex = projects.findIndex(p => p.id === projectId);
+      
+      if (projectIndex === -1) return null;
+      
+      const project = projects[projectIndex];
+      
+      // Create updated project with toggled bookmark status
+      const updatedProject = {
+        ...project,
+        isBookmarked: !project.isBookmarked,
+        // Don't update lastModified for bookmark changes to maintain sort order
+        lastModified: project.lastModified
+      };
+      
+      // Update the project in the array
+      projects[projectIndex] = updatedProject;
+      
+      // Save all projects back to localStorage
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(projects));
+      
+      return updatedProject;
+    } catch (error) {
+      console.error('Failed to toggle bookmark:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get all bookmarked projects
+   */
+  getBookmarkedProjects(): ProjectData[] {
+    return this.getProjects().filter(project => project.isBookmarked);
+  }
+
+  /**
    * Execute a workflow
    * This is a placeholder implementation
    */
