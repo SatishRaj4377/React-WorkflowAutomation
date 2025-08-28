@@ -7,6 +7,7 @@ interface ConfirmationDialogProps {
   onClose: () => void;
   onConfirm: () => void;
   content: string;
+  onDismiss?: () => void
   buttonContent?: {
     primary: string;
     secondary: string;
@@ -19,6 +20,7 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   onClose,
   onConfirm,
   content,
+  onDismiss,
   buttonContent = {
     primary: 'Delete',
     secondary: 'Cancel'
@@ -44,14 +46,21 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
     },
   ];
 
+  
+  const handleDismiss = () => {
+    if (onDismiss) onDismiss();
+    else onClose();
+  };
+
+
   return (
     <DialogComponent
       id="delete-confirmation-dialog"
       header={title}
       visible={isOpen}
       showCloseIcon={true}
-      close={onClose}
-      overlayClick={onClose}
+      close={handleDismiss}
+      overlayClick={handleDismiss}
       buttons={dialogButtons}
       width="400px"
       target={document.body}

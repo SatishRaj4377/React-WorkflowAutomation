@@ -560,6 +560,10 @@ const findBottomOfNodes = (nodes: any[]) => {
           pendingAction?.();
           setPendingAction(null);
         }}
+        onDismiss={() => {
+          setShowLeaveDialog(false);
+          setPendingAction(null);
+        }}
         onConfirm={() => {
           handleSave();
           setShowLeaveDialog(false);
@@ -570,7 +574,7 @@ const findBottomOfNodes = (nodes: any[]) => {
         content="You have unsaved changes. Do you want to save before leaving?"
         buttonContent={{
           primary: 'Save & Leave',
-          secondary: 'Leave without saving',
+          secondary: 'Discard Changes',
         }}
       />
 
