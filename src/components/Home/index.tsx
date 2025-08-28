@@ -5,6 +5,7 @@ import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { DropDownButtonComponent, MenuEventArgs } from '@syncfusion/ej2-react-splitbuttons';
 import { ListViewComponent, SelectEventArgs } from '@syncfusion/ej2-react-lists';
 import { AppBarComponent } from '@syncfusion/ej2-react-navigations';
+import DeleteConfirmationDialog from '../DeleteConfirmationDialog';
 import { ProjectData } from '../../types';
 import './Home.css';
 
@@ -35,6 +36,7 @@ const Home: React.FC<HomeProps> = ({
   const [sortBy, setSortBy] = useState('lastModified');
   const [sortText, setSortText] = useState('Last Modified');
   const [activeSection, setActiveSection] = useState('dashboard');
+  const [projectToDelete, setProjectToDelete] = useState<ProjectData | null>(null);
 
   const sortOptions = [
     { text: 'Last Modified', id: 'lastModified' },
@@ -110,7 +112,7 @@ const Home: React.FC<HomeProps> = ({
         onOpenProject(project);
         break;
       case 'Delete':
-        onDeleteProject(project.id);
+        setProjectToDelete(project); 
         break;
     }
   };
@@ -127,6 +129,17 @@ const Home: React.FC<HomeProps> = ({
       }
     }, 0);
   }, [onBookmarkToggle]);
+
+  const handleConfirmDelete = () => {
+    if (projectToDelete) {
+      onDeleteProject(projectToDelete.id);
+      setProjectToDelete(null);
+    }
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setProjectToDelete(null);
+  };
 
   const isBookmarked = useCallback((projectId: string) => bookmarkedProjects.includes(projectId), [bookmarkedProjects]);
 
@@ -549,7 +562,12 @@ const Home: React.FC<HomeProps> = ({
             </section>
           )}
         </div>
-
+        <DeleteConfirmationDialog
+          isOpen={!!projectToDelete}
+          onClose={handleCloseDeleteDialog}
+          onConfirm={handleConfirmDelete}
+          itemName={projectToDelete?.name}
+        />
       </main>
     </div>
   );

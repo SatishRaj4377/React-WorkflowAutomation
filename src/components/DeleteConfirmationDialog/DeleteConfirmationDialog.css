@@ -1,0 +1,33 @@
+
+.delete-dialog-container .e-btn {
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 0.4rem 1rem;
+  border: 1.5px solid transparent;
+  box-shadow: none !important;
+}
+
+/* Cancel Button */
+.delete-dialog-container .cancel-btn {
+  background: transparent !important;
+  color: var(--text-secondary) !important;
+  border: 2px solid var(--border-color) !important;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+.delete-dialog-container .cancel-btn:hover {
+   background: var(--background-color) !important;
+   border-color: var(--node-handle) !important;
+   transform: none;
+}
+
+
+/* Delete Button */
+.delete-dialog-container .delete-btn {
+  background: var(--danger-color) !important;
+  color: #fff !important;
+  border-color: var(--danger-color) !important;
+}
+.delete-dialog-container .delete-btn:hover {
+  background: var(--danger-accent) !important;
+  border-color: var(--danger-accent) !important;
+}

@@ -36,8 +36,8 @@ body {
   --gradient-primary: linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%);
   --gradient-secondary: linear-gradient(135deg, #3b82f6 0%, #60a5fa 50%, #93c5fd 100%);
   --gradient-accent: linear-gradient(135deg, #2563eb 0%, #6366f1 100%);
-  --danger-color: #e53e3e;
-  --danger-accent: #c53030;
+  --danger-color: #d9534f; 
+  --danger-accent: #c9302c; 
   --node-selector-outline: #ccd5e2ad;
   --node-selector-background: #effdff;
   --node-handle: #a8adb3;

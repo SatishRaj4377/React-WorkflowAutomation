@@ -50,9 +50,6 @@ const AppContent: React.FC = () => {
   };
 
   const handleDeleteProject = (projectId: string) => {
-    const confirmed = window.confirm('Are you sure you want to delete this project? This action cannot be undone.');
-    if (!confirmed) return;
-
     WorkflowService.deleteProject(projectId);
     setProjects((prev) => prev.filter((p) => p.id !== projectId));
   };
