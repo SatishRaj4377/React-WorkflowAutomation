@@ -5,7 +5,7 @@ import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { DropDownButtonComponent, MenuEventArgs } from '@syncfusion/ej2-react-splitbuttons';
 import { ListViewComponent, SelectEventArgs } from '@syncfusion/ej2-react-lists';
 import { AppBarComponent } from '@syncfusion/ej2-react-navigations';
-import DeleteConfirmationDialog from '../DeleteConfirmationDialog';
+import ConfirmationDialog from '../ConfirmationDialog';
 import { ProjectData } from '../../types';
 import './Home.css';
 
@@ -562,11 +562,11 @@ const Home: React.FC<HomeProps> = ({
             </section>
           )}
         </div>
-        <DeleteConfirmationDialog
+        <ConfirmationDialog
           isOpen={!!projectToDelete}
           onClose={handleCloseDeleteDialog}
           onConfirm={handleConfirmDelete}
-          itemName={projectToDelete?.name}
+          content={`Are you sure you want to delete ${projectToDelete?.name ? `"${projectToDelete?.name}"` : 'this item'}? This action cannot be undone.`}
         />
       </main>
     </div>

@@ -10,6 +10,7 @@ import { ProjectData, NodeConfig, NodeTemplate } from '../../types';
 import WorkflowService from '../../services/WorkflowService';
 import './Editor.css';
 import { NodeConstraints, NodeModel, PortConstraints, PortModel } from '@syncfusion/ej2-react-diagrams';
+import ConfirmationDialog from '../ConfirmationDialog';
 
 interface EditorProps {
   project: ProjectData;
@@ -28,6 +29,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const [diagramRef, setDiagramRef] = useState<any>(null);
   const [isDirty, setIsDirty] = useState(false);
   const [isNavigatingAway, setIsNavigatingAway] = useState(false);
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+  const [pendingAction, setPendingAction] = useState<null | (() => void)>(null);
   // Port selection state for connecting nodes
   const [isPortSelectionMode, setIsPortSelectionMode] = useState(false);
   const [selectedPortConnection, setSelectedPortConnection] = useState<{nodeId: string, portId: string} | null>(null);
@@ -233,13 +236,12 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
 
   const handleBackToHome = () => {
     if (isDirty && !isNavigatingAway) {
-      const shouldSave = window.confirm(
-        'You have unsaved changes. Do you want to save before leaving?'
-      );
-      
-      if (shouldSave) {
-        handleSave();
-      }
+      setShowLeaveDialog(true);
+      setPendingAction(() => () => {
+        setIsNavigatingAway(true);
+        onBackToHome();
+      });
+      return; // Stop here until user decides
     }
     setIsNavigatingAway(true);
     onBackToHome();
@@ -464,24 +466,17 @@ const findBottomOfNodes = (nodes: any[]) => {
 
     const handlePopState = (event: PopStateEvent) => {
       if (isDirty && !isNavigatingAway) {
-        // Prevent the navigation
-        event.preventDefault();
-        
+        event.preventDefault?.();
         window.history.pushState(null, '', window.location.href);
-        
-        const shouldSave = window.confirm(
-          'You have unsaved changes. Do you want to save before leaving?'
-        );
-        
-        if (shouldSave) {
-          handleSave();
-        }
-        
-        // Now allow navigation
-        setIsNavigatingAway(true);
-        setTimeout(() => {
-          window.history.back();
-        }, 100);
+
+        // Show the same dialog as AppBar back
+        setShowLeaveDialog(true);
+        setPendingAction(() => () => {
+          setIsNavigatingAway(true);
+          setTimeout(() => {
+            window.history.back();
+          }, 0);
+        });
       }
     };
 
@@ -560,6 +555,25 @@ const findBottomOfNodes = (nodes: any[]) => {
       </div>
       
       <Toast position={{ X: 'Right', Y: 'Bottom' }} />
+      
+      <ConfirmationDialog
+        isOpen={showLeaveDialog}
+        onClose={() => {
+          setShowLeaveDialog(false);
+          setPendingAction(null);
+        }}
+        onConfirm={() => {
+          handleSave();
+          setShowLeaveDialog(false);
+          pendingAction?.();
+        }}
+        content="You have unsaved changes. Do you want to save before leaving?"
+        buttonContent={{
+          primary: 'Save & Continue',
+          secondary: 'Cancel'
+        }}
+      />
+
     </div>
   );
 };

@@ -1,20 +1,28 @@
 import React from 'react';
 import { DialogComponent, ButtonPropsModel } from '@syncfusion/ej2-react-popups';
-import './DeleteConfirmationDialog.css';
+import './ConfirmationDialog.css';
 
-interface DeleteConfirmationDialogProps {
+interface ConfirmationDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  itemName?: string;
+  content: string;
+  buttonContent?: {
+    primary: string;
+    secondary: string;
+  };
   title?: string;
 }
 
-const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
+const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   isOpen,
   onClose,
   onConfirm,
-  itemName,
+  content,
+  buttonContent = {
+    primary: 'Delete',
+    secondary: 'Cancel'
+  },
   title = "Are you sure?"
 }) => {
 
@@ -22,21 +30,19 @@ const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
     {
       click: onClose,
       buttonModel: {
-        content: 'Cancel',
+        content: buttonContent.secondary,
         cssClass: 'e-flat cancel-btn',
       },
     },
     {
       click: onConfirm,
       buttonModel: {
-        content: 'Delete',
+        content: buttonContent.primary,
         cssClass: 'e-danger delete-btn',
         isPrimary: true,
       },
     },
   ];
-
-  const content = `Are you sure you want to delete ${itemName ? `"${itemName}"` : 'this item'}? This action cannot be undone.`;
 
   return (
     <DialogComponent
@@ -60,4 +66,4 @@ const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
   );
 };
 
-export default DeleteConfirmationDialog;
+export default ConfirmationDialog;
