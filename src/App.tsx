@@ -24,7 +24,7 @@ const EditorPage: React.FC<{
     <Editor
       project={project}
       onSaveProject={onSaveProject}
-      onBackToHome={() => navigate('/')} />
+      onBackToHome={() => navigate('/', { replace:true })} />
   );
 };
 

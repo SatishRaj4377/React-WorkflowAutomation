@@ -457,17 +457,15 @@ const findBottomOfNodes = (nodes: any[]) => {
   // Handle browser navigation (back button)
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (isDirty && !isNavigatingAway) {
-        const message = 'You have unsaved changes. Are you sure you want to leave?';
+      if (isDirty) {
         event.preventDefault();
-        event.returnValue = message;
-        return message;
+        event.returnValue = ''; // triggers native browser prompt
       }
     };
 
-    const handlePopState = (event: PopStateEvent) => {
+    const handlePopState = () => {
       if (isDirty && !isNavigatingAway) {
-        event.preventDefault?.();
+        // Prevent immediate navigation by restoring current URL
         window.history.pushState(null, '', window.location.href);
 
         setShowLeaveDialog(true);
@@ -475,10 +473,14 @@ const findBottomOfNodes = (nodes: any[]) => {
           setIsNavigatingAway(true);
           onBackToHome();
         });
+      } else {
+        onBackToHome();
       }
     };
 
+    // Add a guard entry so Back stays on this page
     window.history.pushState(null, '', window.location.href);
+
     window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('popstate', handlePopState);
 
