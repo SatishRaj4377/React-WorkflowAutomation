@@ -460,6 +460,7 @@ const findBottomOfNodes = (nodes: any[]) => {
       if (isDirty && !isNavigatingAway) {
         const message = 'You have unsaved changes. Are you sure you want to leave?';
         event.preventDefault();
+        event.returnValue = message;
         return message;
       }
     };
@@ -469,20 +470,15 @@ const findBottomOfNodes = (nodes: any[]) => {
         event.preventDefault?.();
         window.history.pushState(null, '', window.location.href);
 
-        // Show the same dialog as AppBar back
         setShowLeaveDialog(true);
         setPendingAction(() => () => {
           setIsNavigatingAway(true);
-          setTimeout(() => {
-            window.history.back();
-          }, 0);
+          onBackToHome();
         });
       }
     };
 
-    // Add a state to the history when component mounts
     window.history.pushState(null, '', window.location.href);
-
     window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('popstate', handlePopState);
 
@@ -560,17 +556,21 @@ const findBottomOfNodes = (nodes: any[]) => {
         isOpen={showLeaveDialog}
         onClose={() => {
           setShowLeaveDialog(false);
+          setIsNavigatingAway(true);
+          pendingAction?.();
           setPendingAction(null);
         }}
         onConfirm={() => {
           handleSave();
           setShowLeaveDialog(false);
+          setIsNavigatingAway(true);
           pendingAction?.();
+          setPendingAction(null);
         }}
         content="You have unsaved changes. Do you want to save before leaving?"
         buttonContent={{
-          primary: 'Save & Continue',
-          secondary: 'Cancel'
+          primary: 'Save & Leave',
+          secondary: 'Leave without saving',
         }}
       />
 
