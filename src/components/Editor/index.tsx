@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useBlocker } from 'react-router';
+import { NodeConstraints, NodeModel, PortConstraints, PortModel } from '@syncfusion/ej2-react-diagrams';
 import AppBar from '../Header';
 import DiagramEditor from '../DiagramEditor';
 import Toolbar from '../Toolbar';
@@ -6,11 +8,10 @@ import Toast, { showSuccessToast, showErrorToast } from '../Toast';
 import NodePaletteSidebar from '../NodePaletteSidebar';
 import NodeConfigSidebar from '../NodeConfigSidebar';
 import { useTheme } from '../../contexts/ThemeContext';
+import ConfirmationDialog from '../ConfirmationDialog';
 import { ProjectData, NodeConfig, NodeTemplate } from '../../types';
 import WorkflowService from '../../services/WorkflowService';
 import './Editor.css';
-import { NodeConstraints, NodeModel, PortConstraints, PortModel } from '@syncfusion/ej2-react-diagrams';
-import ConfirmationDialog from '../ConfirmationDialog';
 
 interface EditorProps {
   project: ProjectData;
@@ -28,9 +29,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const [projectName, setProjectName] = useState(project.name);
   const [diagramRef, setDiagramRef] = useState<any>(null);
   const [isDirty, setIsDirty] = useState(false);
-  const [isNavigatingAway, setIsNavigatingAway] = useState(false);
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
-  const [pendingAction, setPendingAction] = useState<null | (() => void)>(null);
+  const blocker = useBlocker(React.useCallback(() => isDirty, [isDirty]));
   // Port selection state for connecting nodes
   const [isPortSelectionMode, setIsPortSelectionMode] = useState(false);
   const [selectedPortConnection, setSelectedPortConnection] = useState<{nodeId: string, portId: string} | null>(null);
@@ -65,7 +65,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
           ...project,
           name: projectName,
           workflowData: {
-            ...project.workflowData,
+            ...(project.workflowData ?? {}),
             diagramString: diagramString
           }
         });
@@ -235,15 +235,6 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   };
 
   const handleBackToHome = () => {
-    if (isDirty && !isNavigatingAway) {
-      setShowLeaveDialog(true);
-      setPendingAction(() => () => {
-        setIsNavigatingAway(true);
-        onBackToHome();
-      });
-      return; // Stop here until user decides
-    }
-    setIsNavigatingAway(true);
     onBackToHome();
   };
 
@@ -277,219 +268,199 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   };
 
   const handleAutoAlignNodes = () => {
-  try {
-    if (!diagramRef) {
-      showErrorToast('Error', 'Diagram reference not available');
-      return;
+    try {
+      if (!diagramRef) {
+        showErrorToast('Error', 'Diagram reference not available');
+        return;
+      }
+
+      const nodes = diagramRef.nodes;
+      const connectors = diagramRef.connectors;
+
+      if (!nodes || !nodes.length) {
+        showErrorToast('Error', 'No nodes to arrange');
+        return;
+      }
+
+      // Skip sticky notes from arrangement
+      const workflowNodes = nodes.filter((node: any) => {
+        const nodeConfig = node.addInfo?.nodeConfig;
+        return nodeConfig?.type !== 'sticky';
+      });
+
+      if (workflowNodes.length === 0) {
+        showErrorToast('Info', 'No workflow nodes to arrange');
+        return;
+      }
+
+      // First determine which nodes are connected
+      const nodeConnections = buildNodeConnectionsMap(connectors);
+      const { inputNodes, outputNodes, isolatedNodes } = categorizeNodes(workflowNodes, nodeConnections);
+      
+      // Special case: if everything is isolated (no connections exist)
+      if (isolatedNodes.length === workflowNodes.length) {
+        arrangeNodesInGrid(diagramRef, isolatedNodes);
+        return;
+      }
+      
+      // Has connections, use hierarchical layout
+      applyHierarchicalLayout(diagramRef, workflowNodes, inputNodes);
+      
+      // If there are any isolated nodes, arrange them below the connected nodes
+      if (isolatedNodes.length > 0) {
+        const connectedNodesBottom = findBottomOfNodes(workflowNodes.filter((n: any) => !isolatedNodes.includes(n)));
+        arrangeNodesInGrid(diagramRef, isolatedNodes, { 
+          startY: connectedNodesBottom + 150,
+          startX: 100
+        });
+      }
+      
+      showSuccessToast('Success', 'Workflow has been automatically arranged');
+      diagramRef.reset();
+      diagramRef.fitToPage();
+    } catch (error) {
+      console.error('Error in auto-arrange workflow:', error);
+      showErrorToast('Error', 'Failed to arrange workflow');
     }
+  };
 
-    const nodes = diagramRef.nodes;
-    const connectors = diagramRef.connectors;
-
-    if (!nodes || !nodes.length) {
-      showErrorToast('Error', 'No nodes to arrange');
-      return;
-    }
-
-    // Skip sticky notes from arrangement
-    const workflowNodes = nodes.filter((node: any) => {
-      const nodeConfig = node.addInfo?.nodeConfig;
-      return nodeConfig?.type !== 'sticky';
-    });
-
-    if (workflowNodes.length === 0) {
-      showErrorToast('Info', 'No workflow nodes to arrange');
-      return;
-    }
-
-    // First determine which nodes are connected
-    const nodeConnections = buildNodeConnectionsMap(connectors);
-    const { inputNodes, outputNodes, isolatedNodes } = categorizeNodes(workflowNodes, nodeConnections);
+  // Helper function to build a map of node connections
+  const buildNodeConnectionsMap = (connectors: any[]) => {
+    const nodeConnections = {
+      incoming: new Map<string, string[]>(), // targetID -> sourceIDs
+      outgoing: new Map<string, string[]>()  // sourceID -> targetIDs
+    };
     
-    // Special case: if everything is isolated (no connections exist)
-    if (isolatedNodes.length === workflowNodes.length) {
-      arrangeNodesInGrid(diagramRef, isolatedNodes);
-      return;
-    }
-    
-    // Has connections, use hierarchical layout
-    applyHierarchicalLayout(diagramRef, workflowNodes, inputNodes);
-    
-    // If there are any isolated nodes, arrange them below the connected nodes
-    if (isolatedNodes.length > 0) {
-      const connectedNodesBottom = findBottomOfNodes(workflowNodes.filter((n: any) => !isolatedNodes.includes(n)));
-      arrangeNodesInGrid(diagramRef, isolatedNodes, { 
-        startY: connectedNodesBottom + 150,
-        startX: 100
+    if (connectors && connectors.length) {
+      connectors.forEach(connector => {
+        if (connector.sourceID && connector.targetID) {
+          // Track incoming connections
+          if (!nodeConnections.incoming.has(connector.targetID)) {
+            nodeConnections.incoming.set(connector.targetID, []);
+          }
+          nodeConnections.incoming.get(connector.targetID)?.push(connector.sourceID);
+          
+          // Track outgoing connections
+          if (!nodeConnections.outgoing.has(connector.sourceID)) {
+            nodeConnections.outgoing.set(connector.sourceID, []);
+          }
+          nodeConnections.outgoing.get(connector.sourceID)?.push(connector.targetID);
+        }
       });
     }
     
-    showSuccessToast('Success', 'Workflow has been automatically arranged');
-    diagramRef.reset();
-    diagramRef.fitToPage();
-  } catch (error) {
-    console.error('Error in auto-arrange workflow:', error);
-    showErrorToast('Error', 'Failed to arrange workflow');
-  }
-};
-
-// Helper function to build a map of node connections
-const buildNodeConnectionsMap = (connectors: any[]) => {
-  const nodeConnections = {
-    incoming: new Map<string, string[]>(), // targetID -> sourceIDs
-    outgoing: new Map<string, string[]>()  // sourceID -> targetIDs
+    return nodeConnections;
   };
-  
-  if (connectors && connectors.length) {
-    connectors.forEach(connector => {
-      if (connector.sourceID && connector.targetID) {
-        // Track incoming connections
-        if (!nodeConnections.incoming.has(connector.targetID)) {
-          nodeConnections.incoming.set(connector.targetID, []);
-        }
-        nodeConnections.incoming.get(connector.targetID)?.push(connector.sourceID);
-        
-        // Track outgoing connections
-        if (!nodeConnections.outgoing.has(connector.sourceID)) {
-          nodeConnections.outgoing.set(connector.sourceID, []);
-        }
-        nodeConnections.outgoing.get(connector.sourceID)?.push(connector.targetID);
+
+  // Helper function to categorize nodes based on connectivity
+  const categorizeNodes = (nodes: any[], nodeConnections: any) => {
+    const inputNodes: any[] = []; // Nodes with no incoming connections but have outgoing
+    const outputNodes: any[] = []; // Nodes with no outgoing connections but have incoming
+    const isolatedNodes: any[] = []; // Nodes with no connections at all
+    
+    nodes.forEach(node => {
+      const hasIncoming = nodeConnections.incoming.has(node.id);
+      const hasOutgoing = nodeConnections.outgoing.has(node.id);
+      
+      if (!hasIncoming && hasOutgoing) {
+        inputNodes.push(node);
+      } else if (hasIncoming && !hasOutgoing) {
+        outputNodes.push(node);
+      } else if (!hasIncoming && !hasOutgoing) {
+        isolatedNodes.push(node);
       }
     });
-  }
-  
-  return nodeConnections;
-};
-
-// Helper function to categorize nodes based on connectivity
-const categorizeNodes = (nodes: any[], nodeConnections: any) => {
-  const inputNodes: any[] = []; // Nodes with no incoming connections but have outgoing
-  const outputNodes: any[] = []; // Nodes with no outgoing connections but have incoming
-  const isolatedNodes: any[] = []; // Nodes with no connections at all
-  
-  nodes.forEach(node => {
-    const hasIncoming = nodeConnections.incoming.has(node.id);
-    const hasOutgoing = nodeConnections.outgoing.has(node.id);
     
-    if (!hasIncoming && hasOutgoing) {
-      inputNodes.push(node);
-    } else if (hasIncoming && !hasOutgoing) {
-      outputNodes.push(node);
-    } else if (!hasIncoming && !hasOutgoing) {
-      isolatedNodes.push(node);
-    }
-  });
-  
-  return { inputNodes, outputNodes, isolatedNodes };
-};
-
-// Apply hierarchical layout to connected nodes
-const applyHierarchicalLayout = (diagram: any, nodes: any[], startNodes: any[]) => {
-  // If no specific start nodes found, use first node as root
-  if (startNodes.length === 0 && nodes.length > 0) {
-    startNodes.push(nodes[0]);
-  }
-  
-  const layoutManager = diagram.layout;
-  layoutManager.type = 'HierarchicalTree';
-  layoutManager.orientation = 'LeftToRight';
-  layoutManager.horizontalSpacing = 100;
-  layoutManager.verticalSpacing = 80;
-  layoutManager.margin = { left: 50, top: 50, right: 50, bottom: 50 };
-  
-  // Connect to diagram layout options
-  diagram.layout = {
-    ...layoutManager,
-    enableAnimation: true,
-    getLayoutInfo: (node: any, options: any): any => {
-      // Start nodes are at level 0
-      if (node.id && startNodes.some(n => n.id === node.id)) {
-        options.level = 0;
-      }
-      return options;
-    }
+    return { inputNodes, outputNodes, isolatedNodes };
   };
-  
-  // Apply layout
-  diagram.dataBind();
-  diagram.doLayout();
-  
-  // Ensure everything is visible
-  setTimeout(() => {
-    diagram.fitToPage({ mode: 'Page', region: 'Content', margin: { left: 50, top: 50, right: 50, bottom: 50 } });
-  }, 100);
-};
 
-// Arrange unconnected nodes in a grid pattern
-const arrangeNodesInGrid = (diagram: any, nodes: any[], options = { startX: 100, startY: 100 }) => {
-  if (!nodes.length) return;
-  
-  const { startX, startY } = options;
-  const gridSpacing = 150;
-  const nodesPerRow = 5;
-  
-  nodes.forEach((node, index) => {
-    const row = Math.floor(index / nodesPerRow);
-    const col = index % nodesPerRow;
+  // Apply hierarchical layout to connected nodes
+  const applyHierarchicalLayout = (diagram: any, nodes: any[], startNodes: any[]) => {
+    // If no specific start nodes found, use first node as root
+    if (startNodes.length === 0 && nodes.length > 0) {
+      startNodes.push(nodes[0]);
+    }
     
-    node.offsetX = startX + col * gridSpacing;
-    node.offsetY = startY + row * gridSpacing;
-  });
-  
-  diagram.dataBind();
-};
+    const layoutManager = diagram.layout;
+    layoutManager.type = 'HierarchicalTree';
+    layoutManager.orientation = 'LeftToRight';
+    layoutManager.horizontalSpacing = 100;
+    layoutManager.verticalSpacing = 80;
+    layoutManager.margin = { left: 50, top: 50, right: 50, bottom: 50 };
+    
+    // Connect to diagram layout options
+    diagram.layout = {
+      ...layoutManager,
+      enableAnimation: true,
+      getLayoutInfo: (node: any, options: any): any => {
+        // Start nodes are at level 0
+        if (node.id && startNodes.some(n => n.id === node.id)) {
+          options.level = 0;
+        }
+        return options;
+      }
+    };
+    
+    // Apply layout
+    diagram.dataBind();
+    diagram.doLayout();
+    
+    // Ensure everything is visible
+    setTimeout(() => {
+      diagram.fitToPage({ mode: 'Page', region: 'Content', margin: { left: 50, top: 50, right: 50, bottom: 50 } });
+    }, 100);
+  };
 
-// Find the bottom-most position of a set of nodes
-const findBottomOfNodes = (nodes: any[]) => {
-  if (!nodes.length) return 0;
-  
-  let maxY = 0;
-  nodes.forEach(node => {
-    const bottom = (node.offsetY || 0) + (node.height || 0) / 2;
-    maxY = Math.max(maxY, bottom);
-  });
-  
-  return maxY;
-};
+  // Arrange unconnected nodes in a grid pattern
+  const arrangeNodesInGrid = (diagram: any, nodes: any[], options = { startX: 100, startY: 100 }) => {
+    if (!nodes.length) return;
+    
+    const { startX, startY } = options;
+    const gridSpacing = 150;
+    const nodesPerRow = 5;
+    
+    nodes.forEach((node, index) => {
+      const row = Math.floor(index / nodesPerRow);
+      const col = index % nodesPerRow;
+      
+      node.offsetX = startX + col * gridSpacing;
+      node.offsetY = startY + row * gridSpacing;
+    });
+    
+    diagram.dataBind();
+  };
 
+  // Find the bottom-most position of a set of nodes
+  const findBottomOfNodes = (nodes: any[]) => {
+    if (!nodes.length) return 0;
+    
+    let maxY = 0;
+    nodes.forEach(node => {
+      const bottom = (node.offsetY || 0) + (node.height || 0) / 2;
+      maxY = Math.max(maxY, bottom);
+    });
+    
+    return maxY;
+  };
 
-
-  // Handle browser navigation (back button)
+  // When a navigation is blocked, open your confirmation dialog
   useEffect(() => {
-    // To catch tab close or refresh and show a warning to the user
+    if (blocker.state === 'blocked') {
+      setShowLeaveDialog(true);
+    }
+  }, [blocker.state]);
+
+  // On page refresh or tab close action, show a warning to the user
+  useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       if (isDirty) {
         event.preventDefault();
-        event.returnValue = ''; // triggers native browser prompt
+        event.returnValue = ''; // triggers the native prompt
       }
     };
-
-    const handlePopState = () => {
-      if (isDirty && !isNavigatingAway) {
-        // Prevent immediate navigation by restoring current URL
-        window.history.pushState(null, '', window.location.href);
-
-        setShowLeaveDialog(true);
-        setPendingAction(() => () => {
-          setIsNavigatingAway(true);
-          onBackToHome();
-        });
-      } else {
-        onBackToHome();
-      }
-    };
-
-    // Add a guard entry so Back stays on this page
-    window.history.pushState(null, '', window.location.href);
-
     window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('popstate', handlePopState);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, [isDirty, isNavigatingAway]);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
 
   return (
     <div className="editor-container" data-theme={theme}>
@@ -499,7 +470,7 @@ const findBottomOfNodes = (nodes: any[]) => {
         onSave={handleSave}
         onProjectNameChange={(name) => {
           setProjectName(name);
-          setIsDirty(true); // Mark as dirty when project name changes
+          setIsDirty(true);
         }}
         onThemeToggle={toggleTheme}
         showBackButton={true}
@@ -557,28 +528,30 @@ const findBottomOfNodes = (nodes: any[]) => {
       
       <ConfirmationDialog
         isOpen={showLeaveDialog}
-        onClose={() => {
-          setShowLeaveDialog(false);
-          setIsNavigatingAway(true);
-          pendingAction?.();
-          setPendingAction(null);
-        }}
         onDismiss={() => {
+          // do nothing, stay in the same page
           setShowLeaveDialog(false);
-          setPendingAction(null);
+          if (blocker.state === 'blocked') {
+            blocker.reset();
+          }
         }}
         onConfirm={() => {
+          // save the changes, navigate to home page
           handleSave();
           setShowLeaveDialog(false);
-          setIsNavigatingAway(true);
-          pendingAction?.();
-          setPendingAction(null);
+          if (blocker.state === 'blocked') {
+            blocker.proceed();
+          }
+        }}
+        onClose={() => {
+          // discard changes, navigate to home page
+          setShowLeaveDialog(false);
+          if (blocker.state === 'blocked') {
+            blocker.proceed();
+          }
         }}
         content="You have unsaved changes. Do you want to save before leaving?"
-        buttonContent={{
-          primary: 'Save & Leave',
-          secondary: 'Discard Changes',
-        }}
+        buttonContent={{ primary: 'Save & Leave', secondary: 'Discard Changes' }}
       />
 
     </div>
