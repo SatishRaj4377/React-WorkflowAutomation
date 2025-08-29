@@ -8,7 +8,7 @@
   left: 0;
   right: 0;
   z-index: 1000;
-  height: 64px;
+  height: 56px;
 }
 
 .appbar-left, .appbar-right {
@@ -20,14 +20,17 @@
 .back-button {
   border-radius: 100%;
   transition: all 0.3s ease;
-  background-color: var(--background-color);
+  background-color: var(--surface-color);
+  color: var(--text-primary);
   width: 40px;
   height: 40px;
 }
 
 .back-button:hover {
   background-color: var(--background-color);
+  color: var(--text-primary);
   transform: translateX(-2px);
+  box-shadow: none;
 }
 
 .project-name-section {
@@ -43,7 +46,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
+  padding: 0.2rem;
   border-radius: 8px;
   transition: all 0.3s ease;
   max-width: 300px;

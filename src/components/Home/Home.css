@@ -103,7 +103,7 @@
 .home-content {
   width: 100%;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1.3rem;
 }
 .section-title {
   font-weight: 700;
@@ -764,7 +764,7 @@
 /* Projects Tools */
 .section-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 1.2rem;

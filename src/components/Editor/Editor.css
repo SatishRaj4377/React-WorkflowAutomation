@@ -12,8 +12,8 @@
   flex: 1;
   display: flex;
   position: relative;
-  height: calc(100vh - 64px); /* Full height minus AppBar */
-  margin-top: 64px; /* Height of AppBar */
+  height: calc(100vh - 56px); /* Full height minus AppBar */
+  margin-top: 56px; /* Height of AppBar */
   overflow: hidden;
 }
 
