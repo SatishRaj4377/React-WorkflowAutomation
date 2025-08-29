@@ -125,7 +125,7 @@ export class WorkflowService {
       }
     };
     
-    return this.saveProject(newProject);
+    return newProject;
   }
 
   /**

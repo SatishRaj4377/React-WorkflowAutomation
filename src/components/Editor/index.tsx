@@ -456,6 +456,7 @@ const findBottomOfNodes = (nodes: any[]) => {
 
   // Handle browser navigation (back button)
   useEffect(() => {
+    // To catch tab close or refresh and show a warning to the user
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       if (isDirty) {
         event.preventDefault();

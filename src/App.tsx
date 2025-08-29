@@ -6,7 +6,7 @@ import Home from './components/Home';
 import Editor from './components/Editor';
 import WorkflowService from './services/WorkflowService';
 import './App.css';
-import { BrowserRouter as Router, Routes, Route, useNavigate, useParams, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useParams, Navigate, useLocation } from 'react-router-dom';
 
 // Enable ripple effect for better interactivity
 enableRipple(true);
@@ -17,14 +17,21 @@ const EditorPage: React.FC<{
   onSaveProject: (updated: ProjectData) => void;
 }> = ({ projects, onSaveProject }) => {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
   const navigate = useNavigate();
-  const project = projects.find((p) => p.id === id);
+
+  const project = projects.find(p => p.id === id) || location.state?.newProject;
   if (!project) return <Navigate to="/" />;
+
   return (
     <Editor
       project={project}
-      onSaveProject={onSaveProject}
-      onBackToHome={() => navigate('/', { replace:true })} />
+      onSaveProject={(updated) => {
+        WorkflowService.saveProject(updated); // Save project only when user triggers save
+        onSaveProject(updated);
+      }}
+      onBackToHome={() => navigate('/', { replace: true })}
+    />
   );
 };
 
@@ -44,9 +51,8 @@ const AppContent: React.FC = () => {
 
   const handleCreateNew = () => {
     const newProject = WorkflowService.createBlankProject();
-    setProjects([...projects, newProject]);
     // Navigate to the new workflow immediately
-    navigate(`/workflow/${newProject.id}`);
+    navigate(`/workflow/${newProject.id}`, { state: { newProject } }); // Pass via router state
   };
 
   const handleDeleteProject = (projectId: string) => {
@@ -55,11 +61,11 @@ const AppContent: React.FC = () => {
   };
 
   const handleSaveProject = (updatedProject: ProjectData) => {
-    const updatedProjects = projects
-      .map(p => p.id === updatedProject.id ? updatedProject : p)
-      .sort((a, b) =>
-        new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime()
-      );
+    WorkflowService.saveProject(updatedProject);
+    const updatedProjects = WorkflowService.getProjects();
+    updatedProjects.sort((a, b) =>
+      new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime()
+    );
     setProjects(updatedProjects);
   };
   
