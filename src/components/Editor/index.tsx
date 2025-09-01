@@ -592,6 +592,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         }}
         content="You have unsaved changes. Do you want to save before leaving?"
         buttonContent={{ primary: 'Save & Leave', secondary: 'Discard Changes' }}
+        variant="primary"
       />
 
     </div>

@@ -21,13 +21,24 @@
 }
 
 
-/* Confirm Button */
-.confirm-dialog-container .confirm-btn {
+/* Danger Variant */
+.confirm-dialog-container .confirm-btn.danger-btn {
   background: var(--danger-color) !important;
   color: #fff !important;
   border-color: var(--danger-color) !important;
 }
-.confirm-dialog-container .confirm-btn:hover {
+.confirm-dialog-container .confirm-btn.danger-btn:hover {
   background: var(--danger-accent) !important;
   border-color: var(--danger-accent) !important;
+}
+
+/* Primary Variant */
+.confirm-dialog-container .confirm-btn.primary-btn {
+  background: var(--primary-color) !important;
+  color: #fff !important;
+  border-color: var(--primary-color) !important;
+}
+.confirm-dialog-container .confirm-btn.primary-btn:hover {
+  background: var(--accent-color) !important;
+  border-color: var(--accent-color) !important;
 }

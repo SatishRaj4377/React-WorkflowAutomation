@@ -7,12 +7,13 @@ interface ConfirmationDialogProps {
   onClose: () => void;
   onConfirm: () => void;
   content: string;
-  onDismiss?: () => void
+  onDismiss?: () => void;
   buttonContent?: {
     primary: string;
     secondary: string;
   };
   title?: string;
+  variant?: 'danger' | 'primary';
 }
 
 const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
@@ -25,7 +26,8 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
     primary: 'Delete',
     secondary: 'Cancel'
   },
-  title = "Are you sure?"
+  title = "Are you sure?",
+  variant = 'danger'
 }) => {
 
   const dialogButtons: ButtonPropsModel[] = [
@@ -40,7 +42,7 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
       click: onConfirm,
       buttonModel: {
         content: buttonContent.primary,
-        cssClass: 'confirm-btn',
+        cssClass: `confirm-btn ${variant === 'danger' ? 'danger-btn' : 'primary-btn'}`,
         isPrimary: true,
       },
     },
