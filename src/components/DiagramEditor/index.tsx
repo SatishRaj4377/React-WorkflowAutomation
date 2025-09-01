@@ -155,7 +155,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     return 'var(--grid-dotted-color)';
   };
   const getSnapConstraints = () => {
-    if (!diagramSettings?.enableSnapping) return SnapConstraints.None;
+    if (!diagramSettings?.enableSnapping) return SnapConstraints.ShowLines;
     return SnapConstraints.SnapToObject | SnapConstraints.SnapToLines | SnapConstraints.ShowLines;
   };
 

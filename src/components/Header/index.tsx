@@ -27,8 +27,8 @@ const AppBar: React.FC<AppBarProps> = ({
   showBackButton = false,
   diagramSettings = {
     gridStyle: 'dotted',
-    enableSnapping: true,
-    showOverview: false,
+    enableSnapping: false,
+    showOverview: true,
     theme: 'light'
   },
   onDiagramSettingsChange,

@@ -32,8 +32,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   const [diagramSettings, setDiagramSettings] = useState<DiagramSettings>({
     gridStyle: 'dotted',
-    enableSnapping: true,
-    showOverview: false,
+    enableSnapping: false,
+    showOverview: true,
     theme: theme as 'light' | 'dark'
   });
   const blocker = useBlocker(React.useCallback(() => isDirty, [isDirty]));

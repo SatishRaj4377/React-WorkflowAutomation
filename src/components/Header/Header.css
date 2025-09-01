@@ -179,34 +179,6 @@
   flex: 1;
 }
 
-.settings-switch .e-switch-wrapper {
-  width: 50px;
-  height: 24px;
-}
-
-.settings-switch .e-switch-inner {
-  background: var(--border-color);
-  transition: all 0.3s ease;
-}
-
-.settings-switch.e-switch-active .e-switch-inner {
-  background: var(--primary-color);
-}
-
-.settings-switch .e-switch-handle {
-  background: var(--surface-color);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  width: 20px;
-  height: 20px;
-  top: 2px;
-  left: 2px;
-  transition: all 0.3s ease;
-}
-
-.settings-switch.e-switch-active .e-switch-handle {
-  left: 28px;
-}
-
 .settings-dropdown .e-input-group {
   border: 1px solid var(--border-color);
   border-radius: 6px;

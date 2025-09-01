@@ -91,30 +91,59 @@ body {
   border: none;
   transition: background 0.25s, box-shadow 0.2s;
 }
-
 .e-btn:hover,
 .e-btn.e-primary:hover {
   background: var(--accent-color);
   color: #fff;
   box-shadow: 0 2px 8px var(--box-shadow);
 }
-
 .e-btn:focus,
 .e-btn.e-primary:focus {
   outline: none;
   box-shadow: none !important;
 }
-
 .e-btn:active,
 .e-btn.e-primary:active {
   background: var(--secondary-color);
   color: #fff;
 }
-
 .e-icons{
   font-size: 1.2rem !important;
 }
 
+/* Overriding EJ2 Toggle Switch Styles */
+.e-switch-wrapper.e-focus .e-switch-inner,
+.e-switch-wrapper:active .e-switch-inner{
+    outline: none !important;
+    box-shadow: none !important;
+}
+.e-switch-wrapper .e-switch-on {
+  background-color: var(--accent-color) !important;
+}
+.e-switch-wrapper .e-switch-off {
+  background-color: var(--text-secondary) !important;
+}
+.e-switch-wrapper:active .e-ripple-check.e-ripple-container{
+  background-color: transparent !important;
+}
+/* Hover states */
+.e-switch-wrapper:hover .e-switch-inner {
+  background-color: var(--text-secondary) !important;
+  border-color: var(--text-secondary) !important;
+}
+.e-switch-wrapper.e-switch-active:hover .e-switch-inner {
+  background-color: var(--accent-color) !important;
+  border-color: var(--accent-color) !important;
+}
+
+
+/* Overriding text box styles */
+.e-input-group,
+.e-input-group.e-control-wrapper {
+  border: 1.5px solid var(--border-color) !important;
+  box-shadow: none !important;
+  color: var(--text-secondary) !important;
+}
 
 /* Selection Color Update */
 ::selection {
@@ -125,7 +154,6 @@ body {
   background: var(--primary-color);
   color: var(--surface-color);
 }
-
 [data-theme="dark"] ::selection,
 [data-theme="dark"] ::-moz-selection {
   background: var(--secondary-color);

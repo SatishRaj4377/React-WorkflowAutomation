@@ -820,14 +820,6 @@
   }
 }
 
-/* search box border and color udpated */
-.project-search.e-input-group,
-.project-search.e-input-group.e-control-wrapper {
-  border: 1.5px solid var(--border-color) !important;
-  box-shadow: none !important;
-  color: var(--text-secondary) !important;
-}
-
 /* filter dropdown border and color updated */
 .sort-dropdown-btn.e-dropdown-btn {
   background-color: transparent !important;
