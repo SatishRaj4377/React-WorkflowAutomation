@@ -33,14 +33,14 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
       click: onClose,
       buttonModel: {
         content: buttonContent.secondary,
-        cssClass: 'e-flat cancel-btn',
+        cssClass: 'cancel-btn',
       },
     },
     {
       click: onConfirm,
       buttonModel: {
         content: buttonContent.primary,
-        cssClass: 'e-danger delete-btn',
+        cssClass: 'confirm-btn',
         isPrimary: true,
       },
     },
@@ -65,7 +65,7 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
       width="400px"
       target={document.body}
       isModal={true}
-      cssClass="delete-dialog-container"
+      cssClass="confirm-dialog-container"
       animationSettings={{ effect: 'None' }}
     >
       <div className="delete-dialog-content">
