@@ -5,7 +5,9 @@ import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { DropDownButtonComponent, MenuEventArgs } from '@syncfusion/ej2-react-splitbuttons';
 import { ListViewComponent, SelectEventArgs } from '@syncfusion/ej2-react-lists';
 import { AppBarComponent } from '@syncfusion/ej2-react-navigations';
+import { SwitchComponent } from '@syncfusion/ej2-react-buttons';
 import ConfirmationDialog from '../ConfirmationDialog';
+import { useTheme } from '../../contexts/ThemeContext';
 import { ProjectData } from '../../types';
 import './Home.css';
 
@@ -26,6 +28,7 @@ const Home: React.FC<HomeProps> = ({
   onBookmarkToggle,
   bookmarkedProjects = []
 }) => {
+  const { theme, toggleTheme } = useTheme();
   const searchRef = useRef<TextBoxComponent>(null);
   const sidebarRef = useRef<ListViewComponent>(null);
   const [viewMode, setViewMode] = useState<'card' | 'list'>(() => {
@@ -244,6 +247,19 @@ const Home: React.FC<HomeProps> = ({
             </svg>
           </span>
           <span className="header-title">Workflow Automation</span>
+        </div>
+        
+        <div className="e-appbar-spacer"></div>
+        
+        <div className="appbar-right">
+          <div className="theme-toggle-wrapper">
+            <span className="theme-toggle-label">{theme === 'dark' ? '🌙' : '☀️'}</span>
+            <SwitchComponent
+              checked={theme === 'dark'}
+              change={() => toggleTheme()}
+              cssClass="theme-toggle-switch"
+            />
+          </div>
         </div>
       </AppBarComponent>
       <aside className="home-sidebar">

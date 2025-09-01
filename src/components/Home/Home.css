@@ -29,6 +29,53 @@
   user-select: none;
 }
 
+/* Theme Toggle Styles */
+.appbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.theme-toggle-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  background: var(--background-color);
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.theme-toggle-wrapper:hover {
+  background: var(--list-hover-bg);
+}
+
+.theme-toggle-label {
+  font-size: 1.1rem;
+  line-height: 1;
+  user-select: none;
+}
+
+.theme-toggle-switch.e-switch-wrapper {
+  margin: 0;
+}
+
+.theme-toggle-switch.e-switch-wrapper .e-switch-inner {
+  background: var(--border-color) !important;
+  border-color: var(--border-color) !important;
+}
+
+.theme-toggle-switch.e-switch-wrapper.e-switch-active .e-switch-inner {
+  background: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.theme-toggle-switch.e-switch-wrapper .e-switch-handle {
+  background: var(--surface-color) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15) !important;
+}
+
 
 /* ---- Sidebar ---- */
 .home-sidebar {

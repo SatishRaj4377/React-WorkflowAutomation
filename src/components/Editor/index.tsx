@@ -35,8 +35,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       ...project.diagramSettings,
       gridStyle: project.diagramSettings?.gridStyle ?? 'dotted',
       enableSnapping: project.diagramSettings?.enableSnapping ?? false,
-      showOverview: project.diagramSettings?.showOverview ?? true,
-      theme: theme as 'light' | 'dark'
+      showOverview: project.diagramSettings?.showOverview ?? true
     }
   });
   const blocker = useBlocker(React.useCallback(() => isDirty, [isDirty]));
@@ -251,18 +250,17 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   };
 
   const handleDiagramSettingsChange = (settings: DiagramSettings) => {
-    const newSettings = { ...settings, theme: theme as 'light' | 'dark' };
-    setDiagramSettings(newSettings);
+    setDiagramSettings(settings);
     setIsDirty(true);
     
     // Apply settings to diagram immediately
     if (diagramRef && diagramRef.snapSettings) {
       // Update grid style
-      const gridType = newSettings.gridStyle === 'lines' ? 'Lines' : 'Dots';
+      const gridType = settings.gridStyle === 'lines' ? 'Lines' : 'Dots';
       diagramRef.snapSettings.gridType = gridType;
       
       // Update snapping
-      if (newSettings.enableSnapping) {
+      if (settings.enableSnapping) {
         diagramRef.snapSettings.constraints = diagramRef.snapSettings.constraints | 31; // All snap constraints
       } else {
         diagramRef.snapSettings.constraints = 0; // No snap constraints
@@ -270,7 +268,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       
       diagramRef.dataBind();
 
-      const updatedProject = { ...project, diagramSettings: newSettings };
+      const updatedProject = { ...project, diagramSettings: settings };
       onSaveProject(updatedProject);
     }
   };

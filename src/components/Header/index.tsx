@@ -28,8 +28,7 @@ const AppBar: React.FC<AppBarProps> = ({
   diagramSettings = {
     gridStyle: 'dotted',
     enableSnapping: false,
-    showOverview: true,
-    theme: 'light'
+    showOverview: true
   },
   onDiagramSettingsChange,
 }) => {
@@ -121,11 +120,6 @@ const AppBar: React.FC<AppBarProps> = ({
           title="Diagram Settings"
         />
         
-        <ButtonComponent
-          iconCss="e-icons e-brightness"
-          onClick={onThemeToggle}
-          title="Toggle Theme"
-        />
       </div>
 
       {/* Settings Dialog */}
@@ -181,17 +175,6 @@ const AppBar: React.FC<AppBarProps> = ({
               />
             </div>
 
-            <div className="settings-item">
-              <label className="settings-label">Dark Mode</label>
-              <SwitchComponent
-                checked={diagramSettings.theme === 'dark'}
-                change={(args) => {
-                  handleSettingsChange('theme', args.checked ? 'dark' : 'light');
-                  onThemeToggle();
-                }}
-                cssClass="settings-switch"
-              />
-            </div>
           </div>
         </div>
       </DialogComponent>

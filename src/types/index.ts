@@ -67,5 +67,4 @@ export interface DiagramSettings {
   gridStyle: 'lines' | 'dotted' | 'none';
   enableSnapping: boolean;
   showOverview: boolean;
-  theme: 'light' | 'dark';
 }
