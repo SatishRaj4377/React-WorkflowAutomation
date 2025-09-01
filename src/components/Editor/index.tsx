@@ -30,11 +30,14 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const [diagramRef, setDiagramRef] = useState<any>(null);
   const [isDirty, setIsDirty] = useState(false);
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
-  const [diagramSettings, setDiagramSettings] = useState<DiagramSettings>({
-    gridStyle: 'dotted',
-    enableSnapping: false,
-    showOverview: true,
-    theme: theme as 'light' | 'dark'
+  const [diagramSettings, setDiagramSettings] = useState<DiagramSettings>(() => {
+    return {
+      ...project.diagramSettings,
+      gridStyle: project.diagramSettings?.gridStyle ?? 'dotted',
+      enableSnapping: project.diagramSettings?.enableSnapping ?? false,
+      showOverview: project.diagramSettings?.showOverview ?? true,
+      theme: theme as 'light' | 'dark'
+    }
   });
   const blocker = useBlocker(React.useCallback(() => isDirty, [isDirty]));
   // Port selection state for connecting nodes
@@ -66,15 +69,18 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       if (diagramRef) {
         // Save diagram as string using EJ2's built-in method
         const diagramString = diagramRef.saveDiagram();
-        
-        const updatedProject = WorkflowService.saveProject({
+
+        const updatedProject = {
           ...project,
           name: projectName,
           workflowData: {
             ...(project.workflowData ?? {}),
             diagramString: diagramString
-          }
-        });
+          },
+          diagramSettings: diagramSettings
+        };
+
+        WorkflowService.saveProject(updatedProject);
         onSaveProject(updatedProject);
         setIsDirty(false);
         showSuccessToast('Workflow Saved', 'Your workflow has been saved successfully.');
@@ -245,22 +251,27 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   };
 
   const handleDiagramSettingsChange = (settings: DiagramSettings) => {
-    setDiagramSettings(settings);
+    const newSettings = { ...settings, theme: theme as 'light' | 'dark' };
+    setDiagramSettings(newSettings);
+    setIsDirty(true);
     
     // Apply settings to diagram immediately
     if (diagramRef && diagramRef.snapSettings) {
       // Update grid style
-      const gridType = settings.gridStyle === 'lines' ? 'Lines' : 'Dots';
+      const gridType = newSettings.gridStyle === 'lines' ? 'Lines' : 'Dots';
       diagramRef.snapSettings.gridType = gridType;
       
       // Update snapping
-      if (settings.enableSnapping) {
+      if (newSettings.enableSnapping) {
         diagramRef.snapSettings.constraints = diagramRef.snapSettings.constraints | 31; // All snap constraints
       } else {
         diagramRef.snapSettings.constraints = 0; // No snap constraints
       }
       
       diagramRef.dataBind();
+
+      const updatedProject = { ...project, diagramSettings: newSettings };
+      onSaveProject(updatedProject);
     }
   };
 

@@ -30,6 +30,7 @@ export interface ProjectData {
   thumbnail?: string;
   workflowData: WorkflowData;
   isBookmarked?: boolean;
+  diagramSettings?: DiagramSettings;
 }
 
 export interface PaletteCategory {
