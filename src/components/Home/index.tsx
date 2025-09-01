@@ -252,14 +252,16 @@ const Home: React.FC<HomeProps> = ({
         <div className="e-appbar-spacer"></div>
         
         <div className="appbar-right">
-          <div className="theme-toggle-wrapper">
-            <span className="theme-toggle-label">{theme === 'dark' ? '🌙' : '☀️'}</span>
-            <SwitchComponent
-              checked={theme === 'dark'}
-              change={() => toggleTheme()}
-              cssClass="theme-toggle-switch"
-            />
-          </div>
+          <TooltipComponent content={`Toggle to ${theme === 'dark' ? 'light' : 'dark'} mode`}>
+            <div className="theme-toggle-wrapper">
+              <span className={`theme-toggle-icon e-icons ${theme === 'dark' ? 'e-contrast' : 'e-brightness'}`}></span>
+              <SwitchComponent
+                checked={theme === 'dark'}
+                change={() => toggleTheme()}
+                cssClass="theme-toggle-switch"
+                />
+            </div>
+          </TooltipComponent>
         </div>
       </AppBarComponent>
       <aside className="home-sidebar">
