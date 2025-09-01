@@ -9,7 +9,7 @@ import NodePaletteSidebar from '../NodePaletteSidebar';
 import NodeConfigSidebar from '../NodeConfigSidebar';
 import { useTheme } from '../../contexts/ThemeContext';
 import ConfirmationDialog from '../ConfirmationDialog';
-import { ProjectData, NodeConfig, NodeTemplate } from '../../types';
+import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings } from '../../types';
 import WorkflowService from '../../services/WorkflowService';
 import './Editor.css';
 
@@ -30,6 +30,12 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const [diagramRef, setDiagramRef] = useState<any>(null);
   const [isDirty, setIsDirty] = useState(false);
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+  const [diagramSettings, setDiagramSettings] = useState<DiagramSettings>({
+    gridStyle: 'dotted',
+    enableSnapping: true,
+    showOverview: false,
+    theme: theme as 'light' | 'dark'
+  });
   const blocker = useBlocker(React.useCallback(() => isDirty, [isDirty]));
   // Port selection state for connecting nodes
   const [isPortSelectionMode, setIsPortSelectionMode] = useState(false);
@@ -236,6 +242,26 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
 
   const handleBackToHome = () => {
     onBackToHome();
+  };
+
+  const handleDiagramSettingsChange = (settings: DiagramSettings) => {
+    setDiagramSettings(settings);
+    
+    // Apply settings to diagram immediately
+    if (diagramRef && diagramRef.snapSettings) {
+      // Update grid style
+      const gridType = settings.gridStyle === 'lines' ? 'Lines' : 'Dots';
+      diagramRef.snapSettings.gridType = gridType;
+      
+      // Update snapping
+      if (settings.enableSnapping) {
+        diagramRef.snapSettings.constraints = diagramRef.snapSettings.constraints | 31; // All snap constraints
+      } else {
+        diagramRef.snapSettings.constraints = 0; // No snap constraints
+      }
+      
+      diagramRef.dataBind();
+    }
   };
 
   const handleAddStickyNote = (position: { x: number; y: number }) => {
@@ -474,6 +500,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         }}
         onThemeToggle={toggleTheme}
         showBackButton={true}
+        diagramSettings={diagramSettings}
+        onDiagramSettingsChange={handleDiagramSettingsChange}
       />
       
       <div className="editor-content">
@@ -504,6 +532,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
             onAddStickyNote= {handleAddStickyNote}
             onAutoAlignNodes={handleAutoAlignNodes}
             onPortClick={handlePortClick}
+            diagramSettings={diagramSettings}
           />
         </div>
         

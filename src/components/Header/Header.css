@@ -124,5 +124,111 @@
   .project-name {
     max-width: 150px;
   }
+}
 
+/* Settings Dialog Styles */
+.settings-dialog-container {
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.settings-dialog-container .e-dlg-header-content {
+  background: var(--surface-color);
+  border-bottom: 1px solid var(--border-color);
+  padding: 24px;
+}
+
+.settings-dialog-container .e-dlg-header {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: -10px 0;
+}
+
+.settings-dialog-content {
+  padding: .5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.settings-section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.settings-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.settings-label {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin: 0;
+  flex: 1;
+}
+
+.settings-switch .e-switch-wrapper {
+  width: 50px;
+  height: 24px;
+}
+
+.settings-switch .e-switch-inner {
+  background: var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.settings-switch.e-switch-active .e-switch-inner {
+  background: var(--primary-color);
+}
+
+.settings-switch .e-switch-handle {
+  background: var(--surface-color);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  width: 20px;
+  height: 20px;
+  top: 2px;
+  left: 2px;
+  transition: all 0.3s ease;
+}
+
+.settings-switch.e-switch-active .e-switch-handle {
+  left: 28px;
+}
+
+.settings-dropdown .e-input-group {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--surface-color);
+  transition: all 0.2s ease;
+}
+
+.settings-dropdown .e-input-group:hover {
+  border-color: var(--primary-color);
+}
+
+.settings-dropdown .e-input-group.e-input-focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.settings-dropdown .e-input {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  background: transparent;
+}
+
+.settings-dropdown .e-ddl-icon {
+  color: var(--text-secondary);
 }

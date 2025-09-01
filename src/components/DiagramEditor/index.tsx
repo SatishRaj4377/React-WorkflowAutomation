@@ -25,7 +25,7 @@ import {
   SelectorConstraints,
   ConnectorConstraints,
 } from '@syncfusion/ej2-react-diagrams';
-import { NodeConfig } from '../../types';
+import { DiagramSettings, NodeConfig } from '../../types';
 import './DiagramEditor.css';
 
 interface DiagramEditorProps {
@@ -36,7 +36,8 @@ interface DiagramEditorProps {
   onDiagramChange?: (args: any) => void;
   onAddStickyNote?: (position: { x: number; y: number }) => void;
   onAutoAlignNodes?: () => void;
-  onPortClick?: (nodeId: string, portId: string) => void; 
+  onPortClick?: (nodeId: string, portId: string) => void;
+  diagramSettings?: DiagramSettings;
 }
 
 const DiagramEditor: React.FC<DiagramEditorProps> = ({
@@ -47,7 +48,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   onDiagramChange,
   onAddStickyNote,
   onAutoAlignNodes,
-  onPortClick
+  onPortClick,
+  diagramSettings
 }) => {
 
   const diagramRef = useRef<DiagramComponent>(null);
@@ -141,10 +143,10 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     }, 2000);
   };
 
-  // Grid and Snap Settings
+  // Grid and Snap Settings based on diagramSettings
   const snapSettings: SnapSettingsModel = {
-    constraints: SnapConstraints.All,
-    gridType: 'Dots',
+    constraints: diagramSettings?.enableSnapping ? SnapConstraints.All : 0,
+    gridType: diagramSettings?.gridStyle === 'lines' ? 'Lines' : 'Dots',
     horizontalGridlines: {
       lineColor: '#a6b4caff',
     } as GridlinesModel,
@@ -719,6 +721,18 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     };
   }, [isPanning, previousDiagramTool]);
 
+  // Update diagram when settings change
+  useEffect(() => {
+    if (diagramRef && diagramSettings) {
+      // Update snap settings
+      if ((diagramRef.current as any).snapSettings) {
+        (diagramRef.current as any).snapSettings.constraints = diagramSettings.enableSnapping ? SnapConstraints.All : 0;
+        (diagramRef.current as any).snapSettings.gridType = diagramSettings.gridStyle === 'lines' ? 'Lines' : 'Dots';
+        (diagramRef.current as any).dataBind();
+      }
+    }
+  }, [diagramSettings, diagramRef]);
+
   useEffect(() => {
     return () => {
         if (overviewTimeoutRef.current) {
@@ -767,8 +781,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       {/* Overview Panel with integrated zoom percentage */}
       <div className='diagram-overview-container'
         style={{
-          opacity: showOverview ? 1 : 0,
-          visibility: showOverview ? 'visible' : 'hidden',
+          opacity: (showOverview && diagramSettings?.showOverview) ? 1 : 0,
+          visibility: (showOverview && diagramSettings?.showOverview) ? 'visible' : 'hidden',
         }}
       >
         {showZoomPercentage && (
