@@ -67,7 +67,8 @@ const AppBar: React.FC<AppBarProps> = ({
 
   const gridStyleOptions = [
     { text: 'Lines', value: 'lines' },
-    { text: 'Dotted', value: 'dotted' }
+    { text: 'Dotted', value: 'dotted' },
+    { text: 'None', value: 'none' }
   ];
 
   return (

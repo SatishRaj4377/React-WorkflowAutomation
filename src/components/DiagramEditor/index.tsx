@@ -24,6 +24,7 @@ import {
   UserHandleEventsArgs,
   SelectorConstraints,
   ConnectorConstraints,
+  Snapping,
 } from '@syncfusion/ej2-react-diagrams';
 import { DiagramSettings, NodeConfig } from '../../types';
 import './DiagramEditor.css';
@@ -144,15 +145,39 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   };
 
   // Grid and Snap Settings based on diagramSettings
+  const getGridType = () => {
+    if (!diagramSettings?.gridStyle || diagramSettings.gridStyle === 'none') return 'Lines';
+    return diagramSettings.gridStyle === 'lines' ? 'Lines' : 'Dots';
+  };
+
+  const getSnapConstraints = () => {
+    // if (!diagramSettings?.enableSnapping) return SnapConstraints.None;
+    // Enable snapping to grid, objects, and snap lines (visual guides)
+    return SnapConstraints.SnapToObject;
+  };
+
+  const getGridColor = () => {
+    if (diagramSettings?.gridStyle === 'none') return 'transparent';
+    if (diagramSettings?.gridStyle === 'lines') return 'var(--grid-line-color)';
+    if (diagramSettings?.gridStyle === 'dotted') return 'var(--grid-dotted-color)';
+    // Use CSS variable that adapts to theme
+    return 'var(--grid-dotted-color)';
+  };
+
   const snapSettings: SnapSettingsModel = {
-    constraints: diagramSettings?.enableSnapping ? SnapConstraints.All : 0,
-    gridType: diagramSettings?.gridStyle === 'lines' ? 'Lines' : 'Dots',
+    constraints: getSnapConstraints(),
+    gridType: getGridType(),
     horizontalGridlines: {
-      lineColor: '#a6b4caff',
+      lineColor: getGridColor(),
+      lineDashArray: diagramSettings?.gridStyle === 'dotted' ? '2,2' : '',
     } as GridlinesModel,
     verticalGridlines: {
-      lineColor: '#a6b4caff',
+      lineColor: getGridColor(),
+      lineDashArray: diagramSettings?.gridStyle === 'dotted' ? '2,2' : '',
     } as GridlinesModel,
+    snapObjectDistance: 5,
+    snapLineColor: 'var(--secondary-color)',
+    snapAngle: 5,
   };
 
     // Grid and Snap Settings
@@ -725,10 +750,31 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   useEffect(() => {
     if (diagramRef && diagramSettings) {
       // Update snap settings
-      if ((diagramRef.current as any).snapSettings) {
-        (diagramRef.current as any).snapSettings.constraints = diagramSettings.enableSnapping ? SnapConstraints.All : 0;
-        (diagramRef.current as any).snapSettings.gridType = diagramSettings.gridStyle === 'lines' ? 'Lines' : 'Dots';
-        (diagramRef.current as any).dataBind();
+      if ((diagramRef as any).snapSettings) {
+        // Update grid type
+        const gridType = diagramSettings.gridStyle === 'none' ? 'Lines' : 
+                        diagramSettings.gridStyle === 'lines' ? 'Lines' : 'Dots';
+        (diagramRef as any).snapSettings.gridType = gridType;
+        
+        // Update grid visibility using CSS variable for theme-aware colors
+        const gridColor = diagramSettings.gridStyle === 'none' ? 'transparent' : 'var(--grid-dotted-color)';
+        const dashArray = diagramSettings.gridStyle === 'dotted' ? '2,2' : '';
+        
+        (diagramRef as any).snapSettings.horizontalGridlines.lineColor = gridColor;
+        (diagramRef as any).snapSettings.verticalGridlines.lineColor = gridColor;
+        (diagramRef as any).snapSettings.horizontalGridlines.lineDashArray = dashArray;
+        (diagramRef as any).snapSettings.verticalGridlines.lineDashArray = dashArray;
+        
+        // Update snap constraints with proper visual feedback
+        if (diagramSettings.enableSnapping) {
+          (diagramRef as any).snapSettings.constraints = SnapConstraints.SnapToObject | 
+                                              SnapConstraints.SnapToLines | 
+                                              SnapConstraints.ShowLines;
+        } else {
+          (diagramRef as any).snapSettings.constraints = SnapConstraints.None;
+        }
+        
+        (diagramRef as any).dataBind();
       }
     }
   }, [diagramSettings, diagramRef]);
@@ -774,7 +820,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
           UndoRedo,
           DataBinding,
           HierarchicalTree,
-          DiagramContextMenu
+          DiagramContextMenu,
+          Snapping
         ]} />
       </DiagramComponent>
 

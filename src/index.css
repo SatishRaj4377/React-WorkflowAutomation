@@ -49,6 +49,8 @@ body {
   --scrollbar-thumb: #bbc7d6;
   --scrollbar-thumb-hover: #7c9acc;
   --scrollbar-border-radius: 8px;  
+  --grid-line-color: #d3d5d8; 
+  --grid-dotted-color: #a6b4caff; 
 }
 
 /* Dark theme - Professional Blue Dark Palette */
@@ -72,6 +74,8 @@ body {
   --scrollbar-bg: #20264b;
   --scrollbar-thumb: #52627a;
   --scrollbar-thumb-hover: #6984b9;
+  --grid-line-color: #475569;
+  --grid-dotted-color: #475569;
 }
 
 [data-theme="dark"] body {
