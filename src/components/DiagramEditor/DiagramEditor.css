@@ -19,6 +19,9 @@
 .e-diagram-endpoint-handle {
   display: none !important;
 }
+.e-diagram-selected-region {
+  stroke: var(--accent-color);
+}
 
 /* Node Template Styles */
 .node-template-container {
