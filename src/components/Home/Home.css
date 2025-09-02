@@ -194,6 +194,7 @@
   height: 100%;
   object-fit: cover;
   opacity: .7;
+  aspect-ratio: 16 / 9;
 }
 
 .quick-access-card .e-card-content {
@@ -493,6 +494,7 @@
   height: 100%;
   object-fit: cover;
   opacity: .7;
+  aspect-ratio: 16 / 9;
 }
 .project-card-overlay {
   position: absolute;

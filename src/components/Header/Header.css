@@ -14,7 +14,6 @@
 .custom-appbar .appbar-left, .custom-appbar .appbar-right {
   display: flex;
   align-items: center;
-  gap: .6rem;
 }
 
 .back-button {
