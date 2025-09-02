@@ -275,6 +275,79 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     }
   };
 
+  const handleExport = () => {
+    try {
+      if (diagramRef) {
+        // Save current diagram state
+        const diagramString = diagramRef.saveDiagram();
+        
+        const exportData = {
+          ...project,
+          name: projectName,
+          workflowData: {
+            ...(project.workflowData ?? {}),
+            diagramString: diagramString
+          },
+          diagramSettings: diagramSettings,
+          exportedAt: new Date().toISOString(),
+          version: '1.0'
+        };
+
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(dataBlob);
+        link.download = `${projectName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
+        link.click();
+        
+        URL.revokeObjectURL(link.href);
+        showSuccessToast('Export Complete', 'Project has been exported successfully.');
+      }
+    } catch (error) {
+      console.error('Export failed:', error);
+      showErrorToast('Export Failed', 'There was an error exporting your project.');
+    }
+  };
+
+  const handleImport = (importedProject: any) => {
+    try {
+      // Validate the imported data structure
+      if (!importedProject || typeof importedProject !== 'object') {
+        throw new Error('Invalid project file format');
+      }
+
+      // Set project data
+      setProjectName(importedProject.name || 'Imported Project');
+      setDiagramSettings(importedProject.diagramSettings || {
+        gridStyle: 'dotted',
+        enableSnapping: false,
+        showOverview: true
+      });
+
+      // Load the diagram if available
+      if (diagramRef && importedProject.workflowData?.diagramString) {
+        diagramRef.loadDiagram(importedProject.workflowData.diagramString);
+      }
+
+      // Update parent component with imported project
+      const updatedProject = {
+        ...importedProject,
+        id: project.id, // Keep current project ID to replace current project
+        lastModified: new Date().toISOString()
+      };
+      
+      onSaveProject(updatedProject);
+      setIsDirty(false);
+      setIsInitialLoad(false);
+      
+      showSuccessToast('Import Complete', 'Project has been imported successfully.');
+    } catch (error) {
+      console.error('Import failed:', error);
+      showErrorToast('Import Failed', 'There was an error importing the project file.');
+    }
+  };
+
   const handleAddStickyNote = (position: { x: number; y: number }) => {
     if (diagramRef) {
       // Validate position parameter
@@ -514,6 +587,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         showBackButton={true}
         diagramSettings={diagramSettings}
         onDiagramSettingsChange={handleDiagramSettingsChange}
+        onExport={handleExport}
+        onImport={handleImport}
       />
       
       <div className="editor-content">

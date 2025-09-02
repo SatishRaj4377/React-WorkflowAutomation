@@ -34,6 +34,8 @@ const AppBar: React.FC<AppBarProps> = ({
     enableSnapping: false,
     showOverview: true
   },
+  onExport,
+  onImport,
   onDiagramSettingsChange,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
