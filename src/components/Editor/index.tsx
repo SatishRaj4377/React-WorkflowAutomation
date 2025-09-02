@@ -503,6 +503,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         projectName={projectName}
         onBack={handleBackToHome}
         onSave={handleSave}
+        enableSaveBtn={isDirty}
         onProjectNameChange={(name) => {
           setProjectName(name);
           setIsDirty(true);

@@ -11,10 +11,10 @@
   height: 56px;
 }
 
-.appbar-left, .appbar-right {
+.custom-appbar .appbar-left, .custom-appbar .appbar-right {
   display: flex;
   align-items: center;
-  gap: 0.1rem;
+  gap: .6rem;
 }
 
 .back-button {

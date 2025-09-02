@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { AppBarComponent } from '@syncfusion/ej2-react-navigations';
 import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
-import { DialogComponent } from '@syncfusion/ej2-react-popups';
+import { DialogComponent, TooltipComponent } from '@syncfusion/ej2-react-popups';
 import { SwitchComponent } from '@syncfusion/ej2-react-buttons';
 import { DropDownListComponent } from '@syncfusion/ej2-react-dropdowns';
 import { DiagramSettings } from '../../types';
@@ -11,6 +11,7 @@ interface AppBarProps {
   projectName?: string;
   onBack?: () => void;
   onSave?: () => void;
+  enableSaveBtn?: boolean;
   onProjectNameChange?: (name: string) => void;
   onThemeToggle: () => void;
   showBackButton?: boolean;
@@ -22,6 +23,7 @@ const AppBar: React.FC<AppBarProps> = ({
   projectName = 'Untitled Workflow',
   onBack,
   onSave,
+  enableSaveBtn,
   onProjectNameChange,
   onThemeToggle,
   showBackButton = false,
@@ -106,20 +108,23 @@ const AppBar: React.FC<AppBarProps> = ({
       <div className="e-appbar-spacer"></div>
 
       <div className="appbar-right">
-        {onSave && (
-          <ButtonComponent
-            iconCss="e-icons e-save"
-            onClick={onSave}
-            title="Save Workflow"
-          />
+        {enableSaveBtn && onSave && (
+          <TooltipComponent content={"Save Project"}>
+            <ButtonComponent
+              iconCss="e-icons e-save"
+              onClick={onSave}
+              className='save-btn'
+              content='Save'
+            />
+          </TooltipComponent>
         )}
-        
-        <ButtonComponent
-          iconCss="e-icons e-settings"
-          onClick={() => setIsSettingsDialogOpen(true)}
-          title="Diagram Settings"
-        />
-        
+        <TooltipComponent content={"Diagram Settings"}>
+          <ButtonComponent
+            iconCss="e-icons e-settings"
+            className='settings-btn'
+            onClick={() => setIsSettingsDialogOpen(true)}
+            />
+        </TooltipComponent>
       </div>
 
       {/* Settings Dialog */}
