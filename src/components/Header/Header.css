@@ -95,8 +95,12 @@
 }
 
 /* Buttons */
-.save-btn {
+.header-btn {
+  border-radius: 6px;
+}
+.header-btn.save-btn {
   width: 4.5rem;
+  border-radius: 7px;
 }
 .header-btn:disabled {
   pointer-events: none;
@@ -104,6 +108,11 @@
   cursor: default;
   color: inherit;
   background: inherit; 
+  border: 1.9px solid var(--border-color);
+}
+.header-btn.more-btn{
+  background: var(--background-color);
+  color: var(--text-primary);
   border: 1.9px solid var(--border-color);
 }
 

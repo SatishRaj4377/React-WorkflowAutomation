@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { AppBarComponent } from '@syncfusion/ej2-react-navigations';
-import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
+import { ButtonComponent, SwitchComponent } from '@syncfusion/ej2-react-buttons';
 import { DialogComponent, TooltipComponent } from '@syncfusion/ej2-react-popups';
-import { SwitchComponent } from '@syncfusion/ej2-react-buttons';
 import { DropDownListComponent } from '@syncfusion/ej2-react-dropdowns';
+import { DropDownButtonComponent, ItemModel } from '@syncfusion/ej2-react-splitbuttons';
 import { DiagramSettings } from '../../types';
 import './Header.css';
 
@@ -17,6 +17,8 @@ interface AppBarProps {
   showBackButton?: boolean;
   diagramSettings?: DiagramSettings;
   onDiagramSettingsChange?: (settings: DiagramSettings) => void;
+  onExport?: () => void;
+  onImport?: (projectData: any) => void;
 }
 
 const AppBar: React.FC<AppBarProps> = ({
@@ -37,6 +39,58 @@ const AppBar: React.FC<AppBarProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(projectName);
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
+
+  const settingsDropdownItems: ItemModel[] = [
+    { text: 'Import', iconCss:'e-icons e-import' },
+    { text: 'Export', iconCss:'e-icons e-export' },
+    { separator: true },
+    { text: 'Settings', iconCss:'e-icons e-settings'},
+  ];
+
+  const handleExport = () => {
+    if (onExport) {
+      onExport();
+    }
+  };
+
+  const handleImport = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const projectData = JSON.parse(e.target?.result as string);
+            if (onImport) {
+              onImport(projectData);
+            }
+          } catch (error) {
+            console.error('Error parsing JSON file:', error);
+            alert('Invalid JSON file. Please select a valid project file.');
+          }
+        };
+        reader.readAsText(file);
+      }
+    };
+    input.click();
+  };
+
+  const handleSettingsDropdownSelect = (args: any) => {
+    switch (args.item.text) {
+      case 'Settings':
+        setIsSettingsDialogOpen(true);
+        break;
+      case 'Export':
+        handleExport();
+        break;
+      case 'Import':
+        handleImport();
+        break;
+    }
+  };
 
   const handleProjectNameEdit = () => {
     setIsEditing(true);
@@ -118,13 +172,12 @@ const AppBar: React.FC<AppBarProps> = ({
             />
           </TooltipComponent>
         )}
-        <TooltipComponent content={"Diagram Settings"}>
-          <ButtonComponent
-            iconCss="e-icons e-settings"
-            className='header-btn settings-btn'
-            onClick={() => setIsSettingsDialogOpen(true)}
-            />
-        </TooltipComponent>
+        <DropDownButtonComponent
+          items={settingsDropdownItems}
+          select={handleSettingsDropdownSelect}
+          iconCss="e-icons e-more-horizontal-1"
+          cssClass="header-btn e-caret-hide more-btn"
+        />
       </div>
 
       {/* Settings Dialog */}
