@@ -89,6 +89,7 @@ const Home: React.FC<HomeProps> = ({
 
   const menuItems = [
     { text: 'Edit', iconCss: 'e-icons e-edit' },
+    { text: 'Export Project', iconCss: 'e-icons e-export' },
     { text: 'Delete', iconCss: 'e-icons e-trash' }
   ];
 
@@ -109,10 +110,35 @@ const Home: React.FC<HomeProps> = ({
     setActiveSection((args.data as any).id);
   };
 
+  const handleExportProject = (project: ProjectData) => {
+    try {
+      const exportData = {
+        ...project,
+        exportedAt: new Date().toISOString(),
+        version: '1.0'
+      };
+
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(dataBlob);
+      link.download = `${project.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
+      link.click();
+      
+      URL.revokeObjectURL(link.href);
+    } catch (error) {
+      console.error('Export failed:', error);
+    }
+  };
+
   const handleMenuSelect = (project: ProjectData) => (args: MenuEventArgs) => {
     switch (args.item.text) {
       case 'Edit':
         onOpenProject(project);
+        break;
+      case 'Export Project':
+        handleExportProject(project);
         break;
       case 'Delete':
         setProjectToDelete(project); 
