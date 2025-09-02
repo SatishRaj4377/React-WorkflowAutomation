@@ -1,5 +1,5 @@
 /* Toolbar Component Styles */
-.main-toolbar{
+.custom-toolbar {
   background: var(--surface-color);
   border: 1px solid var(--border-color);
   border-radius: 12px;
@@ -7,12 +7,6 @@
   backdrop-filter: blur(10px);
   pointer-events: none;
   user-select: none;
-}
-
-.custom-toolbar {
-  border: none;
-  border-radius: 12px;
-  background: transparent;
 
 }
 
@@ -24,7 +18,7 @@
 
 .custom-toolbar .e-toolbar-items .e-tbar-btn:hover{
   background-color: var(--background-color);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .custom-toolbar .e-toolbar-item .e-tbar-btn {
@@ -40,15 +34,51 @@
   justify-content: center;
 }
 
+/* Execute button styling within toolbar */
+.custom-toolbar .e-toolbar-item .execute-btn {
+  background: linear-gradient(45deg, var(--primary-color), var(--secondary-color)) !important;
+  color: white !important;
+  width: auto !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 8px;
+  font-weight: 500;
+  pointer-events: auto;
+  min-width: 120px;
+}
+
+.custom-toolbar .e-toolbar-item .execute-btn:hover {
+  background: linear-gradient(45deg, #1d4ed8, #7c3aed) !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  transform: translateY(-1px);
+}
+
+/* Cancel button styling within toolbar */
+.custom-toolbar .e-toolbar-item .cancel-btn {
+  background: linear-gradient(45deg, var(--danger-color), var(--danger-accent)) !important;
+  color: white !important;
+  width: auto !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 8px;
+  font-weight: 500;
+  pointer-events: auto;
+  min-width: 120px;
+}
+
+.custom-toolbar .e-toolbar-item .cancel-btn:hover {
+  background: linear-gradient(45deg, #c53030, #9c1a1c) !important;
+  box-shadow: 0 4px 12px rgba(229, 62, 62, 0.4);
+  transform: translateY(-1px);
+}
+
 .custom-toolbar .e-toolbar-items{
   background: transparent !important;
 }
 
 .custom-toolbar .e-toolbar-item.e-separator {
-  width: 1px;
-  height: 24px;
+  width: 2px;
+  height: 26px;
   background-color: var(--border-color);
-  margin: 0 0.5rem;
+  margin: 0 0.4rem;
 }
 
 

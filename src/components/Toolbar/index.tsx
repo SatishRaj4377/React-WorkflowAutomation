@@ -30,11 +30,24 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onCancel,
   isExecuting = false,
 }) => {
+  // Template for execute button
+  const executeButtonTemplate = () => {
+    return (
+      <ButtonComponent
+        cssClass={isExecuting ? 'cancel-btn' : 'execute-btn'}
+        iconCss={isExecuting ? 'e-icons e-stop-rectangle' : 'e-icons e-play'}
+        content={isExecuting ? 'Cancel' : 'Execute'}
+        onClick={isExecuting ? onCancel : onExecute}
+        isPrimary={!isExecuting}
+      />
+    );
+  };
+
   const toolbarItems = [
     {
       prefixIcon: 'e-icons e-plus',
-      tooltipText: 'Open Node Palette',
-      id: 'add-node',
+      tooltipText: 'Add Nodes',
+      id: 'add-nodes',
       click: onAddNode,
       overflow: "Show"
     },
@@ -42,10 +55,16 @@ const Toolbar: React.FC<ToolbarProps> = ({
       type: 'Separator'
     },
     {
-      prefixIcon: 'e-icons e-frame-hook',
-      tooltipText: 'Fit to Page',
-      id: 'fit-page',
-      click: onFitToPage,
+      prefixIcon: 'e-icons e-circle-add',
+      tooltipText: 'Zoom In',
+      id: 'zoom-in',
+      click: onZoomIn,
+    },
+    {
+      prefixIcon: 'e-icons e-circle-remove',
+      tooltipText: 'Zoom Out',
+      id: 'zoom-out',
+      click: onZoomOut,
     },
     {
       prefixIcon: 'e-icons e-reset',
@@ -54,26 +73,10 @@ const Toolbar: React.FC<ToolbarProps> = ({
       click: onResetZoom,
     },
     {
-      prefixIcon: 'e-icons e-zoom-in',
-      tooltipText: 'Zoom In',
-      id: 'zoom-in',
-      click: onZoomIn,
-    },
-    {
-      prefixIcon: 'e-icons e-zoom-out',
-      tooltipText: 'Zoom Out',
-      id: 'zoom-out',
-      click: onZoomOut,
-    },
-    {
-      type: 'Separator'
-    },
-    {
-      prefixIcon: 'e-icons e-ai-chat',
-      tooltipText: 'Auto-align Layout',
-      id: 'auto-align',
-      click: onAutoAlign,
-      overflow: "Show"
+      prefixIcon: 'e-icons e-frame-hook',
+      tooltipText: 'Fit to Page',
+      id: 'fit-page',
+      click: onFitToPage,
     },
     {
       prefixIcon: 'e-icons e-add-notes',
@@ -83,59 +86,49 @@ const Toolbar: React.FC<ToolbarProps> = ({
       overflow: "Show"
     },
     {
+      prefixIcon: 'e-icons e-ai-chat',
+      tooltipText: 'Auto-align Layout',
+      id: 'auto-align',
+      click: onAutoAlign,
+      overflow: "Show"
+    },
+    {
       type: 'Separator'
     },
     {
-      prefixIcon: 'e-icons e-search',
-      tooltipText: 'Search on Board',
-      id: 'search',
-      click: onSearch,
+      template: executeButtonTemplate,
+      tooltipText: isExecuting ? 'Cancel Execution' : 'Execute Workflow',
+      id: isExecuting ? 'cancel' : 'execute',
       overflow: "Show"
-    },
+    }
+
   ];
 
   return (
     <div className="workflow-toolbar-container">
-      <div className="execution-toolbar">
-        {!isExecuting ? (
-          <ButtonComponent
-            cssClass="execute-btn"
-            iconCss="e-icons e-play"
-            content="Execute"
-            onClick={onExecute}
-            isPrimary
-          />
-        ) : (
-          <ButtonComponent
-            cssClass="cancel-btn"
-            iconCss="e-icons e-stop-rectangle"
-            content="Cancel"
-            onClick={onCancel}
-          />
-        )}
-      </div>
-            <div className="main-toolbar">
-        <ToolbarComponent
-          id="workflow-toolbar"
-          cssClass="custom-toolbar"
-          height="48px"
-          overflowMode="Popup"
-        >
-          <ItemsDirective>
-            {toolbarItems.map((item, index) => (
-              <ItemDirective
-                key={index}
-                prefixIcon={item.prefixIcon}
-                tooltipText={item.tooltipText}
-                id={item.id}
-                type={item.type as any}
-                click={item.click}
-                overflow={item.overflow as OverflowOption}
-              />
-            ))}
-          </ItemsDirective>
-        </ToolbarComponent>
-      </div>
+      <ToolbarComponent
+        id="workflow-toolbar"
+        cssClass="custom-toolbar"
+        height="48px"
+        overflowMode="Popup"
+      >
+        <ItemsDirective>
+          {toolbarItems.map((item, index) => (
+            <ItemDirective
+              key={index}
+              prefixIcon={item.prefixIcon}
+              text={(item as any).text}
+              tooltipText={item.tooltipText}
+              id={item.id}
+              type={item.type as any}
+              click={item.click}
+              overflow={item.overflow as OverflowOption}
+              cssClass={(item as any).cssClass}
+              template={item.template}
+            />
+          ))}
+        </ItemsDirective>
+      </ToolbarComponent>
     </div>
   );
 };
