@@ -29,6 +29,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const [projectName, setProjectName] = useState(project.name);
   const [diagramRef, setDiagramRef] = useState<any>(null);
   const [isDirty, setIsDirty] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   const [diagramSettings, setDiagramSettings] = useState<DiagramSettings>(() => {
     return {
@@ -82,6 +83,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         WorkflowService.saveProject(updatedProject);
         onSaveProject(updatedProject);
         setIsDirty(false);
+        setIsInitialLoad(false);
         showSuccessToast('Workflow Saved', 'Your workflow has been saved successfully.');
       }
     } catch (error) {
@@ -503,7 +505,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         projectName={projectName}
         onBack={handleBackToHome}
         onSave={handleSave}
-        enableSaveBtn={isDirty}
+        enableSaveBtn={isInitialLoad || isDirty}
         onProjectNameChange={(name) => {
           setProjectName(name);
           setIsDirty(true);

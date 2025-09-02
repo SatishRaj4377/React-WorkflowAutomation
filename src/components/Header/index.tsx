@@ -108,20 +108,20 @@ const AppBar: React.FC<AppBarProps> = ({
       <div className="e-appbar-spacer"></div>
 
       <div className="appbar-right">
-        {enableSaveBtn && onSave && (
-          <TooltipComponent content={"Save Project"}>
+        {onSave && (
+          <TooltipComponent content={enableSaveBtn ? "Save Workflow" : "Workflow Saved"}>
             <ButtonComponent
-              iconCss="e-icons e-save"
               onClick={onSave}
-              className='save-btn'
-              content='Save'
+              className='header-btn save-btn'
+              disabled= {!enableSaveBtn}
+              content={enableSaveBtn ? 'Save' : 'Saved'}
             />
           </TooltipComponent>
         )}
         <TooltipComponent content={"Diagram Settings"}>
           <ButtonComponent
             iconCss="e-icons e-settings"
-            className='settings-btn'
+            className='header-btn settings-btn'
             onClick={() => setIsSettingsDialogOpen(true)}
             />
         </TooltipComponent>

@@ -94,6 +94,19 @@
   white-space: nowrap;
 }
 
+/* Buttons */
+.save-btn {
+  width: 4.5rem;
+}
+.header-btn:disabled {
+  pointer-events: none;
+  opacity: 0.7;
+  cursor: default;
+  color: inherit;
+  background: inherit; 
+  border: 1.9px solid var(--border-color);
+}
+
 /* Theme-specific styles */
 [data-theme="dark"] .custom-appbar {
   background: var(--surface-color);
