@@ -357,7 +357,7 @@ const Home: React.FC<HomeProps> = ({
                             <path d="M12 6L15.13 11.73C15.66 12.7 16.9 13 18 13C19.0609 13 20.0783 13.4214 20.8284 14.1716C21.5786 14.9217 22 15.9391 22 17C22 18.0609 21.5786 19.0783 20.8284 19.8284C20.0783 20.5786 19.0609 21 18 21" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                           </svg>
                         </span>
-                        <span className="project-col project-title">{project.name}</span>
+                        <span title={project.name} className="project-col project-title">{project.name}</span>
                         <span className="project-col project-date">
                           <TooltipComponent content={formatDate(project.workflowData?.metadata?.created || project.lastModified)}>
                             <span className="project-date">
@@ -499,7 +499,7 @@ const Home: React.FC<HomeProps> = ({
                               <path d="M12 6L15.13 11.73C15.66 12.7 16.9 13 18 13C19.0609 13 20.0783 13.4214 20.8284 14.1716C21.5786 14.9217 22 15.9391 22 17C22 18.0609 21.5786 19.0783 20.8284 19.8284C20.0783 20.5786 19.0609 21 18 21" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                             </svg>
                           </span>
-                          <span className="project-col project-title">{project.name}</span>
+                          <span title={project.name} className="project-col project-title">{project.name}</span>
                           <span className="project-col project-date">
                             <TooltipComponent content={formatDate(project.workflowData?.metadata?.created || project.lastModified)}>
                               <span className="project-date">
@@ -555,7 +555,7 @@ const Home: React.FC<HomeProps> = ({
                         </div>
                         <div className="e-card-content">
                           <div className="project-info">
-                            <h3 className="project-title">{project.name}</h3>
+                            <h3 title={project.name} className="project-title">{project.name}</h3>
                             <p className="project-modified">
                               Modified: {formatDate(project.lastModified)}
                             </p>
