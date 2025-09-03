@@ -9,9 +9,10 @@ import NodePaletteSidebar from '../NodePaletteSidebar';
 import NodeConfigSidebar from '../NodeConfigSidebar';
 import { useTheme } from '../../contexts/ThemeContext';
 import ConfirmationDialog from '../ConfirmationDialog';
-import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings } from '../../types';
+import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosition } from '../../types';
 import WorkflowService from '../../services/WorkflowService';
 import './Editor.css';
+import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
 
 interface EditorProps {
   project: ProjectData;
@@ -178,12 +179,12 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
 
       // Position based on source port
       const sourceNode = diagramRef.getObject(selectedPortConnection.nodeId);
-      let offsetX = sourceNode.offsetX + 200;
+      let offsetX = sourceNode.offsetX + (sourceNode.width * 2);
       let offsetY = sourceNode.offsetY;
 
       if (selectedPortConnection.portId.includes('bottom')) {
         offsetX = sourceNode.offsetX;
-        offsetY = sourceNode.offsetY + 150;
+        offsetY = sourceNode.offsetY + (sourceNode.height * 2);
       }
 
       const newNode = {
@@ -348,19 +349,43 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     }
   };
 
-  const handleAddStickyNote = (position: { x: number; y: number }) => {
+  const handleAddStickyNote = (position: StickyNotePosition) => {
     if (diagramRef) {
-      // Validate position parameter
-      if (!position || typeof position !== 'object' || 
-          typeof position.x !== 'number' || typeof position.y !== 'number') {
+      if (
+        !position ||
+        typeof position !== 'object' ||
+        typeof position.x !== 'number' ||
+        typeof position.y !== 'number'
+      ) {
         // Position the sticky note to center of the diagram
-        position = { x: diagramRef.scrollSettings.viewPortWidth / 2 , y:  diagramRef.scrollSettings.viewPortHeight / 2 };
+        position = {
+          x: diagramRef.scrollSettings.viewPortWidth / 2,
+          y: diagramRef.scrollSettings.viewPortHeight / 2,
+        };
       }
+      
+      let x : number= position.x;
+      let y :number = position.y;
+      let index: number | undefined;
+
+      // Apply staggering only if postion is not from mouse
+      if (!position.fromMouse) {
+        const staggered = getNextStaggeredOffset(diagramRef, x, y, {
+          group: 'sticky',
+          strategy: 'diagonal',
+          stepX: 16,
+          stepY: 16,
+        });
+        x = staggered.x;
+        y = staggered.y;
+        index = staggered.index;
+      }
+
       const stickyNote: NodeModel = {
         width: 240,
         height: 240,
-        offsetX: position.x,
-        offsetY: position.y - 64, // removing the header height
+        offsetX: x,
+        offsetY: y - 64, // removing the header height
         constraints: (NodeConstraints.Default & ~NodeConstraints.Rotate),
         addInfo: {
           nodeConfig: {
@@ -369,6 +394,12 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
           } as NodeConfig
         }
       };
+
+      // Persist stagger metadata only if staggering was applied
+      if (index !== undefined) {
+        applyStaggerMetadata(stickyNote, 'sticky', index);
+      }
+
       diagramRef.add(stickyNote);
     }
   };

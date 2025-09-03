@@ -68,3 +68,9 @@ export interface DiagramSettings {
   enableSnapping: boolean;
   showOverview: boolean;
 }
+
+export interface StickyNotePosition {
+  x: number;
+  y: number;
+  fromMouse?: boolean; 
+}

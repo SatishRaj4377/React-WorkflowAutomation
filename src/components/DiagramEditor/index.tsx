@@ -28,6 +28,7 @@ import {
 } from '@syncfusion/ej2-react-diagrams';
 import { DiagramSettings, NodeConfig } from '../../types';
 import './DiagramEditor.css';
+import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
 
 interface DiagramEditorProps {
   onAddNode?: () => void;
@@ -328,9 +329,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     const nodeType = nodeConfig?.type;
     const nodeId = nodeConfig?.id || '';
     
-    // Check if this is an existing node being loaded
-    const isExistingNode = isLoadingDiagram && obj.id; // During loading and has an ID
-    
     // For sticky notes during loading, treat ALL sticky notes as existing to preserve their data
     const isExistingStickyNote = nodeType === "sticky" && (
       isLoadingDiagram || // If we're loading, preserve all sticky note data
@@ -387,11 +385,32 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         : (baseConstraints & ~NodeConstraints.Resize) | NodeConstraints.HideThumbs | NodeConstraints.ReadOnly;
 
       // Set position if not already set (only for new nodes)
-      if (!obj.offsetX || obj.offsetX === 0) {
-        obj.offsetX = (diagramRef.current as any)?.scrollSettings.viewPortWidth / 2 || 300;
-      }
-      if (!obj.offsetY || obj.offsetY === 0) {
-        obj.offsetY = (diagramRef.current as any)?.scrollSettings.viewPortHeight / 2 || 200;
+      if (!obj.offsetX || obj.offsetX === 0 || !obj.offsetY || obj.offsetY === 0) {
+        const diagram = diagramRef.current as DiagramComponent;
+        const baseX =
+          diagram?.scrollSettings?.viewPortWidth != null
+            ? diagram.scrollSettings.viewPortWidth / 3
+            : 300;
+        const baseY =
+          diagram?.scrollSettings?.viewPortHeight != null
+            ? diagram.scrollSettings.viewPortHeight / 4
+            : 200;
+
+        // Use stagger helper to compute next offset to avoid overlapping of nodes
+        const { x, y, index } = getNextStaggeredOffset(diagram, baseX, baseY, {
+          group: 'paletteNode',
+          strategy: 'grid',
+          stepX: obj.width * 2,
+          stepY: obj.height * 2,
+          cols: 3,
+          usePersistentIndex: true
+        });
+
+        obj.offsetX = x;
+        obj.offsetY = y;
+
+        // Optional: persist metadata so future calls continue the sequence
+        applyStaggerMetadata(obj, 'paletteNode', index);
       }
 
       // Configure ports based on node type (skip for existing nodes that already have ports)
@@ -734,7 +753,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       case 'addSticky':
         if (onAddStickyNote){
           const position = args.event && typeof args.event === 'object' 
-            ? {x: args.event.pageX, y: args.event.pageY} : { x: 300, y: 300 };
+            ? {x: args.event.pageX, y: args.event.pageY, fromMouse: true} : { x: 300, y: 300, fromMouse: false };
           onAddStickyNote(position);
         }
         break;
