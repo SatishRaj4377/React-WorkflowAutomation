@@ -492,7 +492,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     obj.segments= [{ type: 'Bezier' }];
     obj.style = {
       strokeColor: '#9193a2ff',
-      strokeDashArray: '5 3',
       strokeWidth: 2,
     };
     obj.targetDecorator = {
@@ -536,12 +535,28 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
   // Removes the disconnected connector
   const removeDisConnectedConnectors = (args: any) => {
-    if (args.state === 'Completed' && args.objectType === 'Connector') {
-      const connector = args.source;
-      if (connector && (connector.sourceID === '' || connector.targetID === '')) {
+    if (!args || args.objectType !== 'Connector') return;
+    const connector = args.source;
+    // Validate connector object
+    if (!connector || typeof connector !== 'object') return;
+    // Apply disconnected style early (before 'Completed' state)
+    connector.style = {
+      strokeColor: '#9193a2ff',
+      strokeDashArray: '5 3',
+      strokeWidth: 2,
+    };
+    if (args.state === 'Completed') {
+      const isDisconnected =
+        !connector.sourceID || connector.sourceID.trim() === '' ||
+        !connector.targetID || connector.targetID.trim() === '';
+      if (isDisconnected && diagramRef?.current) {
         setTimeout(() => {
-          (diagramRef.current as any).remove(connector);
-        });
+          try {
+            (diagramRef.current as any).remove(connector);
+          } catch (error) {
+            console.error('Failed to remove disconnected connector:', error);
+          }
+        }, 0);
       }
     }
   };
@@ -591,11 +606,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     if (nodeIds && nodeIds.length > 0) {
       nodeIds.forEach(nodeId => {
         const selectedTemplate = document.querySelector(`[data-node-id="${nodeId}"]`);
-        
         if (selectedTemplate) {
           selectedTemplate.classList.add('selected');
-        } else {
-          console.warn(`Could not find template for node: ${nodeId}`);
         }
       });
     }
