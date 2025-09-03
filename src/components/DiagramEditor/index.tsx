@@ -540,7 +540,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     if (!obj || typeof obj !== 'object') {
       return obj;
     }
-    obj.zIndex =  1000;
     obj.type = 'Bezier';
     obj.segments= [{ type: 'Bezier' }];
     obj.style = {

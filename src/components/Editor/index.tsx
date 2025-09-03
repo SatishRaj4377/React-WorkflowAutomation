@@ -356,18 +356,14 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         // Position the sticky note to center of the diagram
         position = { x: diagramRef.scrollSettings.viewPortWidth / 2 , y:  diagramRef.scrollSettings.viewPortHeight / 2 };
       }
-      const timestamp = Date.now();
       const stickyNote: NodeModel = {
-        id: `sticky-${timestamp}`,
         width: 240,
         height: 240,
         offsetX: position.x,
         offsetY: position.y - 64, // removing the header height
-        zIndex: -10000,
         constraints: (NodeConstraints.Default & ~NodeConstraints.Rotate),
         addInfo: {
           nodeConfig: {
-            id: `sticky-${timestamp}`,
             type: 'sticky',
             name: 'Sticky Note',
           } as NodeConfig
