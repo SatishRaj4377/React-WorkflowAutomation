@@ -111,6 +111,14 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
           description: "Send email notifications",
         },
         {
+          id: "sheet",
+          name: "Sheets",
+          iconUrl: "/images/node-icons/gsheet.png",
+          type: "action",
+          category: "Core",
+          description: "Store and Retrieve data in google sheets",
+        },
+        {
           id: "telegram",
           name: "Telegram",
           iconUrl: "/images/node-icons/telegram.png",
