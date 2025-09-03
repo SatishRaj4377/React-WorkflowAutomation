@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useBlocker } from 'react-router';
 import { NodeConstraints, NodeModel, PortConstraints, PortModel } from '@syncfusion/ej2-react-diagrams';
 import AppBar from '../Header';
@@ -64,7 +64,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     }
   }, [selectedNodeId, diagramRef]);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     try {
       if (diagramRef) {
         // Save diagram as string using EJ2's built-in method
@@ -90,7 +90,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       console.error('Failed to save workflow:', error);
       showErrorToast('Save Failed', 'There was an error saving your workflow.');
     }
-  };
+  }, [diagramRef, project, projectName, diagramSettings, onSaveProject]);
 
   const handleDiagramChange = () => {
     // Mark as dirty when diagram changes
@@ -571,6 +571,23 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isDirty]);
+
+  // Saved the workflow from keyboard shortcur (ctrl + s)
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+        event.preventDefault();
+        if (isDirty) {
+          handleSave();
+        } else {
+          showSuccessToast('No Changes', 'Workflow is already saved.');
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleSave, isDirty]);
 
   return (
     <div className="editor-container" data-theme={theme}>

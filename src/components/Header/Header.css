@@ -101,6 +101,7 @@
 .header-btn.save-btn {
   width: 4.5rem;
   border-radius: 7px;
+  font-size: .95rem;
 }
 .header-btn:disabled {
   pointer-events: none;
