@@ -165,7 +165,7 @@ const AppBar: React.FC<AppBarProps> = ({
 
       <div className="appbar-right">
         {onSave && (
-          <TooltipComponent content={enableSaveBtn ? "Save Workflow" : "Workflow Saved"}>
+          <TooltipComponent content={enableSaveBtn ? "Save Workflow (Ctrl+S)" : "Workflow Saved"}>
             <ButtonComponent
               onClick={onSave}
               className='header-btn save-btn'
