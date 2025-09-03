@@ -64,6 +64,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   const [showZoomPercentage, setShowZoomPercentage] = useState<boolean>(false);
   const zoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [previousZoom, setPreviousZoom] = useState<number>(100);
+  const [isLoadingDiagram, setIsLoadingDiagram] = useState(false);
 
   // User handles for Connectors
   let userHandles: UserHandleModel[] =  [
@@ -97,11 +98,15 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   useEffect(() => {
     if (diagramRef.current && project && project.workflowData.diagramString && !isLoaded) {
       try {
+        setIsLoadingDiagram(true);
         diagramRef.current.loadDiagram(project.workflowData.diagramString);
         setIsLoaded(true);
+        // Small delay to ensure all nodes are processed
+        setTimeout(() => setIsLoadingDiagram(false), 100);
       } catch (error) {
         console.error('Failed to load diagram:', error);
         setIsLoaded(true); // Set as loaded even if failed to prevent infinite loop
+        setIsLoadingDiagram(false);
       }
     } else if (diagramRef.current && !project.workflowData.diagramString) {
       setIsLoaded(true);
@@ -177,46 +182,72 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
      scrollLimit: 'Infinity',
   };
 
-  // Set up styles for sticky notes node
-  const setUpStickyNoteStyles = (stickyNode: NodeModel) => {
+  // Set up styles for sticky notes node (only for new nodes)
+  const setUpStickyNoteStyles = (stickyNode: NodeModel, isNewNode: boolean = true) => {
+    // Set minimum dimensions - always apply these
     stickyNode.minWidth = 160;
     stickyNode.minHeight = 80;
-    stickyNode.style= {
-      fill: '#e7f8ffff',
-      strokeColor: '#778a9fff',
-      strokeWidth: 2,
-      strokeDashArray: '10 4',
-      opacity: 0.7,
-    };
-    stickyNode.annotations= [
-      {
-        content: 'Type your content here...',
-        horizontalAlignment: 'Left',
-        verticalAlignment: 'Top',
-        offset: {x: 0, y: 0},
-        margin: {left: 20, top: 60, bottom: 0, right: 0},
-        width: 160,
-        style: {
-          color: '#585b5fff',
-          fontSize: 14,
-          textAlign: 'Left',
-          textWrapping: 'Wrap',
-          textOverflow: 'Ellipsis',
-        },  
-      },
-      {
-        content: "Note",
-        horizontalAlignment: 'Left',
-        verticalAlignment: 'Top',
-        margin: {left: 20, top: 20, bottom: 0, right: 0},
-        offset: {x: 0, y: 0},
-        style: {
-          color: '#142336ff',
-          fontSize: 20,
-          bold: true,
+    
+    // Preserve existing width/height if they exist (for loaded nodes)
+    if (!stickyNode.width || stickyNode.width < 160) {
+      stickyNode.width = 200;
+    }
+    if (!stickyNode.height || stickyNode.height < 80) {
+      stickyNode.height = 120;
+    }
+    
+    // Only set default style if it's a new node or no style exists
+    if (isNewNode || !stickyNode.style || Object.keys(stickyNode.style).length === 0) {
+      stickyNode.style = {
+        fill: '#e7f8ffff',
+        strokeColor: '#778a9fff',
+        strokeWidth: 2,
+        strokeDashArray: '10 4',
+        opacity: 0.7,
+      };
+    }
+    
+    // Only set default annotations if it's a new node or no meaningful annotations exist
+    const hasValidAnnotations = stickyNode.annotations && 
+      stickyNode.annotations.length > 0 && 
+      stickyNode.annotations.some(ann => 
+        ann.content && 
+        ann.content.trim() !== '' && 
+        ann.content !== 'Type your content here...' && 
+        ann.content !== 'Note'
+      );
+    
+    if (isNewNode || !hasValidAnnotations) {
+      stickyNode.annotations = [
+        {
+          content: 'Type your content here...',
+          horizontalAlignment: 'Left',
+          verticalAlignment: 'Top',
+          offset: {x: 0, y: 0},
+          margin: {left: 20, top: 60, bottom: 0, right: 0},
+          width: 160,
+          style: {
+            color: '#585b5fff',
+            fontSize: 14,
+            textAlign: 'Left',
+            textWrapping: 'Wrap',
+            textOverflow: 'Ellipsis',
+          },  
         },
-      },
-    ]
+        {
+          content: "Note",
+          horizontalAlignment: 'Left',
+          verticalAlignment: 'Top',
+          margin: {left: 20, top: 20, bottom: 0, right: 0},
+          offset: {x: 0, y: 0},
+          style: {
+            color: '#142336ff',
+            fontSize: 20,
+            bold: true,
+          },
+        },
+      ];
+    }
   }
 
   // HTML Templates for different node types
@@ -297,13 +328,29 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     const nodeType = nodeConfig?.type;
     const nodeId = nodeConfig?.id || '';
     
+    // Check if this is an existing node being loaded
+    const isExistingNode = isLoadingDiagram && obj.id; // During loading and has an ID
+    
+    // For sticky notes during loading, treat ALL sticky notes as existing to preserve their data
+    const isExistingStickyNote = nodeType === "sticky" && (
+      isLoadingDiagram || // If we're loading, preserve all sticky note data
+      (obj.annotations && obj.annotations.length > 0 && 
+       obj.annotations.some(ann => 
+         ann.content && 
+         ann.content.trim() !== '' && 
+         ann.content !== 'Type your content here...' && 
+         ann.content !== 'Note'
+       ))
+    );
+    
     if (nodeConfig && typeof nodeConfig === "object") {
       // Check if the ID contains specific node types
       const isIfCondition = nodeType === 'condition' || nodeId.includes('if-condition');
       const isAiAgent = nodeId.includes('ai-agent');
       
       if (nodeType === "sticky") {
-        setUpStickyNoteStyles(obj);
+        // For sticky notes, preserve existing content when loading
+        setUpStickyNoteStyles(obj, !isExistingStickyNote);
       }
       else {
         obj.shape = {
@@ -312,19 +359,20 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         };
       }
       
-      // Set node size based on node type
+      // Set node size based on node type (preserve existing size for loaded nodes)
       if (isAiAgent) {
-        obj.width = 160;  // Larger for AI agent
-        obj.height = 80;
+        if (!obj.width || obj.width === 0) obj.width = 160;  // Larger for AI agent
+        if (!obj.height || obj.height === 0) obj.height = 80;
       } else if (isIfCondition) {
-        obj.width = 80;  // Width for condition node
-        obj.height = 80;
+        if (!obj.width || obj.width === 0) obj.width = 80;  // Width for condition node
+        if (!obj.height || obj.height === 0) obj.height = 80;
       } else if (nodeType === 'sticky') {
-        obj.width = 200;
-        obj.height = 120;
+        // For sticky notes, preserve existing size or set default
+        if (!obj.width || obj.width === 0) obj.width = 200;
+        if (!obj.height || obj.height === 0) obj.height = 120;
       } else {
-        obj.width = 80;
-        obj.height = 80;
+        if (!obj.width || obj.width === 0) obj.width = 80;
+        if (!obj.height || obj.height === 0) obj.height = 80;
       }
 
       // Base constraints remain the same
@@ -338,16 +386,20 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         ? baseConstraints 
         : (baseConstraints & ~NodeConstraints.Resize) | NodeConstraints.HideThumbs | NodeConstraints.ReadOnly;
 
-      // Set position if not already set
-      if (!obj.offsetX) {
+      // Set position if not already set (only for new nodes)
+      if (!obj.offsetX || obj.offsetX === 0) {
         obj.offsetX = (diagramRef.current as any)?.scrollSettings.viewPortWidth / 2 || 300;
       }
-      if (!obj.offsetY) {
+      if (!obj.offsetY || obj.offsetY === 0) {
         obj.offsetY = (diagramRef.current as any)?.scrollSettings.viewPortHeight / 2 || 200;
       }
 
-      // Configure ports based on node type
+      // Configure ports based on node type (skip for existing nodes that already have ports)
       if (!nodeType || nodeType !== "sticky") {
+        // Only set ports if they don't already exist (for loaded nodes)
+        const shouldSetPorts = !obj.ports || obj.ports.length === 0;
+        
+        if (shouldSetPorts) {
         if (isAiAgent) {
           // AI Agent with 5 ports
           obj.ports = [
@@ -474,6 +526,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
               constraints: PortConstraints.OutConnect | PortConstraints.Draw,
             },
           ];
+        }
         }
       }
     }
