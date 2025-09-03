@@ -403,7 +403,7 @@ const Home: React.FC<HomeProps> = ({
                           setActiveSection('workflows');
                         }}
                       >
-                        Show all projects 
+                        Show all workflows 
                       </ButtonComponent>
                     </div>
                   )}

@@ -38,6 +38,7 @@
 .theme-toggle-switch.e-switch-wrapper .e-switch-handle {
   width: 28px;
   height: 28px;
+  border: 1.2px solid var(--scrollbar-thumb);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15) !important;
 }
 .theme-toggle-switch.e-switch-wrapper .e-switch-inner {
