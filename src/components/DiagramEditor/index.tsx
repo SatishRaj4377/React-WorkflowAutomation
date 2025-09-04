@@ -189,9 +189,16 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
   // Set up styles for sticky notes node (only for new nodes)
   const setUpStickyNoteStyles = (stickyNode: NodeModel, isNewNode: boolean = true) => {
-    // Set minimum dimensions - always apply these
+    // Set minimum dimensions
     stickyNode.minWidth = 160;
     stickyNode.minHeight = 80;
+    stickyNode.style = {
+      fill: "#e7f8ff",
+      strokeColor: "#9193a2ff",
+      strokeWidth: 2,
+      strokeDashArray: '10 4',
+      opacity: .7
+    }
     
     // Preserve existing width/height if they exist (for loaded nodes)
     if (!stickyNode.width || stickyNode.width < 160) {
@@ -206,15 +213,22 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
     // render the sticky note behind all the nodes
     setTimeout(()=> {
-      if (stickyNode.id){
-        setStickyZIndex(stickyNode.id)
-      }
+      setStickyZIndex(stickyNode)
     })
   }
 
-  function setStickyZIndex(nodeId: string, zIndex = -10000) {
-    const el = document.getElementById(`${nodeId}_content_html_element`);
-    if (el) el.style.zIndex = zIndex.toString();
+  function setStickyZIndex(stickyNode: NodeModel) {
+    const zIndex = -10000;
+
+    if (stickyNode.id){
+      // update the z-index in dom
+      const el = document.getElementById(`${stickyNode.id}_annotation_html_element`);
+      if (el) el.style.zIndex = zIndex.toString();
+      // update z-order from the diagram methods
+      diagramRef.current?.select([stickyNode])
+      diagramRef.current?.sendToBack();
+      diagramRef.current?.clearSelection();
+    }
   }
 
   // Simple markdown to HTML converter
@@ -265,11 +279,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     if (!nodeConfig || typeof nodeConfig !== 'object') {
       console.warn('Invalid nodeConfig provided to getNodeTemplate');
       return '<div>Invalid Node</div>';
-    }
-
-    // Handle sticky note template
-    if (nodeConfig.type === 'sticky') {
-      return getStickyNoteTemplate(nodeId, nodeConfig);
     }
 
     // Determine ports HTML based on node type
@@ -361,16 +370,23 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       const isAiAgent = nodeId.includes('ai-agent');
       
       if (nodeType === "sticky") {
-        // For sticky notes, preserve existing content when loading
+        // For sticky notes render annotation template
         setUpStickyNoteStyles(obj, !isExistingStickyNote);
+        obj.annotations = [
+        {
+          id: "annotation",
+          template: getStickyNoteTemplate(obj.id as string, nodeConfig),
+        }]
       }
-      
-      // Set HTML template for all nodes
-      obj.shape = {
-        type: "HTML",
-        content: getNodeTemplate(nodeConfig, obj.id as string),
-      };
-      
+      else
+      {
+        // Set HTML template for all nodes
+        obj.shape = {
+          type: "HTML",
+          content: getNodeTemplate(nodeConfig, obj.id as string),
+        };
+
+      }
       
       // Set node size based on node type (preserve existing size for loaded nodes)
       if (isAiAgent) {
@@ -580,6 +596,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       strokeColor: '#9193a2ff',
       strokeWidth: 2,
     };
+    obj.zIndex = 10000;
     obj.targetDecorator = {
       style: {
         fill: '#9193a2ff',

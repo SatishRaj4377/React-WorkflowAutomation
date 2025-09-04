@@ -242,8 +242,6 @@
 .sticky-note-container {
   width: 100%;
   height: 100%;
-  background: #e7f8ff;
-  border: 2px dashed #778a9f;
   color: var(--text-secondary);
   border-radius: 8px;
   overflow: hidden;
