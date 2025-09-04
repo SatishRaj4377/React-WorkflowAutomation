@@ -360,17 +360,17 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       const isIfCondition = nodeType === 'condition' || nodeId.includes('if-condition');
       const isAiAgent = nodeId.includes('ai-agent');
       
+      if (nodeType === "sticky") {
+        // For sticky notes, preserve existing content when loading
+        setUpStickyNoteStyles(obj, !isExistingStickyNote);
+      }
+      
       // Set HTML template for all nodes
       obj.shape = {
         type: "HTML",
         content: getNodeTemplate(nodeConfig, obj.id as string),
       };
       
-      if (nodeType === "sticky") {
-        // For sticky notes, preserve existing content when loading
-        setUpStickyNoteStyles(obj, !isExistingStickyNote);
-
-      }
       
       // Set node size based on node type (preserve existing size for loaded nodes)
       if (isAiAgent) {
