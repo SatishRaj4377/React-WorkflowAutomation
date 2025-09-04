@@ -699,7 +699,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     }
   };
 
-
   const handleClick = (args: any) => {
     // Check if clicked element is a port
     if (args && args.element && args.element.constructor.name === 'PointPort' && args.actualObject) {
@@ -809,12 +808,28 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       const selectedNodeIds = args.newValue.map((item: any) => item.id);
       setSelectedNodeIds(selectedNodeIds);
       updateNodeSelection(selectedNodeIds);
+      updateResizeHandleVisibility(selectedNodeIds);
     } else {
       // No selection
       setSelectedNodeIds([]);
       updateNodeSelection(null);
     }
   };
+
+
+const updateResizeHandleVisibility = (nodeIds: string[]) => {
+  if (!diagramRef.current) return;
+  // show resize handle for the sticky nodes only
+  if (nodeIds.length === 1 && nodeIds[0].startsWith('sticky-')) {
+    diagramRef.current.selectedItems.constraints = SelectorConstraints.All;
+  } 
+  // Hide resize handles for multi-selection or non-sticky nodes
+  else {
+    diagramRef.current.selectedItems.constraints = 
+      SelectorConstraints.All & ~SelectorConstraints.ResizeAll;
+  }
+};
+
 
   // Update useEffect to handle selection updates when nodes change
   useEffect(() => {
@@ -887,6 +902,15 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
           gesture: { 
             key: Keys.Space,
             keyModifiers: KeyModifiers.None
+          }
+        },
+        {
+          name: 'group',
+          canExecute: () => false, // prevent grouping action
+          execute: () => {},
+          gesture: {
+            key: Keys.G,
+            keyModifiers: KeyModifiers.Control
           }
         }
       ]
