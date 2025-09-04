@@ -201,58 +201,20 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       stickyNode.height = 120;
     }
     
-    // Only set default style if it's a new node or no style exists
-    if (isNewNode || !stickyNode.style || Object.keys(stickyNode.style).length === 0) {
-      stickyNode.style = {
-        fill: '#e7f8ffff',
-        strokeColor: '#778a9fff',
-        strokeWidth: 2,
-        strokeDashArray: '10 4',
-        opacity: 0.7,
-      };
-    }
-    
-    // Only set default annotations if it's a new node or no meaningful annotations exist
-    const hasValidAnnotations = stickyNode.annotations && 
-      stickyNode.annotations.length > 0 && 
-      stickyNode.annotations.some(ann => 
-        ann.content && 
-        ann.content.trim() !== '' && 
-        ann.content !== 'Type your content here...' && 
-        ann.content !== 'Note'
-      );
-    
-    if (isNewNode || !hasValidAnnotations) {
-      stickyNode.annotations = [
-        {
-          content: 'Type your content here...',
-          horizontalAlignment: 'Left',
-          verticalAlignment: 'Top',
-          offset: {x: 0, y: 0},
-          margin: {left: 20, top: 60, bottom: 0, right: 0},
-          width: 160,
-          style: {
-            color: '#585b5fff',
-            fontSize: 14,
-            textAlign: 'Left',
-            textWrapping: 'Wrap',
-            textOverflow: 'Ellipsis',
-          },  
-        },
-        {
-          content: "Note",
-          horizontalAlignment: 'Left',
-          verticalAlignment: 'Top',
-          margin: {left: 20, top: 20, bottom: 0, right: 0},
-          offset: {x: 0, y: 0},
-          style: {
-            color: '#142336ff',
-            fontSize: 20,
-            bold: true,
-          },
-        },
-      ];
-    }
+    // Remove annotations for sticky notes since we're using HTML template
+    stickyNode.annotations= [{ constraints: AnnotationConstraints.ReadOnly }]
+
+    // render the sticky note behind all the nodes
+    setTimeout(()=> {
+      if (stickyNode.id){
+        setStickyZIndex(stickyNode.id)
+      }
+    })
+  }
+
+  function setStickyZIndex(nodeId: string, zIndex = -10000) {
+    const el = document.getElementById(`${nodeId}_content_html_element`);
+    if (el) el.style.zIndex = zIndex.toString();
   }
 
   // Simple markdown to HTML converter
@@ -407,8 +369,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       if (nodeType === "sticky") {
         // For sticky notes, preserve existing content when loading
         setUpStickyNoteStyles(obj, !isExistingStickyNote);
-        // Remove annotations for sticky notes since we're using HTML template
-        obj.annotations= [{ constraints: AnnotationConstraints.ReadOnly }]
+
       }
       
       // Set node size based on node type (preserve existing size for loaded nodes)

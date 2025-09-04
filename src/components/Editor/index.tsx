@@ -380,8 +380,9 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         y = staggered.y;
         index = staggered.index;
       }
-
+      const timestamp = Date.now();
       const stickyNote: NodeModel = {
+        id: `sticky-${timestamp}`,
         width: 240,
         height: 240,
         offsetX: x,
@@ -389,6 +390,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         constraints: (NodeConstraints.Default & ~NodeConstraints.Rotate),
         addInfo: {
           nodeConfig: {
+            id: `sticky-${timestamp}`,
             type: 'sticky',
             name: 'Sticky Note',
           } as NodeConfig

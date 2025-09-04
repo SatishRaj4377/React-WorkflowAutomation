@@ -244,12 +244,12 @@
   height: 100%;
   background: #e7f8ff;
   border: 2px dashed #778a9f;
+  color: var(--text-secondary);
   border-radius: 8px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   overflow: hidden;
   position: relative;
   opacity: 0.9;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 5px rgba(39, 39, 39, 0.1);
   user-select: none;
 }
 
@@ -273,25 +273,21 @@
 
 .markdown-preview h1 {
   font-size: 20px;
-  color: #142336;
   font-weight: bold;
 }
 
 .markdown-preview h2 {
   font-size: 17px;
-  color: #142336;
   font-weight: bold;
 }
 
 .markdown-preview h3 {
   font-size: 13px;
-  color: #142336;
   font-weight: bold;
 }
 
 .markdown-preview strong {
   font-weight: bold;
-  color: #142336;
 }
 
 .markdown-preview em {
@@ -306,12 +302,7 @@
 }
 
 .markdown-preview ul {
-  margin: 4px 0;
   padding-left: 16px;
-}
-
-.markdown-preview li {
-  margin: 2px 0;
 }
 
 .markdown-editor {
@@ -341,26 +332,4 @@
   border: 1.6px solid #9ca3af;;
   border-radius: 5px;
   padding: 5px;
-}
-
-/* Scrollbar styles for markdown content */
-.markdown-preview::-webkit-scrollbar,
-.markdown-editor::-webkit-scrollbar {
-  width: 4px;
-}
-
-.markdown-preview::-webkit-scrollbar-track,
-.markdown-editor::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.markdown-preview::-webkit-scrollbar-thumb,
-.markdown-editor::-webkit-scrollbar-thumb {
-  background: rgba(119, 138, 159, 0.3);
-  border-radius: 2px;
-}
-
-.markdown-preview::-webkit-scrollbar-thumb:hover,
-.markdown-editor::-webkit-scrollbar-thumb:hover {
-  background: rgba(119, 138, 159, 0.5);
 }
