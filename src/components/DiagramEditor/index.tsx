@@ -25,6 +25,7 @@ import {
   SelectorConstraints,
   ConnectorConstraints,
   Snapping,
+  AnnotationConstraints,
 } from '@syncfusion/ej2-react-diagrams';
 import { DiagramSettings, NodeConfig } from '../../types';
 import './DiagramEditor.css';
@@ -41,6 +42,9 @@ interface DiagramEditorProps {
   onPortClick?: (nodeId: string, portId: string) => void;
   diagramSettings?: DiagramSettings;
 }
+
+  let isStickyNoteEditing = false;
+
 
 const DiagramEditor: React.FC<DiagramEditorProps> = ({
   onAddNode,
@@ -251,11 +255,59 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     }
   }
 
+  // Simple markdown to HTML converter
+  const convertMarkdownToHtml = (markdown: string): string => {
+    if (!markdown) return '';
+    
+    return markdown
+      // Headers
+      .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+      .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+      .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+      // Bold and italic
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      // Code
+      .replace(/`(.*?)`/g, '<code>$1</code>')
+      // Lists
+      .replace(/^- (.*$)/gim, '<li>$1</li>')
+      .replace(/(<li>.*<\/li>)/g, '<ul>$1</ul>')
+      .replace(/\n/g, '<br>');
+  };
+
+  // Get sticky note template
+  const getStickyNoteTemplate = (nodeId: string, nodeConfig: NodeConfig): string => {
+    // Get stored markdown content from node data
+    const node = diagramRef.current?.nodes?.find(n => n.id === nodeId);
+    const storedMarkdown = (node?.addInfo as any)?.markdown || 'Double-click to edit\n\nYou can use **bold**, *italic*, `code`, and\n# Headers\n- Lists';
+    const markdownHtml = convertMarkdownToHtml(storedMarkdown);
+    
+    return `
+      <div class="sticky-note-container" data-node-id="${nodeId}">
+        <div class="sticky-note-content">
+          <div class="markdown-preview" id="preview-${nodeId}" style="display: block;">
+            ${markdownHtml}
+          </div>
+          <textarea class="markdown-editor" 
+            id="editor-${nodeId}" 
+            style="display: none;"
+            placeholder="Type your markdown here..."
+          />
+        </div>
+      </div>
+    `;
+  };
+
   // HTML Templates for different node types
   const getNodeTemplate = (nodeConfig: NodeConfig, nodeId: string): string => {
     if (!nodeConfig || typeof nodeConfig !== 'object') {
       console.warn('Invalid nodeConfig provided to getNodeTemplate');
       return '<div>Invalid Node</div>';
+    }
+
+    // Handle sticky note template
+    if (nodeConfig.type === 'sticky') {
+      return getStickyNoteTemplate(nodeId, nodeConfig);
     }
 
     // Determine ports HTML based on node type
@@ -315,7 +367,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
           ${portsHtml}
           ${contentHtml}
         </div>
-        ${nodeConfig.type !== 'sticky' ? `<div class="node-name-bar">${nodeConfig.name ? nodeConfig.name : ''}</div>` : ''}
+        <div class="node-name-bar">${nodeConfig.name ? nodeConfig.name : ''}</div>
       </div>
     `;
   };
@@ -346,15 +398,17 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       const isIfCondition = nodeType === 'condition' || nodeId.includes('if-condition');
       const isAiAgent = nodeId.includes('ai-agent');
       
+      // Set HTML template for all nodes
+      obj.shape = {
+        type: "HTML",
+        content: getNodeTemplate(nodeConfig, obj.id as string),
+      };
+      
       if (nodeType === "sticky") {
         // For sticky notes, preserve existing content when loading
         setUpStickyNoteStyles(obj, !isExistingStickyNote);
-      }
-      else {
-        obj.shape = {
-          type: "HTML",
-          content: getNodeTemplate(nodeConfig, obj.id as string),
-        };
+        // Remove annotations for sticky notes since we're using HTML template
+        obj.annotations= [{ constraints: AnnotationConstraints.ReadOnly }]
       }
       
       // Set node size based on node type (preserve existing size for loaded nodes)
@@ -698,11 +752,94 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   };
 
   const handleDoubleClick = (args: any) => {
-    if (args && args.source && args.source.id && onNodeDoubleClick) {
+    if (args && args.source && args.source.id) {
       const nodeId = args.source.id;
-      setSelectedNodeIds([nodeId]);
-      updateNodeSelection([nodeId]);
-      onNodeDoubleClick(nodeId);
+      const node = args.source;
+      const nodeConfig = (node.addInfo as any)?.nodeConfig as NodeConfig;
+      
+      // Handle sticky note double-click
+      if (nodeConfig?.type === 'sticky') {
+        handleStickyNoteEdit(node);
+        return;
+      }
+      
+      // Handle regular node double-click
+      if (onNodeDoubleClick) {
+        setSelectedNodeIds([nodeId]);
+        updateNodeSelection([nodeId]);
+        onNodeDoubleClick(nodeId);
+      }
+    }
+  };
+
+  // Handle sticky note editing
+  const handleStickyNoteEdit = (node: NodeModel) => {
+    const preview = document.getElementById(`preview-${node.id}`);
+    const editor = document.getElementById(`editor-${node.id}`) as HTMLTextAreaElement;
+    const storedMarkdown = (node.addInfo as any)?.markdown || "";
+
+    if (preview && editor) {
+      node.constraints = NodeConstraints.None;
+      // Switch to edit mode
+      preview.style.display = 'none';
+      editor.style.display = 'block';
+      editor.value = storedMarkdown;
+      editor.focus();
+      
+      isStickyNoteEditing = true;
+
+      // Prevent key bubbling for arrows, space, delete, etc.
+      const keyDownBlocker = (e: KeyboardEvent) => {
+        e.stopPropagation();
+        // Prevent diagram actions for navigation, space, etc.
+        if (
+          ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", " ","Spacebar", "Delete", "Backspace", "Tab"].includes(e.key)
+        ) {
+          // Only block propagation so diagram/diagram shortcuts do NOT fire
+          e.stopPropagation();
+        }
+      };
+      editor.addEventListener('keydown', keyDownBlocker);
+
+      // Handle blur event to save and switch back to preview
+      const handleBlur = () => {
+        const markdownContent = editor.value;
+        const htmlContent = convertMarkdownToHtml(markdownContent);
+        
+        // Update preview content
+        preview.innerHTML = htmlContent;
+        
+        // Switch back to preview mode
+        editor.style.display = 'none';
+        preview.style.display = 'block';
+        
+        // Save markdown content to node data
+        if (!node.addInfo) node.addInfo = {};
+        (node.addInfo as any).markdown = markdownContent;
+        node.constraints =  
+          NodeConstraints.Default &
+          ~NodeConstraints.Rotate &
+          ~NodeConstraints.InConnect &
+          ~NodeConstraints.OutConnect;
+        
+        // Remove event listener
+        editor.removeEventListener('blur', handleBlur);
+        isStickyNoteEditing = false;
+      };
+      
+
+      // Add blur event listener
+      editor.addEventListener('blur', handleBlur);
+      
+      // Handle Escape key to cancel editing
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          editor.blur();
+          editor.removeEventListener('keydown', handleKeyDown);
+        }
+      };
+      
+      editor.addEventListener('keydown', handleKeyDown);
     }
   };
 
@@ -771,16 +908,16 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     }
   };
 
-  const getCommandManagerSettings = () => {
+  const getCommandManagerSettings = ()=> {
     const commandManager: CommandManagerModel = {
       commands: [
         {
           name: 'spacePan',
           canExecute: () => {
-            return diagramRef.current != null && !isPanning;
+            return diagramRef.current != null && !isPanning && !isStickyNoteEditing;
           },
           execute: () => {
-            if (diagramRef.current && !isPanning) {
+            if (diagramRef.current && !isPanning && !isStickyNoteEditing) {
               setPreviousDiagramTool(diagramRef.current.tool);
               diagramRef.current.tool = DiagramTools.ZoomPan;
               setIsPanning(true);
