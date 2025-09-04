@@ -838,12 +838,12 @@ const updateResizeHandleVisibility = (nodeIds: string[]) => {
   if (!diagramRef.current) return;
   // show resize handle for the sticky nodes only
   if (nodeIds.length === 1 && nodeIds[0].startsWith('sticky-')) {
-    diagramRef.current.selectedItems.constraints = SelectorConstraints.All;
+    diagramRef.current.selectedItems.constraints = SelectorConstraints.All & ~SelectorConstraints.ToolTip ;
   } 
   // Hide resize handles for multi-selection or non-sticky nodes
   else {
     diagramRef.current.selectedItems.constraints = 
-      SelectorConstraints.All & ~SelectorConstraints.ResizeAll;
+      SelectorConstraints.All & ~SelectorConstraints.ToolTip & ~SelectorConstraints.ResizeAll;
   }
 };
 
