@@ -596,7 +596,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       strokeColor: '#9193a2ff',
       strokeWidth: 2,
     };
-    obj.zIndex = 10000;
     obj.targetDecorator = {
       style: {
         fill: '#9193a2ff',
