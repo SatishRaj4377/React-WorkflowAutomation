@@ -1,4 +1,4 @@
-import { DiagramComponent } from "@syncfusion/ej2-react-diagrams";
+import { DiagramComponent, NodeModel } from "@syncfusion/ej2-react-diagrams";
 import { NodeConfig } from "../types";
 
 // HTML Templates for different node types
@@ -113,3 +113,9 @@ export const convertMarkdownToHtml = (markdown: string): string => {
         // Line Break
         .replace(/\n/g, '<br>');
 };
+
+export function getFirstSelectedNode(diagram: DiagramComponent | null | undefined): NodeModel | undefined {
+  if (!diagram || !diagram.selectedItems || !Array.isArray(diagram.selectedItems.nodes)) return undefined;
+  if (diagram.selectedItems.nodes.length === 0) return undefined;
+  return diagram.selectedItems.nodes[0];
+}

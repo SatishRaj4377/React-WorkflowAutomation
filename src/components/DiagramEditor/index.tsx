@@ -19,16 +19,16 @@ import {
   Keys,
   KeyModifiers,
   CommandManagerModel,
-  ScrollSettingsModel,
   UserHandleModel,
   UserHandleEventsArgs,
   SelectorConstraints,
   ConnectorConstraints,
   Snapping,
+  DiagramConstraints,
 } from '@syncfusion/ej2-react-diagrams';
 import { DiagramSettings, NodeConfig } from '../../types';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
-import { convertMarkdownToHtml, getNodeTemplate, getStickyNoteTemplate } from '../../helper/diagramUtils';
+import { convertMarkdownToHtml, getFirstSelectedNode, getNodeTemplate, getStickyNoteTemplate } from '../../helper/diagramUtils';
 import './DiagramEditor.css';
 
 interface DiagramEditorProps {
@@ -66,6 +66,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   const [showZoomPercentage, setShowZoomPercentage] = useState<boolean>(false);
   const zoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [previousZoom, setPreviousZoom] = useState<number>(100);
+  const [isWorkflowLocked, setIsWorkflowLocked] = useState(false);
 
   // User handles for Connectors
   let userHandles: UserHandleModel[] =  [
@@ -85,29 +86,17 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   // Context Menu Items for the diagram
   const contextMenuSettings = {
     show: true,
-    items: [
-      {
-        text: 'Add Node',
-        id: 'addNode',
-        iconCss: 'e-icons e-plus'
-      },
-      {
-        text: 'Add Sticky Note',
-        id: 'addSticky',
-        iconCss: 'e-icons e-add-notes'
-      },
-      {
-        text: 'Lock Workflow',
-        id: 'lockWorkflow',
-        iconCss: 'e-icons e-lock'
-      },
-      {
-        text: 'Select All',
-        id: 'selectAll',
-        iconCss: 'e-icons e-select-all'
-      }
-    ],
     showCustomMenuOnly: true,
+    items: [
+      // Node menu 
+      { id: 'editNode', text: 'Edit Node', iconCss: 'e-icons e-edit' },
+      { id: 'delete', text: 'Delete', iconCss: 'e-icons e-trash' },
+      // Diagram menu
+      { text: 'Add Node', id: 'addNode', iconCss: 'e-icons e-plus' },
+      { text: 'Add Sticky Note', id: 'addSticky', iconCss: 'e-icons e-add-notes' },
+      { text: 'Lock Workflow', id: 'lockWorkflow', iconCss: 'e-icons e-lock' },
+      { text: 'Select All', id: 'selectAll', iconCss: 'e-icons e-select-all' }
+    ]
   };
 
   // Grid and Snap Settings based on diagramSettings
@@ -135,10 +124,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     snapObjectDistance: 5,
     snapLineColor: 'var(--secondary-color)',
     snapAngle: 5,
-  };
-
-  const scrollSettings: ScrollSettingsModel = {
-     scrollLimit: 'Infinity',
   };
 
   // Get default styles for nodes
@@ -292,7 +277,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     }
   };
 
-    const handleClick = (args: any) => {
+  // Handle diagram click, to add the nodes connected to the clicked port
+  const handleClick = (args: any) => {
     // Check if clicked element is a port
     if (args && args.element && args.element.constructor.name === 'PointPort' && args.actualObject) {
       const portId = args.element.id;
@@ -340,45 +326,145 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     }
   };
 
+  // Show context menu for nodes / diagram and handle mixed selection
+  const handleContextMenuOpen = (args: any) => {
+    const diagram = diagramRef.current!;
+
+    // Don't show context menu for sticky node
+    const firstSelectedNode = getFirstSelectedNode(diagram);
+    if (firstSelectedNode && (firstSelectedNode?.addInfo as any).nodeConfig?.type === "sticky"){
+      args.cancel = true;
+      return;
+    }
+    
+    const selNodes = diagram?.selectedItems?.nodes ?? [];
+    const selConns = diagram?.selectedItems?.connectors ?? [];
+
+    const hasNode = selNodes.length > 0;
+    const hasConnector = selConns.length > 0;
+    const isMixed = hasNode && hasConnector;
+
+    const availableIds: string[] = (args.items ?? [])
+      .map((i: any) => i?.id)
+      .filter(Boolean);
+
+    // Define your logical groups (IDs must match your contextMenuSettings.items)
+    const NODE_MENU    = ['editNode', 'delete'];
+    const DIAGRAM_MENU = ['addNode', 'addSticky', 'lockWorkflow', 'selectAll'];
+
+    // Helper: hide everything except a small allowlist (that is also available)
+    const hideAllExcept = (allowIds: string[]) => {
+      const allow = new Set(allowIds);
+      args.hiddenItems = availableIds.filter((id) => !allow.has(id));
+    };
+
+    // Toggle Lock/Unlock label if the item is present
+    const lockItem = (args.items || []).find((i: any) => i.id === 'lockWorkflow');
+    if (lockItem) lockItem.text = isWorkflowLocked ? 'Unlock Workflow' : 'Lock Workflow';
+
+    // Mixed selection (nodes + connectors) → show only Delete (if available)
+    if (isMixed) {
+      hideAllExcept(availableIds.includes('delete') ? ['delete'] : []);
+      return;
+    }
+
+    // Connectors only → show nothing
+    if (hasConnector && !hasNode) {
+      hideAllExcept([]); // hide all available
+      return;
+    }
+
+    // Nodes only → show node menu (edit + delete), but only those present
+    if (hasNode) {
+      const presentNodeMenu = NODE_MENU.filter((id) => availableIds.includes(id));
+      hideAllExcept(presentNodeMenu);
+      return;
+    }
+
+    // Diagram only → show diagram menu (addNode, addSticky, lockWorkflow, selectAll), only those present
+    const presentDiagramMenu = DIAGRAM_MENU.filter((id) => availableIds.includes(id));
+    hideAllExcept(presentDiagramMenu);
+  };
+
+
+
   // handle conext menu click event
   const handleContextMenuClick = (args: any) => {
-    // Add null/undefined checks for args and its properties
     if (!args || typeof args !== 'object' || !args.item || typeof args.item !== 'object') {
       console.warn('Invalid context menu click arguments');
       return;
     }
 
-    const itemId = args.item.id;
-    if (!itemId) {
-      return;
-    }
+    const diagram = diagramRef.current;
+    const itemId = args.item.id as string;
+    if (!itemId || !diagram) return;
 
     switch (itemId) {
-      case 'addNode':
-        if (onAddNode){
-          onAddNode();
-        }
+      // ----- Node items -----
+      case 'duplicateNode': {
+        diagram.copy();
+        diagram.paste();
         break;
-      case 'selectAll':
-        if (diagramRef.current) {
-          diagramRef.current.selectAll();
-        }
+      }
+      case 'editNode': {
+        const firstSelectedNode = getFirstSelectedNode(diagram);
+        if (firstSelectedNode && firstSelectedNode.id)
+          onNodeDoubleClick(firstSelectedNode.id);
         break;
-      case 'addSticky':
+      }
+      case 'delete': {
+        diagram.remove();
+        break;
+      }
+
+      // ----- Diagram items -----
+      case 'addNode': {
+        if (onAddNode) onAddNode();
+        break;
+      }
+      case 'addSticky': {
         if (onAddStickyNote){
           const position = args.event && typeof args.event === 'object' 
             ? {x: args.event.pageX, y: args.event.pageY, fromMouse: true} : { x: 300, y: 300, fromMouse: false };
           onAddStickyNote(position);
         }
         break;
-      case 'lockWorkflow':
-        console.log('Lock workflow');
+      }
+      case 'lockWorkflow': {
+        if (diagramRef.current) {
+          const next = !isWorkflowLocked;
+          setIsWorkflowLocked(next);
+          applyLockState(next);
+        }
         break;
+      }
+      case 'selectAll': {
+        diagram.selectAll();
+        break;
+      }
+
       default:
         console.warn(`Unknown context menu item: ${itemId}`);
-        break;
     }
   };
+
+  const applyLockState = (locked: boolean) => {
+    const diagram = diagramRef.current;
+    if (!diagram) return;
+
+    if (locked) {
+      // Clear any selection
+      diagram.clearSelection();
+
+      diagram.constraints = diagram.constraints
+        & ~DiagramConstraints.UserInteraction
+        & ~DiagramConstraints.PageEditable
+        & ~DiagramConstraints.UndoRedo;
+    } else {
+      diagram.constraints = DiagramConstraints.Default;
+    }
+  };
+
 
   // Customize the diagram command manager
   const getCommandManagerSettings = ()=> {
@@ -502,13 +588,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     }
   };
 
-  // Set the default tool for diagram on component mount
+  // Cleanup runs on unmount
   useEffect(() => {
-    // Runs on mount
-    if (diagramRef.current) {
-      diagramRef.current.tool = DiagramTools.Default;
-    }
-    // Cleanup runs on unmount
     return () => {
       // Clear the timeout for hiding the overview panel.
       if (overviewTimeoutRef.current) {
@@ -605,10 +686,11 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         elementDraw={removeDisConnectedConnectors}
         collectionChange={handleCollectionChange}
         snapSettings={snapSettings}
-        scrollSettings={scrollSettings}
+        scrollSettings={{scrollLimit: "Infinity"}}
         contextMenuSettings={contextMenuSettings}
         scrollChange={handleScrollChange}
         contextMenuClick={handleContextMenuClick}
+        contextMenuOpen={handleContextMenuOpen}
         click={handleClick}
         doubleClick={handleDoubleClick}
         selectionChange={handleSelectionChange}
