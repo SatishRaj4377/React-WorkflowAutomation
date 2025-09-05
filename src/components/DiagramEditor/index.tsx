@@ -865,7 +865,7 @@ function updateNodeTemplates(nodeType: string | undefined, setUpStickyNote: (sti
 const handleStickyNoteEdit = (node: NodeModel) => {
   const preview = document.getElementById(`preview-${node.id}`);
   const editor = document.getElementById(`editor-${node.id}`) as HTMLTextAreaElement;
-  const storedMarkdown = (node.addInfo as any)?.markdown || "";
+  const storedMarkdown = (node.addInfo as any)?.markdown || 'Double-click to edit\n\nYou can use **bold**, *italic*, `code`, and\n# Headers\n- Lists';
 
   if (preview && editor) {
     node.constraints = NodeConstraints.None;
