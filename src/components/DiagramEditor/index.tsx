@@ -300,9 +300,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       // Handle sticky note double-click
       if (nodeConfig?.type === 'sticky') {
         handleStickyNoteEdit(node);
-        // open the node configuration panel
-        setSelectedNodeIds([nodeId]);
-        updateNodeSelection([nodeId]);
         return;
       }
       
