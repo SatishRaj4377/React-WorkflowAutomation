@@ -9,9 +9,7 @@ interface ToolbarProps {
   onResetZoom?: () => void;
   onZoomIn?: () => void;
   onZoomOut?: () => void;
-  onAutoAlign?: () => void;
   onAddSticky?: (position: {x: number; y: number}) => void;
-  onSearch?: () => void;
   onExecute?: () => void;
   onCancel?: () => void;
   isExecuting?: boolean;
@@ -23,9 +21,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onResetZoom,
   onZoomIn,
   onZoomOut,
-  onAutoAlign,
   onAddSticky,
-  onSearch,
   onExecute,
   onCancel,
   isExecuting = false,
@@ -83,13 +79,6 @@ const Toolbar: React.FC<ToolbarProps> = ({
       tooltipText: 'Add Sticky Note',
       id: 'add-sticky',
       click: onAddSticky,
-      overflow: "Show"
-    },
-    {
-      prefixIcon: 'e-icons e-ai-chat',
-      tooltipText: 'Auto-align Layout',
-      id: 'auto-align',
-      click: onAutoAlign,
       overflow: "Show"
     },
     {

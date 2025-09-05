@@ -25,7 +25,6 @@ import {
   SelectorConstraints,
   ConnectorConstraints,
   Snapping,
-  AnnotationConstraints,
 } from '@syncfusion/ej2-react-diagrams';
 import { DiagramSettings, NodeConfig } from '../../types';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
@@ -39,7 +38,6 @@ interface DiagramEditorProps {
   project?: any;
   onDiagramChange?: (args: any) => void;
   onAddStickyNote?: (position: { x: number; y: number }) => void;
-  onAutoAlignNodes?: () => void;
   onPortClick?: (nodeId: string, portId: string) => void;
   diagramSettings?: DiagramSettings;
 }
@@ -53,7 +51,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   project,
   onDiagramChange,
   onAddStickyNote,
-  onAutoAlignNodes,
   onPortClick,
   diagramSettings
 }) => {
@@ -105,11 +102,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         iconCss: 'e-icons e-lock'
       },
       {
-        text: 'Auto Align',
-        id: 'autoAlign',
-        iconCss: 'e-icons e-ai-chat'
-      },
-            {
         text: 'Select All',
         id: 'selectAll',
         iconCss: 'e-icons e-select-all'
@@ -381,11 +373,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         break;
       case 'lockWorkflow':
         console.log('Lock workflow');
-        break;
-      case 'autoAlign':
-        if (onAutoAlignNodes){
-          onAutoAlignNodes();
-        }
         break;
       default:
         console.warn(`Unknown context menu item: ${itemId}`);
