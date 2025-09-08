@@ -26,6 +26,11 @@ body, .e-control, .e-card{
   --primary-color: #2563eb;
   --secondary-color: #1d4ed8;
   --accent-color: #3b82f6;
+  --center-action-bg: rgba(59, 130, 246, 0.08); 
+  --center-action-bg-hover: rgba(59, 130, 246, 0.15);
+  --center-action-border: #60a5fa;
+  --center-action-border-hover: #2563eb;
+  --center-action-icon: #2563eb;
   --surface-color: #ffffff;
   --background-color: #f8fafc;
   --text-primary: #1e293b;
@@ -59,6 +64,11 @@ body, .e-control, .e-card{
 [data-theme="dark"] {
   --primary-color: #60a5fa;
   --secondary-color: #3b82f6;
+  --center-action-bg: rgba(96, 165, 250, 0.09);
+  --center-action-bg-hover: rgba(59, 130, 246, 0.17);
+  --center-action-border: #3b82f6;
+  --center-action-border-hover: #93c5fd;
+  --center-action-icon: #60a5fa;
   --accent-color: #93c5fd;
   --surface-color: #1e293b;
   --background-color: #0f172a;
