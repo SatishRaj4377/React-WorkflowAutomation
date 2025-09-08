@@ -51,6 +51,16 @@ const Toolbar: React.FC<ToolbarProps> = ({
       type: 'Separator'
     },
     {
+      prefixIcon: 'e-icons e-add-notes',
+      tooltipText: 'Add Sticky Note',
+      id: 'add-sticky',
+      click: onAddSticky,
+      overflow: "Show"
+    },
+    {
+      type: 'Separator'
+    },
+    {
       prefixIcon: 'e-icons e-circle-add',
       tooltipText: 'Zoom In',
       id: 'zoom-in',
@@ -63,7 +73,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
       click: onZoomOut,
     },
     {
-      prefixIcon: 'e-icons e-reset',
+      prefixIcon: 'e-icons e-refresh',
       tooltipText: 'Reset Zoom',
       id: 'reset-zoom',
       click: onResetZoom,
@@ -73,13 +83,6 @@ const Toolbar: React.FC<ToolbarProps> = ({
       tooltipText: 'Fit to Page',
       id: 'fit-page',
       click: onFitToPage,
-    },
-    {
-      prefixIcon: 'e-icons e-add-notes',
-      tooltipText: 'Add Sticky Note',
-      id: 'add-sticky',
-      click: onAddSticky,
-      overflow: "Show"
     },
     {
       type: 'Separator'

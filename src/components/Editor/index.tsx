@@ -503,7 +503,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
             onAddNode={() => setNodePaletteSidebarOpen(true)}
             onExecute={handleExecuteWorkflow}
             onCancel={handleCancelExecution}
-            onFitToPage={() => diagramRef?.fitToPage({canZoomIn: true, canZoomOut: true, margin:{top: 100, left: 100, bottom: 100, right: 100} })}
+            onFitToPage={() => diagramRef?.fitToPage({canZoomIn: false, canZoomOut: false, margin:{top: 100, left: 100, bottom: 100, right: 100} })}
             onZoomIn={() => diagramRef?.zoomTo({type: 'ZoomIn', zoomFactor: 0.2})}
             onZoomOut={() => diagramRef?.zoomTo({type: 'ZoomOut', zoomFactor: 0.2})}
             onResetZoom={() => diagramRef?.reset()}
