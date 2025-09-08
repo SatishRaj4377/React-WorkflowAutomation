@@ -13,8 +13,6 @@ interface AppBarProps {
   onSave?: () => void;
   enableSaveBtn?: boolean;
   onProjectNameChange?: (name: string) => void;
-  onThemeToggle: () => void;
-  showBackButton?: boolean;
   diagramSettings?: DiagramSettings;
   onDiagramSettingsChange?: (settings: DiagramSettings) => void;
   onExport?: () => void;
@@ -27,8 +25,6 @@ const AppBar: React.FC<AppBarProps> = ({
   onSave,
   enableSaveBtn,
   onProjectNameChange,
-  onThemeToggle,
-  showBackButton = false,
   diagramSettings = {
     gridStyle: 'dotted',
     enableSnapping: false,
@@ -131,7 +127,7 @@ const AppBar: React.FC<AppBarProps> = ({
   return (
     <AppBarComponent id="workflow-appbar" cssClass="custom-appbar">
       <div className="appbar-left">
-        {showBackButton && onBack && (
+        {onBack && (
           <ButtonComponent
             cssClass="back-button"
             iconCss="e-icons e-arrow-left"

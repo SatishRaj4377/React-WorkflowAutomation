@@ -11,8 +11,8 @@ import { useTheme } from '../../contexts/ThemeContext';
 import ConfirmationDialog from '../ConfirmationDialog';
 import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosition } from '../../types';
 import WorkflowService from '../../services/WorkflowService';
-import './Editor.css';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
+import './Editor.css';
 
 interface EditorProps {
   project: ProjectData;
@@ -23,6 +23,10 @@ interface EditorProps {
 const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, }) => {
   const { theme, toggleTheme } = useTheme();
   const [nodePaletteSidebarOpen, setNodePaletteSidebarOpen] = useState(true);
+  // Visibility of initial add button
+  const [showInitialAddButton, setShowInitialAddButton] = useState(
+    !project.workflowData?.diagramString || project.workflowData.diagramString.trim() === ''
+  );
   const [configPanelOpen, setConfigPanelOpen] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<NodeConfig | null>(null);
@@ -453,8 +457,6 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
           setProjectName(name);
           setIsDirty(true);
         }}
-        onThemeToggle={toggleTheme}
-        showBackButton={true}
         diagramSettings={diagramSettings}
         onDiagramSettingsChange={handleDiagramSettingsChange}
         onExport={handleExport}
@@ -486,9 +488,12 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
             onDiagramRef={handleDiagramRef}
             project={project}
             onDiagramChange={handleDiagramChange}
-            onAddStickyNote= {handleAddStickyNote}
+            onAddStickyNote={handleAddStickyNote}
             onPortClick={handlePortClick}
             diagramSettings={diagramSettings}
+            showInitialAddButton={showInitialAddButton}
+            onInitialAddClick={() => setNodePaletteSidebarOpen(true)}
+            onNodeAddedFirstTime={() => setShowInitialAddButton(false)}
           />
         </div>
         

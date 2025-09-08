@@ -40,6 +40,9 @@ interface DiagramEditorProps {
   onAddStickyNote?: (position: { x: number; y: number }) => void;
   onPortClick?: (nodeId: string, portId: string) => void;
   diagramSettings?: DiagramSettings;
+  showInitialAddButton?: boolean;
+  onInitialAddClick?: () => void;
+  onNodeAddedFirstTime?: () => void;
 }
 
 let isStickyNoteEditing = false;
@@ -52,7 +55,10 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   onDiagramChange,
   onAddStickyNote,
   onPortClick,
-  diagramSettings
+  diagramSettings,
+  showInitialAddButton,
+  onInitialAddClick,
+  onNodeAddedFirstTime
 }) => {
 
   const diagramRef = useRef<DiagramComponent>(null);
@@ -62,6 +68,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   const overviewTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [hasFirstNodeAdded, setHasFirstNodeAdded] = useState(false); // internal flag for first node add
   const [zoomPercentage, setZoomPercentage] = useState<number>(100);
   const [showZoomPercentage, setShowZoomPercentage] = useState<boolean>(false);
   const zoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -221,6 +228,20 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
   // on adding the connector, update the stroke dash and make it not able to disconnect
   const handleCollectionChange = (args: any) => {
+    // If first node has been added initially, call onNodeAddedFirstTime
+    if (args.type === 'Addition' && args.element && args.element.addInfo && args.element.id) {
+      try {
+        const diagram = diagramRef.current;
+        if (diagram && typeof diagram.nodes !== 'undefined') {
+          const nodesLength = diagram.nodes.length;
+          if (!hasFirstNodeAdded && nodesLength === 1) {
+            setHasFirstNodeAdded(true);
+            if (onNodeAddedFirstTime) onNodeAddedFirstTime();
+          }
+        }
+      } catch {}
+    }
+    // Handle the connector drawing action 
     if (args.type === 'Addition') {
       const connector = args.element;
       
@@ -674,6 +695,19 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
   return (
     <div className="diagram-editor-container">
+      {/* Big Center Plus Button  */}
+      {showInitialAddButton && (
+        <div className="center-initial-plus-btn">
+          <button
+            className="initial-plus-btn-actual"
+            type="button"
+            onClick={onInitialAddClick}
+          >
+            <span className="initial-plus-icon">+</span>
+          </button>
+          <div className="initial-plus-label">Add a trigger</div>
+        </div>
+      )}
       <DiagramComponent
         id="workflow-diagram"
         ref={diagramRef}
