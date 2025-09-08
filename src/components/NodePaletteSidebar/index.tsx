@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   SidebarComponent,
   AccordionComponent,
@@ -26,6 +26,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const searchRef = useRef<TextBoxComponent>(null);
+  const accordionRef = useRef<AccordionComponent>(null);
 
   const handleSearchCreated = () => {
     setTimeout(() => {
@@ -254,6 +255,17 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
     );
   };
 
+  // Remove animations from the accordion component
+  useEffect(() => {
+    if (accordionRef.current) {
+      accordionRef.current.animation = {
+        expand: { effect: 'None' },
+        collapse: { effect: 'None' }
+      };
+    }
+  }, []);
+
+
   return (
     <SidebarComponent
       id="node-palette-sidebar"
@@ -291,6 +303,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         <div className="categories-container">
           {filteredCategories.length > 0 ? (
             <AccordionComponent
+              ref={accordionRef}
               className="custom-accordion"
               expandMode="Single"
             >
