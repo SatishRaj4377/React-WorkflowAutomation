@@ -23,89 +23,97 @@ body, .e-control, .e-card{
 
 /* Custom Theme Variables - Professional Blue Palette */
 :root {
-  --primary-color: #2563eb;
-  --secondary-color: #1d4ed8;
-  --accent-color: #3b82f6;
-  --center-action-bg: rgba(59, 130, 246, 0.08); 
-  --center-action-bg-hover: rgba(59, 130, 246, 0.15);
-  --center-action-border: #60a5fa;
-  --center-action-border-hover: #2563eb;
-  --center-action-icon: #2563eb;
-  --surface-color: #ffffff;
-  --background-color: #f8fafc;
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
-  --border-color: #e2e8f0;
-  --box-shadow: rgba(53, 164, 255, 0.3);
-  --box-shadow2: rgba(53, 164, 255, 0.511);
-  --shadow: 0 4px 20px rgba(37, 99, 235, 0.15);
-  --shadow-hover: 0 8px 30px rgba(37, 99, 235, 0.25);
-  --gradient-primary: linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%);
-  --gradient-secondary: linear-gradient(135deg, #3b82f6 0%, #60a5fa 50%, #93c5fd 100%);
-  --gradient-accent: linear-gradient(135deg, #2563eb 0%, #6366f1 100%);
-  --danger-color: #d9534f; 
-  --danger-accent: #c9302c; 
-  --node-selector-outline: #ccd5e2ad;
-  --node-selector-background: #effdff;
-  --node-handle: #a8adb3;
-  --node-border-color: #9193a2ff;
-  --list-hover-bg: #e7f1fe;
-  --list-selected-bg: #dbeafe;
-  --list-selected-color: var(--primary-color);
-  --scrollbar-bg: #f5f7fa;
-  --scrollbar-thumb: #bbc7d6;
-  --scrollbar-thumb-hover: #7c9acc;
-  --scrollbar-border-radius: 8px;  
-  --grid-line-color: #d3d5d8; 
-  --grid-dotted-color: #a6b4caff; 
+  /* Base Color System */
+  --color-surface: #fff;            /* main container cards/surfaces */
+  --color-surface-muted: #f8fafc;   /* backgrounds, alternate rows */
+  --color-on-surface: #1e293b;      /* text on surface */
+  --color-on-surface-muted: #64748b;/* muted/secondary text */
+  --color-border: #e2e8f0;          /* generic border */
+  --color-outline: #ccd5e2ad;       /* focus/selection ring */
+  --color-shadow: 0 4px 20px rgba(37,99,235,0.15);
+  --color-shadow-deep: rgba(37, 99, 235, 0.25);
+
+  /* Accent System */
+  --color-primary: #2563eb;
+  --color-primary-light: #60a5fa;
+  --color-on-primary: #fff;
+  --color-primary-muted: #3b82f6;
+  --color-secondary: #1d4ed8;
+  --color-accent: #6366f1;
+  --color-gradient: linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%);
+  --color-gradient-accent: linear-gradient(135deg, #2563eb 0%, #6366f1 100%);
+
+  /* States / Effects */
+  --color-info: #3b82f6;
+  --color-danger: #d9534f;
+  --color-danger-accent: #c9302c;
+  --color-disabled-bg: #effdff;
+  --color-disabled-text: #a8adb3;
+  --color-list-hover: #e7f1fe;
+  --color-list-selected: #dbeafe;
+
+  /* Other UI */
+  --color-scrollbar-bg: #f5f7fa;
+  --color-scrollbar-thumb: #bbc7d6;
+  --color-scrollbar-thumb-hover: #7c9acc;
+
+  /* Grid/Structural */
+  --color-grid: #d3d5d8;
+  --color-grid-dotted: #a6b4caff;
 }
 
 /* Dark theme - Professional Blue Dark Palette */
 [data-theme="dark"] {
-  --primary-color: #60a5fa;
-  --secondary-color: #3b82f6;
-  --center-action-bg: rgba(96, 165, 250, 0.09);
-  --center-action-bg-hover: rgba(59, 130, 246, 0.17);
-  --center-action-border: #3b82f6;
-  --center-action-border-hover: #93c5fd;
-  --center-action-icon: #60a5fa;
-  --accent-color: #93c5fd;
-  --surface-color: #1e293b;
-  --background-color: #0f172a;
-  --box-shadow: rgba(53, 164, 255, 0.053);
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --border-color: #334155;
-  --list-hover-bg: #23395d; 
-  --list-selected-bg: rgba(59, 130, 246, 0.28);; 
-  --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.6);
-  --gradient-primary: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #93c5fd 100%);
-  --gradient-secondary: linear-gradient(135deg, #93c5fd 0%, #60a5fa 50%, #3b82f6 100%);
-  --gradient-accent: linear-gradient(135deg, #60a5fa 0%, #5c83f6 100%);
-  --scrollbar-bg: #20264b;
-  --scrollbar-thumb: #52627a;
-  --scrollbar-thumb-hover: #6984b9;
-  --grid-line-color: #475569;
-  --grid-dotted-color: #475569;
+  --color-surface: #1e293b;
+  --color-surface-muted: #0f172a;
+  --color-on-surface: #f1f5f9;
+  --color-on-surface-muted: #94a3b8;
+  --color-border: #334155;
+  --color-outline: #23395d;
+  --color-shadow: rgba(0,0,0,0.4);
+  --color-shadow-deep: rgba(0,0,0,0.6);
+
+  --color-primary: #60a5fa;
+  --color-primary-light: #93c5fd;
+  --color-on-primary: #1e293b;
+  --color-primary-muted: #3b82f6;
+  --color-secondary: #3b82f6;
+  --color-accent: #5c83f6;
+  --color-gradient: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #93c5fd 100%);
+  --color-gradient-accent: linear-gradient(135deg, #60a5fa 0%, #5c83f6 100%);
+
+  --color-info: #3b82f6;
+  --color-danger: #d9534f;
+  --color-danger-accent: #c9302c;
+  --color-disabled-bg: #20264b;
+  --color-disabled-text: #6984b9;
+  --color-list-hover: #23395d;
+  --color-list-selected: rgba(59, 130, 246, 0.28);
+
+  --color-scrollbar-bg: #20264b;
+  --color-scrollbar-thumb: #52627a;
+  --color-scrollbar-thumb-hover: #6984b9;
+
+  --color-grid: #475569;
+  --color-grid-alt: #475569;
 }
 
 [data-theme="dark"] body {
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
-  color: var(--text-primary);
+  color: var(--color-on-surface);
 }
 
 /* Overriding EJ2 Buttons Styles */
 .e-btn,
 .e-btn.e-primary {
-  background: var(--primary-color);
+  background: var(--color-primary);
   color: #fff;
   border: none;
   transition: background 0.25s, box-shadow 0.2s;
 }
 .e-btn:hover,
 .e-btn.e-primary:hover {
-  background: var(--accent-color);
+  background: var(--color-primary-muted);
   color: #fff;
   box-shadow: 0 2px 8px var(--box-shadow);
 }
@@ -116,7 +124,7 @@ body, .e-control, .e-card{
 }
 .e-btn:active,
 .e-btn.e-primary:active {
-  background: var(--secondary-color);
+  background: var(--color-secondary);
   color: #fff;
 }
 .e-icons{
@@ -130,7 +138,7 @@ body, .e-control, .e-card{
     box-shadow: none !important;
 }
 .e-switch-wrapper .e-switch-on {
-  background-color: var(--accent-color) !important;
+  background-color: var(--color-primary-muted) !important;
 }
 .e-switch-wrapper .e-switch-off {
   background-color: var(--text-secondary) !important;
@@ -144,31 +152,31 @@ body, .e-control, .e-card{
   border-color: var(--text-secondary) !important;
 }
 .e-switch-wrapper.e-switch-active:hover .e-switch-inner {
-  background-color: var(--accent-color) !important;
-  border-color: var(--accent-color) !important;
+  background-color: var(--color-primary-muted) !important;
+  border-color: var(--color-primary-muted) !important;
 }
 
 
 /* Overriding text box styles */
 .e-input-group,
 .e-input-group.e-control-wrapper {
-  border: 1.5px solid var(--border-color) !important;
+  border: 1.5px solid var(--color-border) !important;
   box-shadow: none !important;
   color: var(--text-secondary) !important;
 }
 
 /* Selection Color Update */
 ::selection {
-  background: var(--primary-color);
+  background: var(--color-primary);
   color: var(--surface-color);
 }
 ::-moz-selection {
-  background: var(--primary-color);
+  background: var(--color-primary);
   color: var(--surface-color);
 }
 [data-theme="dark"] ::selection,
 [data-theme="dark"] ::-moz-selection {
-  background: var(--secondary-color);
+  background: var(--color-secondary);
   color: var(--surface-color);
 }
 
@@ -178,25 +186,25 @@ body, .e-control, .e-card{
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
-  background: var(--scrollbar-bg);
+  background: var(--color-scrollbar-bg);
   border-radius: var(--scrollbar-border-radius);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
+  background: var(--color-scrollbar-thumb);
   border-radius: var(--scrollbar-border-radius);
   transition: background 0.2s;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
+  background: var(--color-scrollbar-thumb-hover);
 }
 ::-webkit-scrollbar-track {
-  background: var(--scrollbar-bg);
+  background: var(--color-scrollbar-bg);
   border-radius: var(--scrollbar-border-radius);
 }
 /* Firefox */
 html {
   scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-bg);
+  scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-bg);
 }
 /* scrollbars thinner for inner scrolls */
 body, .home-main, .scrollable {

@@ -4,7 +4,7 @@
   height: 100vh;
   width: 100%;
   overflow: hidden;
-  background-color: var(--background-color);
+  background-color: var(--color-surface-muted);
   position: relative;
 }
 
@@ -23,7 +23,7 @@
   position: relative;
   overflow: hidden;
   transition: margin-left 0.3s ease, margin-right 0.3s ease;
-  background: var(--background-color);
+  background: var(--color-surface-muted);
 }
 
 /* Toolbar positioning */

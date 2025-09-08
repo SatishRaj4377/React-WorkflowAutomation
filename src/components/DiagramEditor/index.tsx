@@ -114,8 +114,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
   const getGridColor = () => {
     if (diagramSettings?.gridStyle === 'none') return 'transparent';
-    if (diagramSettings?.gridStyle === 'lines') return 'var(--grid-line-color)';
-    return 'var(--grid-dotted-color)';
+    if (diagramSettings?.gridStyle === 'lines') return 'var(--color-grid)';
+    return 'var(--color-grid-dotted)';
   };
   
   const getSnapConstraints = () => {
@@ -129,7 +129,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     horizontalGridlines: { lineColor: getGridColor() } as GridlinesModel,
     verticalGridlines: { lineColor: getGridColor() } as GridlinesModel,
     snapObjectDistance: 5,
-    snapLineColor: 'var(--secondary-color)',
+    snapLineColor: 'var(--color-secondary)',
     snapAngle: 5,
   };
 

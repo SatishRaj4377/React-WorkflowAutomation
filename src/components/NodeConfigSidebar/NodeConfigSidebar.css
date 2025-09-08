@@ -20,7 +20,7 @@
 /* EJ2 Sidebar specific styles */
 .e-sidebar.custom-config-panel {
   background: var(--surface-color);
-  border-left: 1px solid var(--border-color);
+  border-left: 1px solid var(--color-border);
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -29,9 +29,9 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
   color: white;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .config-panel-title {
@@ -93,8 +93,8 @@
 }
 
 .config-tabs .e-tab-header {
-  background: var(--background-color);
-  border-bottom: 1px solid var(--border-color);
+  background: var(--color-surface-muted);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .config-tabs .e-tab-header .e-toolbar-item {
@@ -103,11 +103,11 @@
 
 .config-tabs .e-tab-header .e-toolbar-item.e-active {
   background: var(--surface-color);
-  border-bottom: 2px solid var(--primary-color);
+  border-bottom: 2px solid var(--color-primary);
 }
 
 .config-tabs .e-tab-header .e-toolbar-item .e-tab-text {
-  color: var(--text-primary);
+  color: var(--color-on-surface);
   font-weight: 500;
   font-size: 0.875rem;
 }
@@ -134,7 +134,7 @@
 .config-label {
   display: block;
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--color-on-surface);
   margin-bottom: 0.5rem;
   font-size: 0.875rem;
 }
@@ -150,10 +150,10 @@
 .config-textarea,
 .config-select {
   width: 100%;
-  background: var(--background-color);
-  border: 1px solid var(--border-color);
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  color: var(--text-primary);
+  color: var(--color-on-surface);
   transition: all 0.3s ease;
 }
 
@@ -165,14 +165,14 @@
 .config-input .e-input,
 .config-textarea .e-input {
   background: transparent;
-  color: var(--text-primary);
+  color: var(--color-on-surface);
   padding: 0.75rem;
 }
 
 .config-input:focus,
 .config-textarea:focus,
 .config-select:focus {
-  border-color: var(--primary-color);
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.15);
 }
 
@@ -194,8 +194,8 @@
 }
 
 .config-checkbox .e-frame {
-  background: var(--background-color);
-  border-color: var(--border-color);
+  background: var(--color-surface-muted);
+  border-color: var(--color-border);
 }
 
 .config-checkbox .e-check {
@@ -203,8 +203,8 @@
 }
 
 .config-checkbox.e-checkbox:checked .e-frame {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
 }
 
 .color-picker-container {
@@ -216,14 +216,14 @@
 .color-picker {
   width: 100%;
   height: 40px;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   cursor: pointer;
   background: transparent;
 }
 
 .add-field-btn {
-  background: var(--primary-color);
+  background: var(--color-primary);
   color: white;
   padding: 0.5rem 1rem;
   border-radius: 8px;
@@ -237,7 +237,7 @@
 }
 
 .add-field-btn:hover {
-  background: var(--secondary-color);
+  background: var(--color-secondary);
   transform: translateY(-2px);
 }
 
@@ -261,7 +261,7 @@
 
 .config-panel-empty h3 {
   font-size: 1.25rem;
-  color: var(--text-primary);
+  color: var(--color-on-surface);
   margin-bottom: 0.5rem;
 }
 
@@ -286,11 +286,11 @@
 }
 
 .config-panel-content::-webkit-scrollbar-track {
-  background: var(--background-color);
+  background: var(--color-surface-muted);
 }
 
 .config-panel-content::-webkit-scrollbar-thumb {
-  background: var(--border-color);
+  background: var(--color-border);
   border-radius: 3px;
 }
 
