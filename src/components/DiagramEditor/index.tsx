@@ -43,6 +43,7 @@ interface DiagramEditorProps {
   showInitialAddButton?: boolean;
   onInitialAddClick?: () => void;
   onNodeAddedFirstTime?: () => void;
+  onCanvasClick?: () => void;
 }
 
 let isStickyNoteEditing = false;
@@ -58,7 +59,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   diagramSettings,
   showInitialAddButton,
   onInitialAddClick,
-  onNodeAddedFirstTime
+  onNodeAddedFirstTime,
+  onCanvasClick
 }) => {
 
   const diagramRef = useRef<DiagramComponent>(null);
@@ -298,8 +300,12 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     }
   };
 
-  // Handle diagram click, to add the nodes connected to the clicked port
+  // Handle diagram click, 
   const handleClick = (args: any) => {
+    // Hide the node palette on diagram click
+    if (onCanvasClick) onCanvasClick();
+
+    // To add the nodes connected to the clicked port
     // Check if clicked element is a port
     if (args && args.element && args.element.constructor.name === 'PointPort' && args.actualObject) {
       const portId = args.element.id;

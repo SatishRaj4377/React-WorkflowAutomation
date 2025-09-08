@@ -117,7 +117,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
           iconUrl: "/images/node-icons/gsheet.png",
           type: "action",
           category: "Core",
-          description: "Store and Retrieve data in google sheets",
+          description: "Store and Retrieve data from google sheets",
         },
         {
           id: "telegram",
@@ -274,7 +274,6 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
       position="Left"
       type="Over"
       isOpen={isOpen}
-      closeOnDocumentClick={true}
       close={onClose}
       target=".editor-content"
     >

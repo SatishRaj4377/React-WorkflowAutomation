@@ -241,7 +241,6 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         };
 
         diagramRef.add(newNode);
-        setSelectedNodeId(nodeId);
         setIsDirty(true);
       }
     }
@@ -493,6 +492,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
             showInitialAddButton={showInitialAddButton}
             onInitialAddClick={() => setNodePaletteSidebarOpen(true)}
             onNodeAddedFirstTime={() => setShowInitialAddButton(false)}
+            onCanvasClick={() => setNodePaletteSidebarOpen(false)}
           />
         </div>
         
