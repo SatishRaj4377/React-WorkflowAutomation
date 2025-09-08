@@ -67,21 +67,6 @@
   gap: 0.5rem;
 }
 
-.maximize-btn,
-.close-btn {
-  background: transparent;
-  color: white;
-  border: none;
-  padding: 0.5rem;
-  border-radius: 4px;
-  transition: background-color 0.3s ease;
-}
-
-.maximize-btn:hover,
-.close-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
 .config-panel-content {
   flex: 1;
   overflow-y: auto;

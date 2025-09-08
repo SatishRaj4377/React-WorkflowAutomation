@@ -23,29 +23,28 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-  color: white;
+  padding: .5rem 1rem;
+  color: var(--text-secondary);
   border-bottom: 1px solid var(--border-color);
 }
 
 .sidebar-title {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 600;
   margin: 0;
 }
 
 .close-btn {
-  background: transparent;
-  color: white;
-  border: none;
+  color: var(--text-secondary);
+  background-color: transparent;
   padding: 0.5rem;
   border-radius: 4px;
-  transition: background-color 0.3s ease;
 }
 
-.close-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+.close-btn:hover{
+  background-color: transparent;
+  color: var(--text-secondary);
+  box-shadow: none;
 }
 
 .sidebar-content {
@@ -376,10 +375,6 @@
   .e-sidebar {
     width: 280px !important;
     height: calc(100vh - 64px) !important;
-  }
-  
-  .sidebar-header {
-    padding: 0.75rem;
   }
   
   .sidebar-title {
