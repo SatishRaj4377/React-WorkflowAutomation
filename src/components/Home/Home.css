@@ -20,12 +20,12 @@
   margin-right: .5rem;
 }
 .header-logo svg path{
-  stroke: var(--color-on-surface);
+  stroke: var(--text-primary);
 }
 .header-title{
   font-size: 1.2rem;
   font-weight: 500;
-  color: var(--color-on-surface);
+  color: var(--text-primary);
   user-select: none;
 }
 
@@ -38,7 +38,7 @@
 .theme-toggle-switch.e-switch-wrapper .e-switch-handle {
   width: 28px;
   height: 28px;
-  border: 1.2px solid var(--color-scrollbar-thumb);
+  border: 1.2px solid var(--scrollbar-thumb);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15) !important;
 }
 .theme-toggle-switch.e-switch-wrapper .e-switch-inner {
@@ -69,14 +69,14 @@
   flex-direction: column;
   padding: 0;
   background: var(--surface-color);
-  border-right: 1px solid var(--color-border);
+  border-right: 1px solid var(--border-color);
   overflow: hidden;
 }
 .home-sidebar .e-listview, .home-sidebar .e-listview .e-list-item {
   border: none !important;
 }
 .create-workflow-btn {
-  background: var(--color-primary) !important;
+  background: var(--primary-color) !important;
   outline: none !important;
   width: 90%;
   margin: 1.5rem auto .5rem auto;
@@ -90,8 +90,8 @@
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 .create-workflow-btn:hover {
-  background: var(--color-secondary) !important;
-  box-shadow: var(--color-shadow-deep);
+  background: var(--secondary-color) !important;
+  box-shadow: var(--shadow-hover);
 }
 .sidebar-list .e-list-parent {
   background: transparent !important;
@@ -103,12 +103,12 @@
   padding: 9px !important;
 }
 .sidebar-list .e-list-item.e-hover {
-  background: var(--color-list-hover);
-  color: var(--color-primary-muted);
+  background: var(--list-hover-bg);
+  color: var(--accent-color);
 }
 .sidebar-list .e-list-item.e-active {
-  background: var(--color-list-selected);
-  color: var(--color-primary);
+  background: var(--list-selected-bg);
+  color: var(--primary-color);
 }
 .sidebar-list .e-list-icon {
   font-size: 2rem;
@@ -125,7 +125,7 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background: var(--color-surface-muted);
+  background: var(--background-color);
 }
 .home-content {
   width: 100%;
@@ -135,7 +135,7 @@
 .section-title {
   font-weight: 700;
   margin-bottom: 2rem;
-  color: var(--color-on-surface);
+  color: var(--text-primary);
   position: relative;
   display: inline-block;
 }
@@ -149,7 +149,7 @@
   left: 0;
   width: 60px;
   height: 4px;
-  background: var(--color-gradient-accent);
+  background: var(--gradient-accent);
   border-radius: 2px;
 }
 
@@ -170,11 +170,11 @@
   overflow: hidden;
   background: var(--surface-color);
   border-radius: 16px;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--border-color);
 }
 .quick-access-card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--color-shadow-deep);
+  box-shadow: var(--shadow-hover);
 }
 
 /* Template Image Styling */
@@ -209,7 +209,7 @@
   font-size: 1.2rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
-  color: var(--color-on-surface);
+  color: var(--text-primary);
 }
 
 .quick-access-card p {
@@ -241,10 +241,10 @@
   font-size: 0.9rem;
   color: var(--text-secondary);
   font-weight: 500;
-  background: var(--color-surface-muted);
+  background: var(--background-color);
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--border-color);
   margin: .3rem 0;
 }
 
@@ -287,9 +287,9 @@
 .project-search {
   padding: 0.5rem;
   border-radius: 12px;
-  border: 2px solid var(--color-border);
+  border: 2px solid var(--border-color);
   background: var(--surface-color);
-  color: var(--color-on-surface);
+  color: var(--text-primary);
   font-size: 0.95rem;
   transition: all 0.3s ease;
   width: 100%;
@@ -301,7 +301,7 @@
   height: 48px;
   border-radius: 12px;
   background: var(--surface-color);
-  color: var(--color-on-surface);
+  color: var(--text-primary);
   font-size: 0.95rem;
   font-weight: 400;
   transition: all 0.3s ease;
@@ -321,11 +321,11 @@
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1.5px solid var(--color-border) !important;
+  border: 1.5px solid var(--border-color) !important;
 }
 
 .view-toggle-btn.active {
-  background: var(--color-primary);
+  background: var(--primary-color);
   color: white;
 }
 
@@ -352,12 +352,12 @@
   align-items: center;
   min-height: 38px;
   padding: 0 8px;
-  background: var(--color-surface-muted);
+  background: var(--background-color);
   color: var(--text-secondary);
   font-size: 0.98rem;
   font-weight: 500;
   border-radius: 8px 8px 0 0;
-  border-bottom: 1.5px solid var(--color-border);
+  border-bottom: 1.5px solid var(--border-color);
 }
 
 .project-list-item {
@@ -368,14 +368,14 @@
   background: var(--surface-color);
   font-size: 1rem;
   cursor: pointer;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--border-color);
   transition: background 0.15s;
 }
 .project-list-item:last-child {
    border-bottom: 0;
 }
 .project-list-item:hover, .project-list-item:focus {
-   background: var(--color-list-hover, #e7f1fe);
+   background: var(--list-hover-bg, #e7f1fe);
 }
 
 .project-col {
@@ -417,7 +417,7 @@
   transition: opacity 0.16s;
   overflow: auto;
   background-color: transparent !important;
-  color: var(--color-on-surface); 
+  color: var(--text-primary); 
   box-shadow: none;
   overflow: hidden;
 }
@@ -437,7 +437,7 @@
 }
 .show-more-btn:hover{
   background-color: transparent !important;
-  color: var(--color-on-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .show-more-btn .e-btn-icon{
@@ -455,7 +455,7 @@
 }
 .project-card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--color-shadow-deep);
+  box-shadow: var(--shadow-hover);
 }
 .project-card.list-item {
   display: flex;
@@ -522,7 +522,7 @@
   display: inline-block;
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--color-on-surface);
+  color: var(--text-primary);
   margin-bottom: 0.5rem !important;
   margin-right: 0.5rem !important;
   line-height: 1.3;
@@ -541,7 +541,7 @@
   border-radius: 50%;
 }
 .project-menu-dropdown .e-icons {
-  color: var(--color-on-surface) !important;
+  color: var(--text-primary) !important;
   font-size: 16px !important;
 }
 
@@ -552,7 +552,7 @@
   color: var(--text-secondary);
   background: var(--surface-color);
   border-radius: 20px;
-  border: 2px dashed var(--color-border);
+  border: 2px dashed var(--border-color);
   margin: 2rem 0;
 }
 .empty-icon {
@@ -564,7 +564,7 @@
 .empty-state h3 {
   font-size: 1.8rem;
   margin-bottom: 1rem;
-  color: var(--color-on-surface);
+  color: var(--text-primary);
   font-weight: 700;
 }
 .empty-state p {
@@ -576,7 +576,7 @@
   margin-right: auto;
 }
 .empty-state .e-btn {
-  background: var(--color-gradient);
+  background: var(--gradient-primary);
   border: none;
   padding: 1rem 2rem;
   font-size: 1.1rem;
@@ -603,8 +603,8 @@
 [data-theme="dark"] .project-search.e-textbox .e-input,
 [data-theme="dark"] .sort-dropdown-btn.e-dropdown-btn {
   background: var(--surface-color);
-  border-color: var(--color-border);
-  color: var(--color-on-surface);
+  border-color: var(--border-color);
+  color: var(--text-primary);
 }
 [data-theme="dark"] .project-search.e-textbox .e-input::placeholder {
   color: var(--text-secondary);
@@ -741,8 +741,8 @@
 .modern-card {
   background: var(--surface-color);
   border-radius: 16px;
-  box-shadow: var(--color-shadow);
-  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border-color);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -760,7 +760,7 @@
 }
 .modern-card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--color-shadow-deep);
+  box-shadow: var(--shadow-hover);
   background-color: var(--surface-color);
 }
 .modern-card:hover::before {
@@ -855,7 +855,7 @@
 /* filter dropdown border and color updated */
 .sort-dropdown-btn.e-dropdown-btn {
   background-color: transparent !important;
-  border: 1.5px solid var(--color-border) !important;
+  border: 1.5px solid var(--border-color) !important;
   border-radius: 5px !important;
   color: var(--text-secondary) !important;
 }
@@ -914,7 +914,7 @@
 }
 
 .bookmark-btn-card.e-btn:hover {
-  background: var(--color-list-hover) !important;
+  background: var(--list-hover-bg) !important;
   transform: scale(1.05);
 }
 

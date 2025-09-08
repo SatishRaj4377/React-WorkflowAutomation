@@ -1,7 +1,7 @@
 .custom-appbar {
   background: var(--surface-color);
-  box-shadow: var(--color-shadow);
-  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow);
+  border-bottom: 1px solid var(--border-color);
   padding: 0 1rem;
   position: fixed;
   top: 0;
@@ -20,14 +20,14 @@
   border-radius: 100%;
   transition: all 0.3s ease;
   background-color: var(--surface-color);
-  color: var(--color-on-surface);
+  color: var(--text-primary);
   width: 40px;
   height: 40px;
 }
 
 .back-button:hover {
-  background-color: var(--color-surface-muted);
-  color: var(--color-on-surface);
+  background-color: var(--background-color);
+  color: var(--text-primary);
   transform: translateX(-2px);
   box-shadow: none;
 }
@@ -40,7 +40,7 @@
   font-size: 1.25rem;
   font-weight: 600;
   margin: 0;
-  color: var(--color-on-surface);
+  color: var(--text-primary);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -56,7 +56,7 @@
 }
 
 .project-name:hover {
-  background-color: var(--color-surface-muted);
+  background-color: var(--background-color);
 }
 
 .project-name-text {
@@ -82,10 +82,10 @@
   font-size: 1.25rem;
   font-weight: 600;
   padding: 0.5rem 0.75rem;
-  border: 2px solid var(--color-primary);
+  border: 2px solid var(--primary-color);
   border-radius: 8px;
   background: var(--surface-color);
-  color: var(--color-on-surface);
+  color: var(--text-primary);
   outline: none;
   min-width: 200px;
   max-width: 300px;
@@ -109,24 +109,24 @@
   cursor: default;
   color: inherit;
   background: inherit; 
-  border: 1.9px solid var(--color-border);
+  border: 1.9px solid var(--border-color);
 }
 .header-btn.more-btn{
-  background: var(--color-surface-muted);
-  color: var(--color-on-surface);
-  border: 1.9px solid var(--color-border);
+  background: var(--background-color);
+  color: var(--text-primary);
+  border: 1.9px solid var(--border-color);
 }
 
 /* Theme-specific styles */
 [data-theme="dark"] .custom-appbar {
   background: var(--surface-color);
-  border-bottom-color: var(--color-border);
+  border-bottom-color: var(--border-color);
 }
 
 [data-theme="dark"] .project-name-input {
   background: var(--surface-color);
-  color: var(--color-on-surface);
-  border-color: var(--color-primary);
+  color: var(--text-primary);
+  border-color: var(--primary-color);
 }
 
 /* Responsive Design */
@@ -156,14 +156,14 @@
 
 .settings-dialog-container .e-dlg-header-content {
   background: var(--surface-color);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--border-color);
   padding: 24px;
 }
 
 .settings-dialog-container .e-dlg-header {
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--color-on-surface);
+  color: var(--text-primary);
   margin: -10px 0;
 }
 
@@ -183,7 +183,7 @@
 .settings-section-title {
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--color-on-surface);
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -202,23 +202,23 @@
 }
 
 .settings-dropdown .e-input-group {
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   background: var(--surface-color);
   transition: all 0.2s ease;
 }
 
 .settings-dropdown .e-input-group:hover {
-  border-color: var(--color-primary);
+  border-color: var(--primary-color);
 }
 
 .settings-dropdown .e-input-group.e-input-focus {
-  border-color: var(--color-primary);
+  border-color: var(--primary-color);
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
 }
 
 .settings-dropdown .e-input {
-  color: var(--color-on-surface);
+  color: var(--text-primary);
   font-size: 0.9rem;
   background: transparent;
 }

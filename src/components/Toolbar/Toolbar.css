@@ -1,9 +1,9 @@
 /* Toolbar Component Styles */
 .custom-toolbar {
   background: var(--surface-color);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
-  box-shadow: var(--color-shadow);
+  box-shadow: var(--shadow);
   backdrop-filter: blur(10px);
   pointer-events: none;
   user-select: none;
@@ -17,7 +17,7 @@
 }
 
 .custom-toolbar .e-toolbar-items .e-tbar-btn:hover{
-  background-color: var(--color-surface-muted);
+  background-color: var(--background-color);
   transform: translateY(-1px);
 }
 
@@ -25,7 +25,7 @@
   padding: 0.5rem;
   border: none;
   background: transparent;
-  color: var(--color-on-surface);
+  color: var(--text-primary);
   border-radius: 8px;
   width: 40px !important;
   height: 36px;
@@ -36,7 +36,7 @@
 
 /* Execute button styling within toolbar */
 .custom-toolbar .e-toolbar-item .execute-btn {
-  background: linear-gradient(45deg, var(--color-primary), var(--color-secondary)) !important;
+  background: linear-gradient(45deg, var(--primary-color), var(--secondary-color)) !important;
   color: white !important;
   width: auto !important;
   padding: 0.5rem 1rem !important;
@@ -54,7 +54,7 @@
 
 /* Cancel button styling within toolbar */
 .custom-toolbar .e-toolbar-item .cancel-btn {
-  background: linear-gradient(45deg, var(--color-danger), var(--color-danger-accent)) !important;
+  background: linear-gradient(45deg, var(--danger-color), var(--danger-accent)) !important;
   color: white !important;
   width: auto !important;
   padding: 0.5rem 1rem !important;
@@ -77,7 +77,7 @@
 .custom-toolbar .e-toolbar-item.e-separator {
   width: 2px;
   height: 26px;
-  background-color: var(--color-border);
+  background-color: var(--border-color);
   margin: 0 0.4rem;
 }
 
@@ -95,7 +95,7 @@
 
 
 .execute-btn {
-  background: linear-gradient(45deg,  var(--color-primary), var(--color-secondary)) !important;
+  background: linear-gradient(45deg,  var(--primary-color), var(--secondary-color)) !important;
   color: white;
   outline: none;
   border: none;
@@ -105,11 +105,11 @@
 
 .execute-btn:hover {
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
-  background: var(--color-gradient) !important;
+  background: var(--gradient-primary) !important;
 }
 
 .cancel-btn {
-  background: linear-gradient(45deg, var(--color-danger), var(--color-danger-accent)) !important;
+  background: linear-gradient(45deg, var(--danger-color), var(--danger-accent)) !important;
   color: white;
   outline: none;
   border: none;

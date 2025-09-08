@@ -11,34 +11,34 @@
 .confirm-dialog-container .cancel-btn {
   background: transparent !important;
   color: var(--text-secondary) !important;
-  background-color: var(--color-border) !important;
+  background-color: var(--border-color) !important;
   transition: background-color 0.2s, border-color 0.2s;
 }
 .confirm-dialog-container .cancel-btn:hover {
-   background: var(--color-list-hover) !important;
-   border-color: var(--color-disabled-text) !important;
+   background: var(--list-hover-bg) !important;
+   border-color: var(--node-handle) !important;
    transform: none;
 }
 
 
 /* Danger Variant */
 .confirm-dialog-container .confirm-btn.danger-btn {
-  background: var(--color-danger) !important;
+  background: var(--danger-color) !important;
   color: #fff !important;
-  border-color: var(--color-danger) !important;
+  border-color: var(--danger-color) !important;
 }
 .confirm-dialog-container .confirm-btn.danger-btn:hover {
-  background: var(--color-danger-accent) !important;
-  border-color: var(--color-danger-accent) !important;
+  background: var(--danger-accent) !important;
+  border-color: var(--danger-accent) !important;
 }
 
 /* Primary Variant */
 .confirm-dialog-container .confirm-btn.primary-btn {
-  background: var(--color-primary) !important;
+  background: var(--primary-color) !important;
   color: #fff !important;
-  border-color: var(--color-primary) !important;
+  border-color: var(--primary-color) !important;
 }
 .confirm-dialog-container .confirm-btn.primary-btn:hover {
-  background: var(--color-primary-muted) !important;
-  border-color: var(--color-primary-muted) !important;
+  background: var(--accent-color) !important;
+  border-color: var(--accent-color) !important;
 }

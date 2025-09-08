@@ -15,7 +15,7 @@
 
 .e-sidebar.custom-sidebar {
   background: var(--surface-color);
-  border-right: 1px solid var(--color-border);
+  border-right: 1px solid var(--border-color);
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -24,9 +24,9 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
   color: white;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .sidebar-title {
@@ -57,7 +57,7 @@
 
 .search-section {
   padding: 1rem;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .search-input {
@@ -65,14 +65,14 @@
 }
 
 .search-input .e-input-group {
-  background: var(--color-surface-muted);
-  border: 1px solid var(--color-border);
+  background: var(--background-color);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
 }
 
 .search-input .e-input {
   background: transparent;
-  color: var(--color-on-surface);
+  color: var(--text-primary);
   padding: 0.75rem;
 }
 
@@ -92,19 +92,19 @@
 
 .custom-accordion .e-acrdn-item {
   border: none;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--border-color);
   background: transparent;
 }
 
 .custom-accordion .e-acrdn-item .e-acrdn-header {
-  background: var(--color-surface-muted) !important;
+  background: var(--background-color) !important;
   border: none;
   padding: 0;
   transition: background-color 0.3s ease;
 }
 
 .custom-accordion .e-acrdn-item .e-acrdn-header:hover {
-  background-color: var(--color-border);
+  background-color: var(--border-color);
 }
 
 .custom-accordion .e-acrdn-item .e-acrdn-header .e-acrdn-header-content {
@@ -159,7 +159,7 @@
 .category-title {
   flex: 1;
   font-weight: 600;
-  color: var(--color-on-surface);
+  color: var(--text-primary);
 }
 
 .category-count {
@@ -187,7 +187,7 @@
 
 /* Legacy styles for backward compatibility */
 .category-section {
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .category-header {
@@ -195,13 +195,13 @@
   align-items: center;
   padding: 1rem;
   cursor: pointer;
-  background: var(--color-surface-muted);
+  background: var(--background-color);
   transition: background-color 0.3s ease;
   user-select: none;
 }
 
 .category-header:hover {
-  background-color: var(--color-border);
+  background-color: var(--border-color);
 }
 
 .category-icon {
@@ -221,13 +221,13 @@
   padding: 0.75rem 1rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--border-color);
   position: relative;
   gap: 0.75rem;
 }
 
 .node-item:hover {
-  background-color: var(--color-surface-muted);
+  background-color: var(--background-color);
   transform: scale(1.02);
 }
 
@@ -243,9 +243,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-surface-muted);
+  background: var(--background-color);
   border-radius: 8px;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--border-color);
 }
 
 .node-info {
@@ -255,7 +255,7 @@
 
 .node-name {
   font-weight: 500;
-  color: var(--color-on-surface);
+  color: var(--text-primary);
   font-size: 0.875rem;
   margin-bottom: 0.25rem;
 }
@@ -350,7 +350,7 @@
 
 .node-item.drag-over {
   background-color: rgba(102, 126, 234, 0.1);
-  border-color: var(--color-primary);
+  border-color: var(--primary-color);
 }
 
 /* Scrollbar Styles */
@@ -359,11 +359,11 @@
 }
 
 .sidebar-content::-webkit-scrollbar-track {
-  background: var(--color-surface-muted);
+  background: var(--background-color);
 }
 
 .sidebar-content::-webkit-scrollbar-thumb {
-  background: var(--color-border);
+  background: var(--border-color);
   border-radius: 3px;
 }
 
