@@ -21,12 +21,8 @@ interface EditorProps {
 }
 
 const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, }) => {
-  const { theme, toggleTheme } = useTheme();
-  const [nodePaletteSidebarOpen, setNodePaletteSidebarOpen] = useState(true);
-  // Visibility of initial add button
-  const [showInitialAddButton, setShowInitialAddButton] = useState(
-    !project.workflowData?.diagramString || project.workflowData.diagramString.trim() === ''
-  );
+  const { theme } = useTheme();
+  const [nodePaletteSidebarOpen, setNodePaletteSidebarOpen] = useState(false);
   const [configPanelOpen, setConfigPanelOpen] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<NodeConfig | null>(null);
@@ -36,6 +32,12 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const [isDirty, setIsDirty] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+  const [isPortSelectionMode, setIsPortSelectionMode] = useState(false);
+  const [selectedPortConnection, setSelectedPortConnection] = useState<{nodeId: string, portId: string} | null>(null);
+  const [selectedPortModel, setSelectedPortModel] = useState<PortModel | null>(null);
+  const [showInitialAddButton, setShowInitialAddButton] = useState(
+    !project.workflowData?.diagramString || project.workflowData.diagramString.trim() === ''
+  );
   const [diagramSettings, setDiagramSettings] = useState<DiagramSettings>(() => {
     return {
       ...project.diagramSettings,
@@ -44,11 +46,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       showOverview: project.diagramSettings?.showOverview ?? true
     }
   });
+  
   const blocker = useBlocker(React.useCallback(() => isDirty, [isDirty]));
-  // Port selection state for connecting nodes
-  const [isPortSelectionMode, setIsPortSelectionMode] = useState(false);
-  const [selectedPortConnection, setSelectedPortConnection] = useState<{nodeId: string, portId: string} | null>(null);
-  const [selectedPortModel, setSelectedPortModel] = useState<PortModel | null>(null);
 
   useEffect(() => {
     // Handle selected node changes - will be managed by DiagramEditor
