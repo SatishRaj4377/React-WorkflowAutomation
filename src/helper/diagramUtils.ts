@@ -110,6 +110,7 @@ export const convertMarkdownToHtml = (markdown: string): string => {
         .replace(/\n/g, '<br>');
 };
 
+// Returns the first selected node in the diagram
 export function getFirstSelectedNode(diagram: DiagramComponent | null | undefined): NodeModel | undefined {
   if (!diagram || !diagram.selectedItems || !Array.isArray(diagram.selectedItems.nodes)) return undefined;
   if (diagram.selectedItems.nodes.length === 0) return undefined;
@@ -134,7 +135,7 @@ export const getPortOffset = (direction: NodePortDirection): number => {
 };
 
 
-// Returns ports with OutConnect and Draw constraints for a given node, along with their direction.
+// Returns ports with `OutConnect and Draw` constraints for a given node, along with their direction.
 export function getOutConnectDrawPorts(node: NodeModel): Array<{ port: PortModel; direction: NodePortDirection}> {
   // Helper to infer direction from a port's offset
   const inferDirection = (port: PortModel): NodePortDirection => {
@@ -173,7 +174,7 @@ export function getOutConnectDrawPorts(node: NodeModel): Array<{ port: PortModel
 }
 
 // Retrieves a specific port from a given node by its ID.
-export function getPortById(node: NodeModel | null | undefined, portId: string): PortModel | undefined {
+export function getNodePortById(node: NodeModel | null | undefined, portId: string): PortModel | undefined {
   // Ensure the node, its ports array, and the portId are valid before searching
   if (!node || !node.ports || !Array.isArray(node.ports) || !portId) {
     return undefined;

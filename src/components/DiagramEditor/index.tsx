@@ -39,7 +39,7 @@ interface DiagramEditorProps {
   project?: any;
   onDiagramChange?: (args: any) => void;
   onAddStickyNote?: (position: { x: number; y: number }) => void;
-  onPortClick?: (node: NodeModel, portId: string) => void;
+  onUserhandleAddNodeClick?: (node: NodeModel, portId: string) => void;
   diagramSettings?: DiagramSettings;
   showInitialAddButton?: boolean;
   onInitialAddClick?: () => void;
@@ -56,7 +56,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   project,
   onDiagramChange,
   onAddStickyNote,
-  onPortClick,
+  onUserhandleAddNodeClick,
   diagramSettings,
   showInitialAddButton,
   onInitialAddClick,
@@ -71,7 +71,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   const overviewTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [hasFirstNodeAdded, setHasFirstNodeAdded] = useState(false); // internal flag for first node add
+  const [hasFirstNodeAdded, setHasFirstNodeAdded] = useState(false);
   const [zoomPercentage, setZoomPercentage] = useState<number>(100);
   const [showZoomPercentage, setShowZoomPercentage] = useState<boolean>(false);
   const zoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -79,7 +79,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   const [isWorkflowLocked, setIsWorkflowLocked] = useState(false);
 
   // User handles
-  let dynamicHandles: UserHandleModel[] = [
+  let userHandles: UserHandleModel[] = [
     {
       name: 'deleteConnector',
       pathData:
@@ -92,32 +92,11 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       disableNodes: true,
     },
   ];
-
-  const selectedNodes = diagramRef.current?.selectedItems?.nodes ?? [];
-
-  if (selectedNodes.length === 1) {
-    const node = selectedNodes[0];
-    const portHandlesInfo: Array<{ portId: string; direction: NodePortDirection }> =
-      (node.addInfo as any)?.userHandlesFromPorts ?? [];
-
-    const portUserHandles: UserHandleModel[] = portHandlesInfo.map(({ portId, direction }) => ({
-      name: `add-node-from-port-${portId}`,
-      pathData:
-        'M8,1 C4.1,1,1,4.1,1,8s3.1,7,7,7s7-3.1,7-7S11.9,1,8,1z M12,9 H9v3 H7V9 H4V7 h3V4 h2v3 h3V9z',
-      tooltip: { content: 'Add Node' },
-      side: getPortSide(direction),
-      offset: getPortOffset(direction),
-      visible: true,
-      backgroundColor: '#9193a2ff',
-      pathColor: '#f8fafc',
-      borderColor: '#9193a2ff',
-      disableConnectors: true
-    }));
-
-    dynamicHandles.push(...portUserHandles);
+  const firstSelectedNode = getFirstSelectedNode(diagramRef.current);
+  if (firstSelectedNode) {
+    const portBasedUserHandles = generatePortBasedUserHandles(firstSelectedNode);
+    userHandles.push(...portBasedUserHandles);
   }
-
-  // --- END OF BLOCK ---
 
   // Context Menu Items for the diagram
   const contextMenuSettings = {
@@ -185,16 +164,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       updateNodePosition(obj, diagramRef);
 
       updateNodePorts(nodeType, obj, isAiAgent, isIfCondition);
-
-      // Add user handle metadata for connectable ports for later use
-      const connectablePorts = getOutConnectDrawPorts(obj);
-      if (connectablePorts.length > 0) {
-        if (!obj.addInfo) obj.addInfo = {};
-        (obj.addInfo as any).userHandlesFromPorts = connectablePorts.map(({ port, direction }) => ({
-          portId: port.id,
-          direction,
-        }));
-      }
     }
 
     return obj;
@@ -206,7 +175,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       return obj;
     }
     obj.type = 'Bezier';
-    obj.bezierSettings= { allowSegmentsReset: false };
     obj.segments= [{ type: 'Bezier' }];
     obj.style = {
       strokeColor: '#9193a2ff',
@@ -223,25 +191,25 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
   // Handle the userhandle click
   const handleUserHandleMouseDown = (args: UserHandleEventsArgs) => {
-    console.log("userhandledmousedown:", args)
     const handleName = (args.element as UserHandleModel)?.name || '';
 
-    // Case 1: Check if the handle is for adding a node from a port
+    // Check if the handle is for adding a node
     if (handleName.startsWith('add-node-from-port-')) {
       // Parse the portId from the end of the handle's name
       const portId = handleName.substring('add-node-from-port-'.length);
       const selectedNode = diagramRef.current?.selectedItems?.nodes?.[0];
 
-      if (selectedNode?.id && portId && onPortClick) {
+      if (selectedNode?.id && portId && onUserhandleAddNodeClick) {
+        // Enable the connector drawing
         (diagramRef.current as any).drawingObject = { type: "Straight", sourceID: selectedNode.id, sourcePortID: portId };
         (diagramRef.current as DiagramModel).tool = DiagramTools.DrawOnce; 
-        // Trigger the callback to the parent to open the palette
-        onPortClick(selectedNode, portId);
+        // Trigger the callback to the parent to open the palette and add node programmatically
+        onUserhandleAddNodeClick(selectedNode, portId);
       }
-      return; // Stop further processing
+      return;
     }
 
-    // Case 2: Fallback to existing logic (e.g., delete connector)
+    // Check if delete Userhandle is clicked
     if (args.element && handleName === 'deleteConnector') {
       (diagramRef.current as any).remove();
     }
@@ -358,34 +326,20 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
   // Handle diagram click, 
   const handleClick = (args: any) => {
-    console.log("diagram click:", args)
     const clickedElement = args.element;
-    // Case 1: A port was clicked. 
-    // This action opens the palette, so we stop processing here to prevent the canvas click logic from closing it.
-    if (clickedElement?.constructor?.name === 'PointPort' && args.actualObject) {
-      const portId = clickedElement.id;
-      const nodeId = args.actualObject.id;
-      
-      if (onPortClick) {
-        onPortClick(nodeId, portId);
-      }
-      return; // Stop here to keep the palette open.
-    }
     
-    // Case 2: One of our custom user handles was clicked.
+    // If Userhandle was clicked.
     // The onUserHandleMouseDown event handles opening the palette. We stop here to prevent this click from closing it.
-    const isCustomHandleClick = clickedElement?.name?.startsWith('add-node-from-port-');
-    if (isCustomHandleClick) {
+    const isCustomUserHandleClick = clickedElement?.name?.startsWith('add-node-from-port-');
+    if (isCustomUserHandleClick) {
       return; // Stop here to keep the palette open.
     }
     
-    // Case 3: If the click was not on a port or a custom handle, treat it as a canvas click.
-    // This will close the palette.
+    // If the click was not on a port or a custom handle, treat it as a canvas click.
+    // This will close the node palette.
     if (onCanvasClick) {
       onCanvasClick();
     }
-
-    (diagramRef.current as any).tool = DiagramTools.Default;
   };
 
   // Handle diagram double click event
@@ -806,7 +760,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         doubleClick={handleDoubleClick}
         selectionChange={handleSelectionChange}
         commandManager={getCommandManagerSettings()}
-        selectedItems={{ userHandles: dynamicHandles  }}
+        selectedItems={{ userHandles: userHandles  }}
         onUserHandleMouseDown={ handleUserHandleMouseDown }
         historyChange={onDiagramChange}
       >
@@ -837,6 +791,29 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 };
 
 export default DiagramEditor;
+
+// Generate Userhandles based on the `OutConnect` ports
+function generatePortBasedUserHandles(node: NodeModel): UserHandleModel[] {
+  const portHandlesInfo: Array<{ portId: string; direction: NodePortDirection }> = (node.addInfo as any)?.userHandlesFromPorts ?? [];
+  return portHandlesInfo.map(({ portId, direction }) => ({
+    name: `add-node-from-port-${portId}`,
+    content: `
+      <g>
+        <rect x="1" y="1" width="14" height="14" rx="3" ry="3" fill="#9193a2ff" stroke="#9193a2ff" stroke-width="1.2"/>
+        <path d="M8 5 V11 M5 8 H11" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+      </g>
+    `,
+    tooltip: { content: 'Add Node' },
+    side: getPortSide(direction),
+    offset: getPortOffset(direction),
+    backgroundColor: '#9193a2ff',
+    pathColor: '#f8fafc',
+    borderColor: '#9193a2ff',
+    disableConnectors: true,
+    size: 20,
+    visible: true,
+  }));
+}
 
 // Configure ports based on node type (skip for existing nodes that already have ports)
 function updateNodePorts(nodeType: string | undefined, obj: NodeModel, isAiAgent: boolean, isIfCondition: boolean) {
@@ -974,6 +951,16 @@ function updateNodePorts(nodeType: string | undefined, obj: NodeModel, isAiAgent
       }
     }
   }
+
+  // Add user handle metadata for connectable ports for later use
+  const connectablePorts = getOutConnectDrawPorts(obj);
+  if (connectablePorts.length > 0) {
+    if (!obj.addInfo) obj.addInfo = {};
+    (obj.addInfo as any).userHandlesFromPorts = connectablePorts.map(({ port, direction }) => ({
+      portId: port.id,
+      direction,
+    }));
+  }
 }
 
 // Set position for nodes, and apply the staggering effect to avoid overlapping
@@ -991,9 +978,9 @@ function updateNodePosition(obj: NodeModel, diagramRef: React.RefObject<DiagramC
     const { x, y, index } = getNextStaggeredOffset(diagram, baseX, baseY, {
       group: 'paletteNode',
       strategy: 'grid',
-      stepX: 80 * 2, // node width space in between 
-      stepY: 80 * 2, // node height space in between 
-      cols: 3,
+      stepX: 80 * 2, // add space of node width horizontally
+      stepY: 80 * 2, // add space of node height vertically
+      cols: 4,
       usePersistentIndex: true
     });
 

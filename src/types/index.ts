@@ -75,7 +75,6 @@ export interface StickyNotePosition {
   fromMouse?: boolean; 
 }
 
-
 export type NodePortDirection =
   | 'right'
   | 'right-top'

@@ -12,8 +12,8 @@ import ConfirmationDialog from '../ConfirmationDialog';
 import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosition } from '../../types';
 import WorkflowService from '../../services/WorkflowService';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
+import { getNodePortById } from '../../helper/diagramUtils';
 import './Editor.css';
-import { getPortById } from '../../helper/diagramUtils';
 
 interface EditorProps {
   project: ProjectData;
@@ -136,9 +136,9 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     showErrorToast('Execution Cancelled', 'Workflow execution has been cancelled.');
   };
 
-  const handlePortClick = (node: NodeModel, portId: string) => {
+  const handleUserhandleAddNodeClick = (node: NodeModel, portId: string) => {
     if (!diagramRef && !node) return;
-    const port = getPortById(node, portId); 
+    const port = getNodePortById(node, portId); 
     if (!port || port.constraints === undefined || port.constraints === null) return;
     
     // Only allow if port is OutConnect and Draw (connectable)
@@ -162,9 +162,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
 
   const handleAddNode = (nodeTemplate: NodeTemplate) => {
     if (isPortSelectionMode && selectedPortConnection && diagramRef) {
-      // Handle port click connection
+      // User Handle button click node connection
       const nodeId = `${nodeTemplate.id}-${Date.now()}`;
-
       const newNodeConfig: NodeConfig = {
         id: nodeId,
         type: nodeTemplate.type,
@@ -179,25 +178,36 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         disabled: false
       };
 
-      // Position based on source port
+      // Position relative to the source node where the user handle was triggered
       const sourceNode = diagramRef.getObject(selectedPortConnection.nodeId);
-      let offsetX = sourceNode.offsetX + (sourceNode.width * 2);
-      let offsetY = sourceNode.offsetY;
+      const { offsetX: baseX, offsetY: baseY, width: nodeWidth, height: nodeHeight } = sourceNode;
 
-      if (selectedPortConnection.portId.includes('bottom')) {
-        offsetX = sourceNode.offsetX;
-        offsetY = sourceNode.offsetY + (sourceNode.height * 2);
+      let offsetX = baseX + nodeWidth * 2;
+      let offsetY = baseY;
+
+      const isBottom = selectedPortConnection.portId.includes('bottom');
+      const isLeft = selectedPortConnection.portId.includes('left');
+      const isRight = selectedPortConnection.portId.includes('right');
+
+      if (isBottom) {
+        offsetY = baseY + nodeHeight * 2;
+
+        if (isLeft) {
+          offsetX = baseX - (nodeWidth + 50) / 2; // extra spacing
+        } else if (isRight) {
+          offsetX = baseX + (nodeWidth + 50) / 2; // extra spacing
+        } else {
+          offsetX = baseX;
+        }
       }
 
+      // Create Node
       const newNode = {
         id: nodeId,
         offsetX: offsetX,
         offsetY: offsetY,
         addInfo: { nodeConfig: newNodeConfig }
       };
-
-      diagramRef.add(newNode);
-
       // Create connector
       const connector = {
         id: `connector-${Date.now()}`,
@@ -207,10 +217,13 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         targetPortID: 'left-port'
       };
 
+      // Add the node and connector to the diagram, clear the current selection
+      diagramRef.add(newNode);
       diagramRef.add(connector);
-
       diagramRef.clearSelection();
+      // and reset the diagram tool to its default state
       diagramRef.tool = DiagramTools.Default; 
+
       // Reset states
       setIsPortSelectionMode(false);
       setSelectedPortConnection(null);
@@ -218,9 +231,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       setNodePaletteSidebarOpen(false);
       setIsDirty(true);
     } else {
-      // Normal node addition
+      // Normal node addition action
       const nodeId = `${nodeTemplate.id}-${Date.now()}`;
-
       const newNodeConfig: NodeConfig = {
         id: nodeId,
         type: nodeTemplate.type,
@@ -234,13 +246,12 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         },
         disabled: false
       };
-
       if (diagramRef) {
+        // Create and add new node to the diagram
         const newNode = {
           id: nodeId,
           addInfo: { nodeConfig: newNodeConfig }
         };
-
         diagramRef.add(newNode);
         setIsDirty(true);
       }
@@ -488,7 +499,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
             project={project}
             onDiagramChange={handleDiagramChange}
             onAddStickyNote={handleAddStickyNote}
-            onPortClick={handlePortClick}
+            onUserhandleAddNodeClick={handleUserhandleAddNodeClick}
             diagramSettings={diagramSettings}
             showInitialAddButton={showInitialAddButton}
             onInitialAddClick={() => setNodePaletteSidebarOpen(true)}
