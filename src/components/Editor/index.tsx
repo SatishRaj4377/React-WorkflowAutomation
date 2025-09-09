@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useBlocker } from 'react-router';
-import { NodeConstraints, NodeModel, PortConstraints, PortModel } from '@syncfusion/ej2-react-diagrams';
+import { DiagramTools, NodeConstraints, NodeModel, PortConstraints, PortModel } from '@syncfusion/ej2-react-diagrams';
 import AppBar from '../Header';
 import DiagramEditor from '../DiagramEditor';
 import Toolbar from '../Toolbar';
@@ -13,6 +13,7 @@ import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosit
 import WorkflowService from '../../services/WorkflowService';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
 import './Editor.css';
+import { getPortById } from '../../helper/diagramUtils';
 
 interface EditorProps {
   project: ProjectData;
@@ -135,11 +136,9 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     showErrorToast('Execution Cancelled', 'Workflow execution has been cancelled.');
   };
 
-  const handlePortClick = (nodeId: string, portId: string) => {
-    if (!diagramRef) return;
-    const node = diagramRef.getObject(nodeId);
-    if (!node || !node.ports) return;
-    const port: PortModel = node.ports.find((p: any) => p.id === portId);
+  const handlePortClick = (node: NodeModel, portId: string) => {
+    if (!diagramRef && !node) return;
+    const port = getPortById(node, portId); 
     if (!port || port.constraints === undefined || port.constraints === null) return;
     
     // Only allow if port is OutConnect and Draw (connectable)
@@ -148,7 +147,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       ((port.constraints & PortConstraints.Draw) !== 0);
 
     if (isConnectable) {
-      setSelectedPortConnection({ nodeId, portId });
+      setSelectedPortConnection({ nodeId: node?.id as string, portId });
       setSelectedPortModel(port);
       setIsPortSelectionMode(true);
       setNodePaletteSidebarOpen(true);
@@ -210,6 +209,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
 
       diagramRef.add(connector);
 
+      diagramRef.clearSelection();
+      diagramRef.tool = DiagramTools.Default; 
       // Reset states
       setIsPortSelectionMode(false);
       setSelectedPortConnection(null);

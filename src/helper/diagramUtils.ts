@@ -1,5 +1,5 @@
-import { DiagramComponent, NodeModel } from "@syncfusion/ej2-react-diagrams";
-import { NodeConfig } from "../types";
+import { DiagramComponent, NodeModel, Point, PointPortModel, PortConstraints, PortModel } from "@syncfusion/ej2-react-diagrams";
+import { NodeConfig, NodePortDirection, PortSide } from "../types";
 
 // HTML Templates for different node types
 export const getNodeTemplate = (nodeConfig: NodeConfig, nodeId: string): string => {
@@ -47,13 +47,6 @@ export const getNodeTemplate = (nodeConfig: NodeConfig, nodeId: string): string 
         `;
     }
 
-    // Node content based on type
-    let contentHtml = `
-        <div class="node-img-content">
-        <img src="${nodeConfig.iconUrl}" alt="${nodeConfig.name}" />
-        </div>
-    `;
-
     // Add a special class for different node types
     const nodeTypeClass =
         isIfCondition ? 'condition-node' :
@@ -63,9 +56,12 @@ export const getNodeTemplate = (nodeConfig: NodeConfig, nodeId: string): string 
         <div class="node-template-container">
         <div class="node-template ${nodeTypeClass}" data-node-id="${nodeId}">
             ${portsHtml}
-            ${contentHtml}
+            <div class="node-img-content">
+                <img src="${nodeConfig.iconUrl}" alt="${nodeConfig.name}" />
+                <span>${(isAiAgent && nodeConfig.name) ? nodeConfig.name : ''}</span>
+            </div>
         </div>
-        <div class="node-name-bar">${nodeConfig.name ? nodeConfig.name : ''}</div>
+        <div class="node-name-bar">${(!isAiAgent && nodeConfig.name) ? nodeConfig.name : ''}</div>
         </div>
     `;
 };
@@ -118,4 +114,71 @@ export function getFirstSelectedNode(diagram: DiagramComponent | null | undefine
   if (!diagram || !diagram.selectedItems || !Array.isArray(diagram.selectedItems.nodes)) return undefined;
   if (diagram.selectedItems.nodes.length === 0) return undefined;
   return diagram.selectedItems.nodes[0];
+}
+
+// Convert direction to side
+export const getPortSide = (direction: NodePortDirection): PortSide =>
+  direction.startsWith('right') ? 'Right' : 'Bottom';
+
+// Convert direction to offset
+export const getPortOffset = (direction: NodePortDirection): number => {
+  const offsetMap: Record<NodePortDirection, number> = {
+    right: 0.5,
+    'right-top': 0.3,
+    'right-bottom': 0.7,
+    'bottom-left': 0.25,
+    'bottom-middle': 0.5,
+    'bottom-right': 0.75,
+  };
+  return offsetMap[direction] ?? 0.5;
+};
+
+
+// Returns ports with OutConnect and Draw constraints for a given node, along with their direction.
+export function getOutConnectDrawPorts(node: NodeModel): Array<{ port: PortModel; direction: NodePortDirection}> {
+  // Helper to infer direction from a port's offset
+  const inferDirection = (port: PortModel): NodePortDirection => {
+    const pointPort = port as PointPortModel;
+    if (pointPort && pointPort.offset) {
+      // normal action nodes
+      if ((pointPort.offset as Point).x === 1 &&
+             (pointPort.offset as Point).y === 0.5) return 'right';
+      // agent node ports
+      if ((pointPort.offset as Point).x === 0.25 &&
+             (pointPort.offset as Point).y === 1) return 'bottom-left';
+      if ((pointPort.offset as Point).x === 0.5 &&
+             (pointPort.offset as Point).y === 1) return 'bottom-middle';
+      if ((pointPort.offset as Point).x === 0.75 &&
+             (pointPort.offset as Point).y === 1) return 'bottom-right';
+      // if condition node ports
+      if ((pointPort.offset as Point).x === 1 &&
+             (pointPort.offset as Point).y === 0.3) return 'right-top';
+      if ((pointPort.offset as Point).x === 1 &&
+             (pointPort.offset as Point).y === 0.7) return 'right-bottom';
+
+    }
+    return 'right'; // Default fallback
+  };
+
+  if (!node.ports) return [];
+  
+  return node.ports
+    .filter(
+      (p) =>
+        p.constraints !== undefined &&
+        (p.constraints & PortConstraints.OutConnect) !== 0 &&
+        (p.constraints & PortConstraints.Draw) !== 0
+    )
+    .map((port) => ({ port, direction: inferDirection(port) }));
+}
+
+// Retrieves a specific port from a given node by its ID.
+export function getPortById(node: NodeModel | null | undefined, portId: string): PortModel | undefined {
+  // Ensure the node, its ports array, and the portId are valid before searching
+  if (!node || !node.ports || !Array.isArray(node.ports) || !portId) {
+    return undefined;
+  }
+  
+  // Find the port that matches the provided ID
+  return node.ports.find((p: PortModel) => p.id === portId);
 }

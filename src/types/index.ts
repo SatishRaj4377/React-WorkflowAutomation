@@ -74,3 +74,14 @@ export interface StickyNotePosition {
   y: number;
   fromMouse?: boolean; 
 }
+
+
+export type NodePortDirection =
+  | 'right'
+  | 'right-top'
+  | 'right-bottom'
+  | 'bottom-middle'
+  | 'bottom-left'
+  | 'bottom-right';
+
+export  type PortSide = 'Right' | 'Bottom';

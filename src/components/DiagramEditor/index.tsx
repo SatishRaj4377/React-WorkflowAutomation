@@ -25,10 +25,11 @@ import {
   ConnectorConstraints,
   Snapping,
   DiagramConstraints,
+  DiagramModel,
 } from '@syncfusion/ej2-react-diagrams';
-import { DiagramSettings, NodeConfig } from '../../types';
+import { DiagramSettings, NodeConfig, NodePortDirection } from '../../types';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
-import { convertMarkdownToHtml, getFirstSelectedNode, getNodeTemplate, getStickyNoteTemplate } from '../../helper/diagramUtils';
+import { convertMarkdownToHtml, getFirstSelectedNode, getNodeTemplate, getOutConnectDrawPorts, getPortOffset, getPortSide, getStickyNoteTemplate } from '../../helper/diagramUtils';
 import './DiagramEditor.css';
 
 interface DiagramEditorProps {
@@ -38,7 +39,7 @@ interface DiagramEditorProps {
   project?: any;
   onDiagramChange?: (args: any) => void;
   onAddStickyNote?: (position: { x: number; y: number }) => void;
-  onPortClick?: (nodeId: string, portId: string) => void;
+  onPortClick?: (node: NodeModel, portId: string) => void;
   diagramSettings?: DiagramSettings;
   showInitialAddButton?: boolean;
   onInitialAddClick?: () => void;
@@ -77,20 +78,46 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   const [previousZoom, setPreviousZoom] = useState<number>(100);
   const [isWorkflowLocked, setIsWorkflowLocked] = useState(false);
 
-  // User handles for Connectors
-  let userHandles: UserHandleModel[] =  [
+  // User handles
+  let dynamicHandles: UserHandleModel[] = [
     {
       name: 'deleteConnector',
       pathData:
-        'M0.97,3.04 L12.78,3.04 L12.78,12.21 C12.78,12.64,12.59,13,12.2,13.3 C11.82,13.6,11.35,13.75,10.8,13.75 L2.95,13.75 C2.4,13.75,1.93,13.6,1.55,13.3 C1.16,13,0.97,12.64,0.97,12.21 Z M4.43,0 L9.32,0 L10.34,0.75 L13.75,0.75 L13.75,2.29 L0,2.29 L0,0.75 L3.41,0.75 Z ',
+        'M0.97,3.04 L12.78,3.04 L12.78,12.21 C12.78,12.64,12.59,13,12.2,13.3 C11.82,13.6,11.35,13.75,10.8,13.75 L2.95,13.75 C2.4,13.75,1.93,13.6,1.55,13.3 C1.16,13,0.97,12.64,0.97,12.21 Z M4.43,0 L9.32,0 L10.34,0.75 L13.75,0.75 L13.75,2.29 L0,2.29 L0,0.75 L3.41,0.75 Z',
       tooltip: { content: 'Delete' },
       offset: 0.5,
       backgroundColor: '#9193a2ff',
       pathColor: '#f8fafc',
       borderColor: '#9193a2ff',
       disableNodes: true,
-    }
+    },
   ];
+
+  const selectedNodes = diagramRef.current?.selectedItems?.nodes ?? [];
+
+  if (selectedNodes.length === 1) {
+    const node = selectedNodes[0];
+    const portHandlesInfo: Array<{ portId: string; direction: NodePortDirection }> =
+      (node.addInfo as any)?.userHandlesFromPorts ?? [];
+
+    const portUserHandles: UserHandleModel[] = portHandlesInfo.map(({ portId, direction }) => ({
+      name: `add-node-from-port-${portId}`,
+      pathData:
+        'M8,1 C4.1,1,1,4.1,1,8s3.1,7,7,7s7-3.1,7-7S11.9,1,8,1z M12,9 H9v3 H7V9 H4V7 h3V4 h2v3 h3V9z',
+      tooltip: { content: 'Add Node' },
+      side: getPortSide(direction),
+      offset: getPortOffset(direction),
+      visible: true,
+      backgroundColor: '#9193a2ff',
+      pathColor: '#f8fafc',
+      borderColor: '#9193a2ff',
+      disableConnectors: true
+    }));
+
+    dynamicHandles.push(...portUserHandles);
+  }
+
+  // --- END OF BLOCK ---
 
   // Context Menu Items for the diagram
   const contextMenuSettings = {
@@ -158,6 +185,16 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       updateNodePosition(obj, diagramRef);
 
       updateNodePorts(nodeType, obj, isAiAgent, isIfCondition);
+
+      // Add user handle metadata for connectable ports for later use
+      const connectablePorts = getOutConnectDrawPorts(obj);
+      if (connectablePorts.length > 0) {
+        if (!obj.addInfo) obj.addInfo = {};
+        (obj.addInfo as any).userHandlesFromPorts = connectablePorts.map(({ port, direction }) => ({
+          portId: port.id,
+          direction,
+        }));
+      }
     }
 
     return obj;
@@ -169,6 +206,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       return obj;
     }
     obj.type = 'Bezier';
+    obj.bezierSettings= { allowSegmentsReset: false };
     obj.segments= [{ type: 'Bezier' }];
     obj.style = {
       strokeColor: '#9193a2ff',
@@ -185,8 +223,26 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
   // Handle the userhandle click
   const handleUserHandleMouseDown = (args: UserHandleEventsArgs) => {
-    // delete the connector
-    if (args.element){
+    console.log("userhandledmousedown:", args)
+    const handleName = (args.element as UserHandleModel)?.name || '';
+
+    // Case 1: Check if the handle is for adding a node from a port
+    if (handleName.startsWith('add-node-from-port-')) {
+      // Parse the portId from the end of the handle's name
+      const portId = handleName.substring('add-node-from-port-'.length);
+      const selectedNode = diagramRef.current?.selectedItems?.nodes?.[0];
+
+      if (selectedNode?.id && portId && onPortClick) {
+        (diagramRef.current as any).drawingObject = { type: "Straight", sourceID: selectedNode.id, sourcePortID: portId };
+        (diagramRef.current as DiagramModel).tool = DiagramTools.DrawOnce; 
+        // Trigger the callback to the parent to open the palette
+        onPortClick(selectedNode, portId);
+      }
+      return; // Stop further processing
+    }
+
+    // Case 2: Fallback to existing logic (e.g., delete connector)
+    if (args.element && handleName === 'deleteConnector') {
       (diagramRef.current as any).remove();
     }
   };
@@ -302,19 +358,34 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
   // Handle diagram click, 
   const handleClick = (args: any) => {
-    // Hide the node palette on diagram click
-    if (onCanvasClick) onCanvasClick();
-
-    // To add the nodes connected to the clicked port
-    // Check if clicked element is a port
-    if (args && args.element && args.element.constructor.name === 'PointPort' && args.actualObject) {
-      const portId = args.element.id;
+    console.log("diagram click:", args)
+    const clickedElement = args.element;
+    // Case 1: A port was clicked. 
+    // This action opens the palette, so we stop processing here to prevent the canvas click logic from closing it.
+    if (clickedElement?.constructor?.name === 'PointPort' && args.actualObject) {
+      const portId = clickedElement.id;
       const nodeId = args.actualObject.id;
       
       if (onPortClick) {
         onPortClick(nodeId, portId);
       }
+      return; // Stop here to keep the palette open.
     }
+    
+    // Case 2: One of our custom user handles was clicked.
+    // The onUserHandleMouseDown event handles opening the palette. We stop here to prevent this click from closing it.
+    const isCustomHandleClick = clickedElement?.name?.startsWith('add-node-from-port-');
+    if (isCustomHandleClick) {
+      return; // Stop here to keep the palette open.
+    }
+    
+    // Case 3: If the click was not on a port or a custom handle, treat it as a canvas click.
+    // This will close the palette.
+    if (onCanvasClick) {
+      onCanvasClick();
+    }
+
+    (diagramRef.current as any).tool = DiagramTools.Default;
   };
 
   // Handle diagram double click event
@@ -735,7 +806,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         doubleClick={handleDoubleClick}
         selectionChange={handleSelectionChange}
         commandManager={getCommandManagerSettings()}
-        selectedItems={{ userHandles: userHandles }}
+        selectedItems={{ userHandles: dynamicHandles  }}
         onUserHandleMouseDown={ handleUserHandleMouseDown }
         historyChange={onDiagramChange}
       >
@@ -920,8 +991,8 @@ function updateNodePosition(obj: NodeModel, diagramRef: React.RefObject<DiagramC
     const { x, y, index } = getNextStaggeredOffset(diagram, baseX, baseY, {
       group: 'paletteNode',
       strategy: 'grid',
-      stepX: (obj.width ?? 80) * 2,
-      stepY: (obj.height ?? 80) * 2,
+      stepX: 80 * 2, // node width space in between 
+      stepY: 80 * 2, // node height space in between 
       cols: 3,
       usePersistentIndex: true
     });
@@ -972,7 +1043,6 @@ function updateNodeTemplates(nodeType: string | undefined, setUpStickyNote: (sti
     // For sticky notes render annotation template
     setUpStickyNote(obj);
   }
-
   else {
     // Set HTML template for all nodes
     obj.shape = {
