@@ -79,7 +79,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
       click: onResetZoom,
     },
     {
-      prefixIcon: 'e-icons e-frame-hook',
+      prefixIcon: 'e-icons e-bring-to-center',
       tooltipText: 'Fit to Page',
       id: 'fit-page',
       click: onFitToPage,
