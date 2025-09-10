@@ -149,9 +149,9 @@ const AppBar: React.FC<AppBarProps> = ({
               placeholder="Enter project name"
             />
           ) : (
-            <h1 className="project-name" onClick={handleProjectNameEdit} title="Click to edit">
-              <span className="project-name-text">{projectName}</span>
-              <span className="e-icons e-edit edit-icon"></span>
+            <h1 className="project-name" onClick={handleProjectNameEdit}>
+              <span className="project-name-text" title={projectName === "Untitled Workflow" ? "Click to edit" : projectName}>{projectName}</span>
+              <span className="e-icons e-edit edit-icon" title="Click to edit"></span>
             </h1>
           )}
         </div>
