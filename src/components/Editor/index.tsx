@@ -180,6 +180,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
 
       // Position relative to the source node where the user handle was triggered
       const sourceNode = diagramRef.getObject(selectedPortConnection.nodeId);
+      if (!sourceNode) { return; }
       const { offsetX: baseX, offsetY: baseY, width: nodeWidth, height: nodeHeight } = sourceNode;
 
       let offsetX = baseX + nodeWidth * 2;
