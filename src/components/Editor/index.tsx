@@ -30,6 +30,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const [isExecuting, setIsExecuting] = useState(false);
   const [projectName, setProjectName] = useState(project.name);
   const [diagramRef, setDiagramRef] = useState<any>(null);
+  const [isPanActive, setIsPanActive] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
@@ -265,6 +266,33 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     }
   };
 
+  const handleTogglePan = () => {
+    if (!diagramRef) return;
+    const currentlyPan = diagramRef.tool === DiagramTools.ZoomPan;
+    diagramRef.tool = currentlyPan ? DiagramTools.Default : DiagramTools.ZoomPan;
+    setIsPanActive(!currentlyPan);
+  };
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      // Spacebar toggles temporary pan in EJ2; reflect active while pressed
+      if (e.code === 'Space') setIsPanActive(true);
+    };
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        // After space released, reflect actual tool state
+        const active = diagramRef?.tool === DiagramTools.ZoomPan;
+        setIsPanActive(!!active);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
+    };
+  }, [diagramRef]);
+
   const handleExport = () => {
     if (diagramRef) {
       const diagramString = diagramRef.saveDiagram();
@@ -488,6 +516,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
             onResetZoom={() => diagramRef?.reset()}
             onAddSticky={handleAddStickyNote}
             isExecuting={isExecuting}
+            onTogglePan={handleTogglePan}
+            isPanActive={isPanActive}
           />
         </div>
       </div>

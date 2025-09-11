@@ -26,7 +26,6 @@
   border: none;
   background: transparent;
   color: var(--text-primary);
-  border-radius: 8px;
   width: 40px !important;
   height: 36px;
   display: flex;
@@ -85,6 +84,14 @@
 .custom-toolbar .e-toolbar-item .e-tbar-btn:focus {
   border: none !important;
   box-shadow: none !important;
+}
+
+/* Pan btn active state state styling */
+.custom-toolbar .e-toolbar-item.e-active .e-tbar-btn {
+  background-color: var(--primary-color);
+}
+.custom-toolbar .e-toolbar-item.e-active .e-tbar-btn .e-btn-icon {
+  color: white;
 }
 
 .execution-toolbar {

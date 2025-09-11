@@ -1,5 +1,5 @@
 import React from 'react';
-import { ToolbarComponent, ItemsDirective, ItemDirective, OverflowOption  } from '@syncfusion/ej2-react-navigations';
+import { ToolbarComponent, ItemsDirective, ItemDirective, OverflowOption } from '@syncfusion/ej2-react-navigations';
 import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
 import './Toolbar.css';
 
@@ -9,10 +9,12 @@ interface ToolbarProps {
   onResetZoom?: () => void;
   onZoomIn?: () => void;
   onZoomOut?: () => void;
-  onAddSticky?: (position: {x: number; y: number}) => void;
+  onAddSticky?: (position: { x: number; y: number }) => void;
   onExecute?: () => void;
   onCancel?: () => void;
   isExecuting?: boolean;
+  onTogglePan?: () => void;
+  isPanActive?: boolean;
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({
@@ -25,6 +27,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onExecute,
   onCancel,
   isExecuting = false,
+  onTogglePan,
+  isPanActive,
 }) => {
   // Template for execute button
   const executeButtonTemplate = () => {
@@ -45,20 +49,30 @@ const Toolbar: React.FC<ToolbarProps> = ({
       tooltipText: 'Add Nodes',
       id: 'add-nodes',
       click: onAddNode,
-      overflow: "Show"
+      overflow: 'Show',
     },
     {
-      type: 'Separator'
+      type: 'Separator',
     },
     {
       prefixIcon: 'e-icons e-add-notes',
       tooltipText: 'Add Sticky Note',
       id: 'add-sticky',
       click: onAddSticky,
-      overflow: "Show"
+      overflow: 'Show',
     },
     {
-      type: 'Separator'
+      type: 'Separator',
+    },
+    {
+        prefixIcon: 'e-icons e-pan',
+        tooltipText: 'Pan (Spacebar)',
+        id: 'pan-tool',
+        click: onTogglePan,
+        cssClass: isPanActive ? 'e-active' : '',
+    },
+    {
+      type: 'Separator',
     },
     {
       prefixIcon: 'e-icons e-circle-add',
