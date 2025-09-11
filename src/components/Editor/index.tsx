@@ -266,37 +266,20 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   };
 
   const handleExport = () => {
-    try {
-      if (diagramRef) {
-        // Save current diagram state
-        const diagramString = diagramRef.saveDiagram();
-        
-        const exportData = {
-          ...project,
-          name: projectName,
-          workflowData: {
-            ...(project.workflowData ?? {}),
-            diagramString: diagramString
-          },
-          diagramSettings: diagramSettings,
-          exportedAt: new Date().toISOString(),
-          version: '1.0'
-        };
+    if (diagramRef) {
+      const diagramString = diagramRef.saveDiagram();
+      const currentProjectData = {
+        ...project,
+        name: projectName,
+        workflowData: {
+          ...(project.workflowData ?? {}),
+          diagramString,
+        },
+        diagramSettings,
+      };
 
-        const dataStr = JSON.stringify(exportData, null, 2);
-        const dataBlob = new Blob([dataStr], { type: 'application/json' });
-        
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(dataBlob);
-        link.download = `${projectName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
-        link.click();
-        
-        URL.revokeObjectURL(link.href);
-        showSuccessToast('Export Complete', 'Project has been exported successfully.');
-      }
-    } catch (error) {
-      console.error('Export failed:', error);
-      showErrorToast('Export Failed', 'There was an error exporting your project.');
+      WorkflowService.exportProject(currentProjectData);
+      showSuccessToast('Export Complete', 'Project has been exported successfully.');
     }
   };
 
@@ -306,6 +289,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       if (!importedProject || typeof importedProject !== 'object') {
         throw new Error('Invalid project file format');
       }
+      const now = new Date();
 
       // Set project data
       setProjectName(importedProject.name || 'Imported Project');
@@ -324,7 +308,15 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       const updatedProject = {
         ...importedProject,
         id: project.id, // Keep current project ID to replace current project
-        lastModified: new Date().toISOString()
+        lastModified: now.toISOString(),
+        workflowData: {
+          ...importedProject.workflowData,
+          metadata: {
+            ...importedProject.workflowData.metadata,
+            created: now, // Set new creation date
+            modified: now, // Set new modification date
+          },
+        },
       };
       
       onSaveProject(updatedProject);

@@ -103,6 +103,37 @@ export class WorkflowService {
   }
 
   /**
+   * Export a single project to a JSON file.
+   * @param project The project to export.
+   */
+  exportProject(project: ProjectData): void {
+    try {
+      const exportData = {
+        ...project,
+        exportedAt: new Date().toISOString(),
+        version: '1.0',
+      };
+
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(dataBlob);
+
+      const fileName = `${project.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
+      link.download = fileName;
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      URL.revokeObjectURL(link.href);
+    } catch (error) {
+      console.error(`Failed to export project: ${project.name}`, error);
+    }
+  }
+
+  /**
    * Exports each project in an array as a separate JSON file.
    * @param projects The array of projects to export.
    */
@@ -114,31 +145,7 @@ export class WorkflowService {
 
     // Iterate over each selected project and trigger a separate download
     projects.forEach(project => {
-      try {
-        const exportData = {
-          ...project,
-          exportedAt: new Date().toISOString(),
-          version: '1.0',
-        };
-  
-        const dataStr = JSON.stringify(exportData, null, 2);
-        const dataBlob = new Blob([dataStr], { type: 'application/json' });
-  
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(dataBlob);
-        
-        // Sanitize the project name for use as a filename
-        const fileName = `${project.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
-        link.download = fileName;
-        
-        // Programmatically click the link to trigger the download
-        link.click();
-  
-        // Clean up by revoking the object URL
-        URL.revokeObjectURL(link.href);
-      } catch (error) {
-        console.error(`Failed to export project: ${project.name}`, error);
-      }
+      this.exportProject(project);
     });
   }
   
@@ -303,13 +310,6 @@ export class WorkflowService {
         resolve({ success: true, message: 'Workflow executed successfully' });
       }, 2000);
     });
-  }
-
-  /**
-   * Export workflow to JSON file
-   */
-  exportWorkflow(workflow: WorkflowData): string {
-    return JSON.stringify(workflow, null, 2);
   }
 
   /**
