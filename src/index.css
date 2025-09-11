@@ -172,6 +172,26 @@ body, .e-control, .e-card{
   color: var(--surface-color);
 }
 
+/* Chekbox Styling */
+.e-checkbox-wrapper .e-frame{
+  font-size: .6rem !important;
+}
+.e-checkbox-wrapper .e-frame.e-check,
+.e-checkbox-wrapper .e-frame.e-stop {
+  background-color: var(--center-action-border);
+  border-color: var(--center-action-border);
+}
+.e-checkbox-wrapper:hover .e-frame.e-check{
+  background-color: var(--center-action-icon);
+  border-color: var(--center-action-icon);
+}
+.e-checkbox-wrapper:active .e-frame {
+  box-shadow: 0 0 0 2px var(--center-action-border);
+}
+.e-checkbox-wrapper.e-focus .e-frame {
+  box-shadow: 0 0 0 2px var(--center-action-icon);
+  outline: rgba(var(--center-action-icon), 0.25);
+}
 
 /* Scrollbars Styling */
 /* Webkit browsers (Chrome, Edge, Safari) */

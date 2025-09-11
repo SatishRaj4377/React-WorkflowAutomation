@@ -377,16 +377,77 @@
 .project-list-item:hover, .project-list-item:focus {
    background: var(--list-hover-bg, #e7f1fe);
 }
+.project-list-item.selected {
+  background-color: var(--list-selected-bg);
+}
+.project-list-item.selected:hover {
+  background-color: var(--list-selected-hover-bg);
+}
 
 .project-col {
    display: flex;
    align-items: center; 
    padding: 0 4px; 
 }
-.project-icon-header, .project-icon { 
-  width: 32px;
-  justify-content: center; 
+.project-icon-header, .project-icon {
+  width: 40px;
+  justify-content: center;
+  position: relative;
 }
+
+/* Hide checkboxes by default */
+.project-item-checkbox,
+.project-select-all-checkbox {
+  opacity: 0;
+  position: absolute;
+  transform: scale(0.8);
+  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+  z-index: 10; /* Ensure checkbox is on top */
+  pointer-events: none; /* Disable clicks when hidden */
+}
+
+.project-item-icon-svg {
+  position: relative;
+  z-index: 5; /* Sit below the checkbox */
+}
+
+/* Show item checkbox on hover, but only when no items are selected */
+.project-list-item:hover .project-item-checkbox:not(:checked) {
+  opacity: 1;
+  transform: scale(1);
+}
+.project-list-item:hover .project-item-icon-svg {
+  opacity: 0;
+  transform: scale(0.8);
+}
+/* When selection is active, show checkbox and hide icon */
+.selection-active .project-item-checkbox,
+.project-list-item.selected .project-item-checkbox,
+.project-list-item:hover .project-item-checkbox {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto; /* Enable clicks when visible */
+}
+
+.selection-active .project-item-icon-svg,
+.project-list-item.selected .project-item-icon-svg {
+  opacity: 0;
+  transform: scale(0.8);
+  display: none; /* Hide icon completely when selected */
+}
+/* Ensure the icon is visible when not hovered or selected */
+.project-item-icon-svg {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+/* Logic for the "Select All" checkbox - now always visible */
+.project-select-all-checkbox {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto; /* Ensure it's clickable when visible */
+}
+
 .project-title-header, .project-title {
    flex: 2 1 140px;
    white-space: nowrap; 

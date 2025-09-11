@@ -103,6 +103,25 @@ export class WorkflowService {
   }
 
   /**
+   * Delete multiple projects by their IDs
+   */
+  deleteMultipleProjects(ids: string[]): boolean {
+    try {
+      const projects = this.getProjects();
+      const updatedProjects = projects.filter(project => !ids.includes(project.id));
+      
+      if (updatedProjects.length === projects.length - ids.length) {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(updatedProjects));
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Failed to delete multiple projects:', error);
+      return false;
+    }
+  }
+
+  /**
    * Create a new blank project
    */
   createBlankProject(name = 'Untitled Workflow'): ProjectData {

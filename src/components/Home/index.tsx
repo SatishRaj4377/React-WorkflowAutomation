@@ -4,6 +4,7 @@ import { TooltipComponent } from '@syncfusion/ej2-react-popups';
 import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { DropDownButtonComponent, MenuEventArgs } from '@syncfusion/ej2-react-splitbuttons';
 import { ListViewComponent, SelectEventArgs } from '@syncfusion/ej2-react-lists';
+import { CheckBoxComponent, ChangeEventArgs as CheckBoxChangeEventArgs } from '@syncfusion/ej2-react-buttons';
 import { AppBarComponent } from '@syncfusion/ej2-react-navigations';
 import { SwitchComponent } from '@syncfusion/ej2-react-buttons';
 import ConfirmationDialog from '../ConfirmationDialog';
@@ -17,6 +18,7 @@ interface HomeProps {
   onCreateNew: () => void;
   onOpenProject: (project: ProjectData) => void;
   onDeleteProject: (projectId: string) => void;
+  onMultipleDeleteProjects: (projectIds: string[]) => void;
   onBookmarkToggle?: (projectId: string) => void;
   bookmarkedProjects?: string[];
 }
@@ -26,6 +28,7 @@ const Home: React.FC<HomeProps> = ({
   onCreateNew,
   onOpenProject,
   onDeleteProject,
+  onMultipleDeleteProjects,
   onBookmarkToggle,
   bookmarkedProjects = []
 }) => {
@@ -41,6 +44,9 @@ const Home: React.FC<HomeProps> = ({
   const [sortText, setSortText] = useState('Last Modified');
   const [activeSection, setActiveSection] = useState('dashboard');
   const [projectToDelete, setProjectToDelete] = useState<ProjectData | null>(null);
+  const [projectsToDelete, setProjectsToDelete] = useState<ProjectData[]>([]);
+  const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
+  const [isMultiDeleteConfirmOpen, setMultiDeleteConfirmOpen] = useState(false);
 
   const sortOptions = [
     { text: 'Last Modified', id: 'lastModified' },
@@ -165,10 +171,42 @@ const Home: React.FC<HomeProps> = ({
       onDeleteProject(projectToDelete.id);
       setProjectToDelete(null);
     }
+    if (projectsToDelete.length > 0) {
+      onMultipleDeleteProjects(projectsToDelete.map(p => p.id));
+      setProjectsToDelete([]);
+      setSelectedProjects([]); // Clear selection after deletion
+    }
+    setMultiDeleteConfirmOpen(false);
   };
 
   const handleCloseDeleteDialog = () => {
     setProjectToDelete(null);
+    setProjectsToDelete([]);
+    setMultiDeleteConfirmOpen(false);
+  };
+
+  const handleMultiSelectToggle = (project: ProjectData, isChecked: boolean) => {
+    if (isChecked) {
+      setSelectedProjects(prev => [...prev, project.id]);
+    } else {
+      setSelectedProjects(prev => prev.filter(id => id !== project.id));
+    }
+  };
+
+  const handleSelectAll = (isChecked: boolean) => {
+    if (isChecked) {
+      setSelectedProjects(filteredAndSortedProjects.map(p => p.id));
+    } else {
+      setSelectedProjects([]);
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    const toDelete = projects.filter(p => selectedProjects.includes(p.id));
+    if (toDelete.length > 0) {
+      setProjectsToDelete(toDelete);
+      setMultiDeleteConfirmOpen(true);
+    }
   };
 
   const isBookmarked = useCallback((projectId: string) => bookmarkedProjects.includes(projectId), [bookmarkedProjects]);
@@ -440,6 +478,15 @@ const Home: React.FC<HomeProps> = ({
                   >
                     {sortText}
                   </DropDownButtonComponent>
+                  {viewMode === 'list' && selectedProjects.length > 0 && (
+                    <TooltipComponent content="Delete Selected">
+                      <ButtonComponent
+                        cssClass="e-danger view-toggle-btn"
+                        iconCss="e-icons e-trash"
+                        onClick={handleDeleteSelected}
+                      />
+                    </TooltipComponent>
+                  )}
                   <div className="view-toggle">
                     <ButtonComponent
                       cssClass={`view-toggle-btn ${viewMode === 'card' ? 'active' : ''}`}
@@ -474,12 +521,19 @@ const Home: React.FC<HomeProps> = ({
                 </div>
               )
               ) : (
-                <div className={`projects-container ${viewMode === 'list' ? 'list-view' : 'card-view'}`}>
+                <div className={`projects-container ${viewMode === 'list' ? 'list-view' : 'card-view'} ${selectedProjects.length > 0 ? 'selection-active' : ''}`}>
                   {viewMode === 'list' ? (
                     <>
                       {/* Table header row */}
                       <div className="project-list-header">
-                        <span className="project-col project-icon-header"></span>
+                        <span className="project-col project-icon-header">
+                          <CheckBoxComponent
+                            cssClass="project-select-all-checkbox"
+                            checked={selectedProjects.length === filteredAndSortedProjects.length && filteredAndSortedProjects.length > 0}
+                            indeterminate={selectedProjects.length > 0 && selectedProjects.length < filteredAndSortedProjects.length}
+                            change={(e: CheckBoxChangeEventArgs) => handleSelectAll(e.checked as boolean)}
+                          />
+                        </span>
                         <span className="project-col project-title-header">Workflow Name</span>
                         <span className="project-col project-date-header">Created</span>
                         <span className="project-col project-date-header">Modified</span>
@@ -489,16 +543,23 @@ const Home: React.FC<HomeProps> = ({
                       {filteredAndSortedProjects.map((project, index) => (
                         <div
                           key={getProjectKey(project, index, 'list-')}
-                          className="project-list-item"
+                          className={`project-list-item ${selectedProjects.includes(project.id) ? 'selected' : ''}`}
                           onClick={() => onOpenProject(project)}
                           tabIndex={0}
                         >
-                          <span className="project-col project-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M18.0004 16.98H12.0104C10.9104 16.98 10.0604 17.92 9.53037 18.88C9.11082 19.6672 8.44016 20.2917 7.62499 20.654C6.80982 21.0163 5.89693 21.0957 5.03144 20.8796C4.16594 20.6635 3.39752 20.1643 2.84831 19.4614C2.29911 18.7584 2.00064 17.8921 2.00037 17C2.01037 16.3 2.20037 15.6 2.57037 15" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M6 17.0002L9.13 11.2202C9.66 10.2502 9.23 9.04018 8.63 8.12018C8.34681 7.66728 8.15721 7.16225 8.07236 6.63489C7.98751 6.10753 8.00915 5.56851 8.13599 5.04965C8.26283 4.53078 8.49231 4.04257 8.81088 3.61383C9.12946 3.18509 9.53068 2.82449 9.99087 2.55332C10.4511 2.28215 10.9609 2.10589 11.4903 2.03495C12.0197 1.96401 12.558 1.99982 13.0733 2.14026C13.5887 2.28071 14.0707 2.52296 14.4909 2.8527C14.9111 3.18245 15.261 3.59301 15.52 4.06018" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M12 6L15.13 11.73C15.66 12.7 16.9 13 18 13C19.0609 13 20.0783 13.4214 20.8284 14.1716C21.5786 14.9217 22 15.9391 22 17C22 18.0609 21.5786 19.0783 20.8284 19.8284C20.0783 20.5786 19.0609 21 18 21" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
+                          <span className="project-col project-icon" onClick={(e) => e.stopPropagation()}>
+                            <CheckBoxComponent
+                              cssClass="project-item-checkbox"
+                              checked={selectedProjects.includes(project.id)}
+                              change={(e: CheckBoxChangeEventArgs) => handleMultiSelectToggle(project, e.checked as boolean)}
+                            />
+                            <span className="project-item-icon-svg">
+                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M18.0004 16.98H12.0104C10.9104 16.98 10.0604 17.92 9.53037 18.88C9.11082 19.6672 8.44016 20.2917 7.62499 20.654C6.80982 21.0163 5.89693 21.0957 5.03144 20.8796C4.16594 20.6635 3.39752 20.1643 2.84831 19.4614C2.29911 18.7584 2.00064 17.8921 2.00037 17C2.01037 16.3 2.20037 15.6 2.57037 15" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M6 17.0002L9.13 11.2202C9.66 10.2502 9.23 9.04018 8.63 8.12018C8.34681 7.66728 8.15721 7.16225 8.07236 6.63489C7.98751 6.10753 8.00915 5.56851 8.13599 5.04965C8.26283 4.53078 8.49231 4.04257 8.81088 3.61383C9.12946 3.18509 9.53068 2.82449 9.99087 2.55332C10.4511 2.28215 10.9609 2.10589 11.4903 2.03495C12.0197 1.96401 12.558 1.99982 13.0733 2.14026C13.5887 2.28071 14.0707 2.52296 14.4909 2.8527C14.9111 3.18245 15.261 3.59301 15.52 4.06018" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M12 6L15.13 11.73C15.66 12.7 16.9 13 18 13C19.0609 13 20.0783 13.4214 20.8284 14.1716C21.5786 14.9217 22 15.9391 22 17C22 18.0609 21.5786 19.0783 20.8284 19.8284C20.0783 20.5786 19.0609 21 18 21" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                            </span>
                           </span>
                           <span title={project.name} className="project-col project-title">{project.name}</span>
                           <span className="project-col project-date">
@@ -605,10 +666,14 @@ const Home: React.FC<HomeProps> = ({
           )}
         </div>
         <ConfirmationDialog
-          isOpen={!!projectToDelete}
+          isOpen={!!projectToDelete || isMultiDeleteConfirmOpen}
           onClose={handleCloseDeleteDialog}
           onConfirm={handleConfirmDelete}
-          content={`Are you sure you want to delete ${projectToDelete?.name ? `"${projectToDelete?.name}"` : 'this item'}? This action cannot be undone.`}
+          content={
+            isMultiDeleteConfirmOpen
+              ? `Are you sure you want to delete ${projectsToDelete.length} selected project(s)? This action cannot be undone.`
+              : `Are you sure you want to delete ${projectToDelete?.name ? `"${projectToDelete?.name}"` : 'this item'}? This action cannot be undone.`
+          }
         />
       </main>
     </div>

@@ -28,6 +28,7 @@ type AppOutletContext = {
   handleCreateNew: () => void;
   handleOpenProject: (project: ProjectData) => void;
   handleDeleteProject: (projectId: string) => void;
+  handleMultipleDeleteProjects: (projectIds: string[]) => void;
   handleBookmarkToggle: (projectId: string) => void;
   handleSaveProject: (updatedProject: ProjectData) => void;
 };
@@ -55,6 +56,11 @@ const AppContent: React.FC = () => {
   const handleDeleteProject = (projectId: string) => {
     WorkflowService.deleteProject(projectId);
     setProjects((prev) => prev.filter((p) => p.id !== projectId));
+  };
+
+  const handleMultipleDeleteProjects = (projectIds: string[]) => {
+    WorkflowService.deleteMultipleProjects(projectIds);
+    setProjects((prev) => prev.filter((p) => !projectIds.includes(p.id)));
   };
 
   const handleSaveProject = (updated: ProjectData) => {
@@ -100,6 +106,7 @@ const AppContent: React.FC = () => {
           handleCreateNew,
           handleOpenProject,
           handleDeleteProject,
+          handleMultipleDeleteProjects,
           handleBookmarkToggle,
           handleSaveProject,
         } satisfies AppOutletContext}
@@ -120,6 +127,7 @@ const HomeRoute: React.FC = () => {
     handleCreateNew,
     handleOpenProject,
     handleDeleteProject,
+    handleMultipleDeleteProjects,
     handleBookmarkToggle,
   } = useAppOutlet();
 
@@ -130,6 +138,7 @@ const HomeRoute: React.FC = () => {
       onCreateNew={handleCreateNew}
       onOpenProject={handleOpenProject}
       onDeleteProject={handleDeleteProject}
+      onMultipleDeleteProjects={handleMultipleDeleteProjects}
       onBookmarkToggle={handleBookmarkToggle}
     />
   );
