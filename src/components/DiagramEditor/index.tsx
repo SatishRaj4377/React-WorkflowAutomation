@@ -297,6 +297,11 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     }
   };
 
+  const handleDiagramLoaded = ()=> {
+    // Hide the initial plus button
+    if (onNodeAddedFirstTime) onNodeAddedFirstTime();
+  }
+
   // Removes the disconnected connector
   const removeDisConnectedConnectors = (args: any) => {
     if (!args || args.objectType !== 'Connector') return;
@@ -765,6 +770,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         selectedItems={{ userHandles: userHandles  }}
         onUserHandleMouseDown={ handleUserHandleMouseDown }
         historyChange={onDiagramChange}
+        loaded={handleDiagramLoaded}
       >
         <Inject services={[UndoRedo, DataBinding, HierarchicalTree, DiagramContextMenu, Snapping ]} />
       </DiagramComponent>

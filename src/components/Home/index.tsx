@@ -11,6 +11,7 @@ import ConfirmationDialog from '../ConfirmationDialog';
 import { useTheme } from '../../contexts/ThemeContext';
 import { ProjectData } from '../../types';
 import { templateImages } from '../../assets/icons';
+import WorkflowService from '../../services/WorkflowService'; // Import the service
 import './Home.css';
 
 interface HomeProps {
@@ -206,6 +207,13 @@ const Home: React.FC<HomeProps> = ({
     if (toDelete.length > 0) {
       setProjectsToDelete(toDelete);
       setMultiDeleteConfirmOpen(true);
+    }
+  };
+
+  const handleExportSelected = () => {
+    const toExport = projects.filter(p => selectedProjects.includes(p.id));
+    if (toExport.length > 0) {
+      WorkflowService.exportMultipleProjects(toExport);
     }
   };
 
@@ -479,13 +487,22 @@ const Home: React.FC<HomeProps> = ({
                     {sortText}
                   </DropDownButtonComponent>
                   {viewMode === 'list' && selectedProjects.length > 0 && (
-                    <TooltipComponent content="Delete Selected">
-                      <ButtonComponent
-                        cssClass="e-danger view-toggle-btn"
-                        iconCss="e-icons e-trash"
-                        onClick={handleDeleteSelected}
-                      />
-                    </TooltipComponent>
+                    <>
+                      <TooltipComponent content="Export Selected">
+                        <ButtonComponent
+                          cssClass="e-primary"
+                          iconCss="e-icons e-export"
+                          onClick={handleExportSelected}
+                        />
+                      </TooltipComponent>
+                      <TooltipComponent content="Delete Selected">
+                        <ButtonComponent
+                          cssClass="e-danger"
+                          iconCss="e-icons e-trash"
+                          onClick={handleDeleteSelected}
+                        />
+                      </TooltipComponent>
+                    </>
                   )}
                   <div className="view-toggle">
                     <ButtonComponent
