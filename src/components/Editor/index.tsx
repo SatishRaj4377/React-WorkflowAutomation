@@ -308,6 +308,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       const updatedProject = {
         ...importedProject,
         id: project.id, // Keep current project ID to replace current project
+        isBookmarked: false,
         lastModified: now.toISOString(),
         workflowData: {
           ...importedProject.workflowData,
