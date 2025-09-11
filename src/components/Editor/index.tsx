@@ -12,7 +12,7 @@ import ConfirmationDialog from '../ConfirmationDialog';
 import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosition } from '../../types';
 import WorkflowService from '../../services/WorkflowService';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
-import { getNodePortById } from '../../helper/diagramUtils';
+import { calculateNewNodePosition, getNodePortById } from '../../helper/diagramUtils';
 import './Editor.css';
 
 interface EditorProps {
@@ -33,7 +33,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const [isDirty, setIsDirty] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
-  const [isPortSelectionMode, setIsPortSelectionMode] = useState(false);
+  const [isUserhandleAddNodeSelectionMode, setUserhandleAddNodeSelectionMode] = useState(false);
   const [selectedPortConnection, setSelectedPortConnection] = useState<{nodeId: string, portId: string} | null>(null);
   const [selectedPortModel, setSelectedPortModel] = useState<PortModel | null>(null);
   const [showInitialAddButton, setShowInitialAddButton] = useState(
@@ -149,11 +149,11 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     if (isConnectable) {
       setSelectedPortConnection({ nodeId: node?.id as string, portId });
       setSelectedPortModel(port);
-      setIsPortSelectionMode(true);
+      setUserhandleAddNodeSelectionMode(true);
       setNodePaletteSidebarOpen(true);
     } else {
       // Not connectable, do nothing
-      setIsPortSelectionMode(false);
+      setUserhandleAddNodeSelectionMode(false);
       setSelectedPortConnection(null);
       setSelectedPortModel(null);
       setNodePaletteSidebarOpen(false);
@@ -161,106 +161,84 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   };
 
   const handleAddNode = (nodeTemplate: NodeTemplate) => {
-    if (isPortSelectionMode && selectedPortConnection && diagramRef) {
-      // User Handle button click node connection
-      const nodeId = `${nodeTemplate.id}-${Date.now()}`;
-      const newNodeConfig: NodeConfig = {
-        id: nodeId,
-        type: nodeTemplate.type,
-        name: nodeTemplate.name,
-        icon: nodeTemplate.iconId,
-        settings: {
-          general: {},
-          authentication: {},
-          advanced: {}
-        },
-      };
-
-      // Position relative to the source node where the user handle was triggered
-      const sourceNode = diagramRef.getObject(selectedPortConnection.nodeId);
-      if (!sourceNode) { return; }
-      const { offsetX: baseX, offsetY: baseY, width: nodeWidth, height: nodeHeight } = sourceNode;
-
-      let offsetX = baseX + nodeWidth * 2;
-      let offsetY = baseY;
-
-      const isBottom = selectedPortConnection.portId.includes('bottom');
-      const isLeft = selectedPortConnection.portId.includes('left');
-      const isRight = selectedPortConnection.portId.includes('right');
-
-      if (isBottom) {
-        offsetY = baseY + nodeHeight * 2;
-
-        if (isLeft) {
-          offsetX = baseX - (nodeWidth + 50) / 2; // extra spacing
-        } else if (isRight) {
-          offsetX = baseX + (nodeWidth + 50) / 2; // extra spacing
-        } else {
-          offsetX = baseX;
-        }
-      }
-
-      // Create Node
-      const newNode = {
-        id: nodeId,
-        offsetX: offsetX,
-        offsetY: offsetY,
-        addInfo: { nodeConfig: newNodeConfig }
-      };
-      // Create connector
-      const connector = {
-        id: `connector-${Date.now()}`,
-        sourceID: selectedPortConnection.nodeId,
-        sourcePortID: selectedPortConnection.portId,
-        targetID: nodeId,
-        targetPortID: 'left-port'
-      };
-
-      // Add the node and connector to the diagram, clear the current selection
-      diagramRef.add(newNode);
-      diagramRef.add(connector);
-      diagramRef.clearSelection();
-      // and reset the diagram tool to its default state
-      diagramRef.tool = DiagramTools.Default; 
-
-      // Reset states
-      setIsPortSelectionMode(false);
-      setSelectedPortConnection(null);
-      setSelectedPortModel(null);
-      setNodePaletteSidebarOpen(false);
-      setIsDirty(true);
+    if (isUserhandleAddNodeSelectionMode) {
+      addNodeFromPort(nodeTemplate);
     } else {
-      // Normal node addition action
-      const nodeId = `${nodeTemplate.id}-${Date.now()}`;
-      const newNodeConfig: NodeConfig = {
-        id: nodeId,
-        type: nodeTemplate.type,
-        name: nodeTemplate.name,
-        icon: nodeTemplate.iconId,
-        settings: {
-          general: {},
-          authentication: {},
-          advanced: {}
-        },
-      };
-      if (diagramRef) {
-        // Create and add new node to the diagram
-        const newNode = {
-          id: nodeId,
-          addInfo: { nodeConfig: newNodeConfig }
-        };
-        diagramRef.add(newNode);
-        setIsDirty(true);
-      }
+      addNodeToDiagram(nodeTemplate);
     }
+    setIsDirty(true);
   };
 
-  const handleDiagramRef = (ref: any) => {
-    setDiagramRef(ref);
+  // Handles adding a new node connected to a selected userhandles node port
+  const addNodeFromPort = (nodeTemplate: NodeTemplate) => {
+    if (!diagramRef || !selectedPortConnection) return;
+
+    const nodeId = `${nodeTemplate.id}-${Date.now()}`;
+    const newNodeConfig: NodeConfig = {
+      id: nodeId,
+      type: nodeTemplate.type,
+      name: nodeTemplate.name,
+      icon: nodeTemplate.iconId,
+      settings: { general: {}, authentication: {}, advanced: {} },
+    };
+
+    // Get the source node where the user handle was triggered
+    const sourceNode = diagramRef.getObject(selectedPortConnection.nodeId);
+    if (!sourceNode) {
+      console.error('Source node not found for connection.');
+      return;
+    }
+
+    // Calculate position for the new node based on the source
+    const { offsetX, offsetY } = calculateNewNodePosition(sourceNode, selectedPortConnection.portId);
+
+    // Create the new node and connector configuration
+    const newNode = {
+      id: nodeId,
+      offsetX,
+      offsetY,
+      addInfo: { nodeConfig: newNodeConfig },
+    };
+    const connector = {
+      id: `connector-${Date.now()}`,
+      sourceID: selectedPortConnection.nodeId,
+      sourcePortID: selectedPortConnection.portId,
+      targetID: nodeId,
+      targetPortID: 'left-port',
+    };
+
+    // Add the new elements to the diagram
+    diagramRef.add(newNode);
+    diagramRef.add(connector);
+    diagramRef.clearSelection();
+    diagramRef.tool = DiagramTools.Default; // Reset the diagram tool
+
+    // Reset the component's state after connection
+    setUserhandleAddNodeSelectionMode(false);
+    setSelectedPortConnection(null);
+    setSelectedPortModel(null);
+    setNodePaletteSidebarOpen(false);
   };
 
-  const handleBackToHome = () => {
-    onBackToHome();
+  // Handles adding a new node directly to the diagram canvas
+  const addNodeToDiagram = (nodeTemplate: NodeTemplate) => {
+    if (!diagramRef) return;
+
+    const nodeId = `${nodeTemplate.id}-${Date.now()}`;
+    const newNodeConfig: NodeConfig = {
+      id: nodeId,
+      type: nodeTemplate.type,
+      name: nodeTemplate.name,
+      icon: nodeTemplate.iconId,
+      settings: { general: {}, authentication: {}, advanced: {} },
+    };
+
+    // Create and add the new node to the diagram
+    const newNode = {
+      id: nodeId,
+      addInfo: { nodeConfig: newNodeConfig },
+    };
+    diagramRef.add(newNode);
   };
 
   const handleDiagramSettingsChange = (settings: DiagramSettings) => {
@@ -457,7 +435,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     <div className="editor-container" data-theme={theme}>
       <AppBar
         projectName={projectName}
-        onBack={handleBackToHome}
+        onBack={() => onBackToHome()}
         onSave={handleSave}
         enableSaveBtn={isInitialLoad || isDirty}
         onProjectNameChange={(name) => {
@@ -476,7 +454,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
           isOpen={nodePaletteSidebarOpen}
           onClose={() => setNodePaletteSidebarOpen(false)}
           onAddNode={handleAddNode}
-          port={isPortSelectionMode ? selectedPortModel : null}
+          port={isUserhandleAddNodeSelectionMode ? selectedPortModel : null}
         />
         
         {/* Right Sidebar for Configuration */}
@@ -492,7 +470,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
           <DiagramEditor 
             onAddNode={() => setNodePaletteSidebarOpen(true)}
             onNodeDoubleClick={handleNodeDoubleClick}
-            onDiagramRef={handleDiagramRef}
+            onDiagramRef={(ref) => setDiagramRef(ref)}
             project={project}
             onDiagramChange={handleDiagramChange}
             onAddStickyNote={handleAddStickyNote}

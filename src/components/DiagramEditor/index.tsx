@@ -156,7 +156,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       const isIfCondition = nodeType === 'condition' || nodeId.includes('if-condition');
       const isAiAgent = nodeId.includes('ai-agent');
       
-      updateNodeTemplates(nodeType, setUpStickyNote, obj, nodeConfig);
+      updateNodeTemplates(nodeType, setUpStickyNote, obj);
       
       updateNodeSize(isAiAgent, obj, isIfCondition, nodeType);
 
@@ -1027,7 +1027,7 @@ function updateNodeSize(isAiAgent: boolean, obj: NodeModel, isIfCondition: boole
 }
 
 // Sets the node template for nodes
-function updateNodeTemplates(nodeType: string | undefined, setUpStickyNote: (stickyNode: NodeModel) => void, obj: NodeModel, nodeConfig: NodeConfig) {
+function updateNodeTemplates(nodeType: string | undefined, setUpStickyNote: (stickyNode: NodeModel) => void, obj: NodeModel) {
   if (nodeType === "sticky") {
     // For sticky notes render annotation template
     setUpStickyNote(obj);

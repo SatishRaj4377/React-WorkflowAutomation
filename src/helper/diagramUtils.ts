@@ -117,3 +117,53 @@ export function getNodePortById(node: NodeModel | null | undefined, portId: stri
   // Find the port that matches the provided ID
   return node.ports.find((p: PortModel) => p.id === portId);
 }
+
+// Calculates the optimal position for a new node based on the source node and port.
+export const calculateNewNodePosition = (sourceNode: NodeModel, portId: string): { offsetX: number, offsetY: number } => {
+    const { 
+        offsetX: baseX = 80, 
+        offsetY: baseY = 80, 
+        width: nodeWidth = 150,
+        height: nodeHeight = 100
+    } = sourceNode;
+
+    const horizontalSpacing = nodeWidth * 2;
+    const verticalSpacing = nodeHeight * 2;
+    const padding = 50;
+
+    // Start with a sensible default position (to the right of the source node)
+    let offsetX = baseX + horizontalSpacing;
+    let offsetY = baseY;
+
+    // Handle specific port IDs for fine-tuned positioning
+    switch (portId) {
+        // --- AI Agent Ports ---
+        case 'bottom-left-port':
+            offsetX = baseX - (nodeWidth + padding / 2);
+            offsetY = baseY + verticalSpacing;
+            break;
+        case 'bottom-middle-port':
+            offsetX = baseX; // Directly below
+            offsetY = baseY + verticalSpacing;
+            break;
+        case 'bottom-right-port':
+            offsetX = baseX + (nodeWidth + padding / 2);
+            offsetY = baseY + verticalSpacing;
+            break;
+        
+        // --- IF Condition Ports ---
+        case 'right-top-port':
+            offsetX = baseX + horizontalSpacing;
+            offsetY = baseY - (nodeHeight/2 + padding); // To the right and above
+            break;
+        case 'right-bottom-port':
+            offsetX = baseX + horizontalSpacing;
+            offsetY = baseY + (nodeHeight/2 + padding); // To the right and below
+            break;
+
+        default:
+            break;
+    }
+
+    return { offsetX, offsetY };
+};
