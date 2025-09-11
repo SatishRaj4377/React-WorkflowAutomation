@@ -9,6 +9,7 @@ import { SwitchComponent } from '@syncfusion/ej2-react-buttons';
 import ConfirmationDialog from '../ConfirmationDialog';
 import { useTheme } from '../../contexts/ThemeContext';
 import { ProjectData } from '../../types';
+import { templateImages } from '../../assets/icons';
 import './Home.css';
 
 interface HomeProps {
@@ -61,28 +62,28 @@ const Home: React.FC<HomeProps> = ({
       id: 'email-automation',
       title: 'Email Automation',
       description: 'Template for email-based workflows',
-      image: '/images/template-images/email-automation.jpg',
+      image: templateImages.EmailAutomationImage,
       category: 'Communication'
     },
     {
       id: 'api-integration',
       title: 'API Integration',
       description: 'Connect and integrate with external APIs',
-      image: '/images/template-images/api-integration.jpg',
+      image: templateImages.ApiIntegrationImage,
       category: 'Integration'
     },
     {
       id: 'data-processing',
       title: 'Data Processing',
       description: 'Process and transform data workflows',
-      image: '/images/template-images/data-processing.jpg',
+      image: templateImages.DataProcessingImage,
       category: 'Data'
     },
     {
       id: 'notification-system',
       title: 'Notification System',
       description: 'Automated notification workflows',
-      image: '/images/template-images/notification-system.jpg',
+      image: templateImages.NotificationSystemImage,
       category: 'Communication'
     }
   ];
@@ -542,7 +543,7 @@ const Home: React.FC<HomeProps> = ({
                         onClick={() => onOpenProject(project)}
                       >
                         <div className="e-card-image project-thumbnail">
-                          <img src={project.thumbnail || "/images/template-images/default-image.jpg"} alt={project.name} />
+                          <img src={project.thumbnail || templateImages.DefaultImageImage} alt={project.name} />
                           <div className="project-card-overlay">
                             <DropDownButtonComponent
                               items={menuItems}

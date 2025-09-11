@@ -29,8 +29,9 @@ import {
 } from '@syncfusion/ej2-react-diagrams';
 import { DiagramSettings, NodeConfig, NodePortDirection } from '../../types';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
-import { convertMarkdownToHtml, getFirstSelectedNode, getNodeTemplate, getOutConnectDrawPorts, getPortOffset, getPortSide, getStickyNoteTemplate } from '../../helper/diagramUtils';
+import { convertMarkdownToHtml, getFirstSelectedNode, getOutConnectDrawPorts, getPortOffset, getPortSide, getStickyNoteTemplate } from '../../helper/diagramUtils';
 import './DiagramEditor.css';
+import NodeTemplate from './NodeTemplate';
 
 interface DiagramEditorProps {
   onAddNode?: () => void;
@@ -746,6 +747,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         height="100%"
         nodes={[]}
         connectors={[]}
+        nodeTemplate={NodeTemplate}
         getNodeDefaults={getNodeDefaults}
         getConnectorDefaults={getConnectorDefaults}
         elementDraw={removeDisConnectedConnectors}
@@ -1031,12 +1033,10 @@ function updateNodeTemplates(nodeType: string | undefined, setUpStickyNote: (sti
     setUpStickyNote(obj);
   }
   else {
-    // Set HTML template for all nodes
+    // Set HTML template for all other nodes
     obj.shape = {
       type: "HTML",
-      content: getNodeTemplate(nodeConfig, obj.id as string),
     };
-
   }
 }
 

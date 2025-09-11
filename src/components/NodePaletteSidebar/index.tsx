@@ -8,6 +8,7 @@ import {
 import { ButtonComponent } from "@syncfusion/ej2-react-buttons";
 import { TextBoxComponent } from "@syncfusion/ej2-react-inputs";
 import { NodeTemplate, PaletteCategory } from "../../types";
+import {NodeIcons} from "../../assets/icons";
 import "./NodePaletteSidebar.css";
 
 import { PortModel } from '@syncfusion/ej2-react-diagrams';
@@ -44,7 +45,8 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "webhook-trigger",
           name: "Webhook",
-          iconUrl: "/images/node-icons/webhook.png",
+          icon: NodeIcons.WebhookIcon,
+          iconId: "WebhookIcon",
           type: "trigger",
           category: "Triggers",
           description: "Receive HTTP requests from external services",
@@ -52,7 +54,8 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "schedule-trigger",
           name: "Schedule",
-          iconUrl: "/images/node-icons/schedule.png",
+          icon: NodeIcons.ScheduleIcon,
+          iconId: "ScheduleIcon",
           type: "trigger",
           category: "Triggers",
           description: "Trigger workflow on a schedule",
@@ -60,7 +63,6 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "manual-trigger",
           name: "Manual Click",
-          iconUrl: "/images/node-icons/manual.png",
           type: "trigger",
           category: "Triggers",
           description: "When clicked, trigger the workflow",
@@ -68,7 +70,8 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "chat-trigger",
           name: "Chat Trigger",
-          iconUrl: "/images/node-icons/chat.png",
+          icon: NodeIcons.ChatIcon,
+          iconId: "ChatIcon",
           type: "trigger",
           category: "Triggers",
           description: "Trigger workflow from chat messages",
@@ -82,7 +85,8 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "ai-agent",
           name: "AI Agent",
-          iconUrl: "/images/node-icons/ai-agent.png",
+          icon: NodeIcons.AiAgentIcon,
+          iconId: "AiAgentIcon",
           type: "action",
           category: "Core",
           description: "Use AI agents to process data",
@@ -90,7 +94,8 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "azure-chat",
           name: "Azure Chat Model",
-          iconUrl: "/images/node-icons/azure-chat.png",
+          icon: NodeIcons.AzureModelIcon,
+          iconId: "AzureModelIcon",
           type: "action",
           category: "Core",
           description: "Use Azure OpenAI chat models",
@@ -98,7 +103,8 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "http-request",
           name: "HTTP Request",
-          iconUrl: "/images/node-icons/http.png",
+          icon: NodeIcons.HttpRequestIcon,
+          iconId: "HttpRequestIcon",
           type: "action",
           category: "Core",
           description: "Make HTTP requests to APIs",
@@ -106,7 +112,8 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "send-email",
           name: "Send Mail",
-          iconUrl: "/images/node-icons/gmail.png",
+          icon: NodeIcons.GmailIcon,
+          iconId: "GmailIcon",
           type: "action",
           category: "Core",
           description: "Send email notifications",
@@ -114,7 +121,8 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "sheet",
           name: "Sheets",
-          iconUrl: "/images/node-icons/gsheet.png",
+          icon: NodeIcons.GoogleSheetIcon,
+          iconId: "GoogleSheetIcon",
           type: "action",
           category: "Core",
           description: "Store and Retrieve data from google sheets",
@@ -122,7 +130,8 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "telegram",
           name: "Telegram",
-          iconUrl: "/images/node-icons/telegram.png",
+          icon: NodeIcons.TelegramIcon,
+          iconId: "TelegramIcon",
           type: "action",
           category: "Core",
           description: "Send messages via Telegram",
@@ -130,7 +139,8 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "calendar",
           name: "Calendar",
-          iconUrl: "/images/node-icons/calendar.png",
+          icon: NodeIcons.GoogleCalendarIcon,
+          iconId: "GoogleCalendarIcon",
           type: "action",
           category: "Core",
           description: "Manage calendar events",
@@ -138,7 +148,8 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "docs",
           name: "Docs",
-          iconUrl: "/images/node-icons/docs.png",
+          icon: NodeIcons.GoogleDocsIcon,
+          iconId: "GoogleDocsIcon",
           type: "action",
           category: "Core",
           description: "Google Docs integration",
@@ -146,7 +157,8 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "twilio",
           name: "Twilio",
-          iconUrl: "/images/node-icons/twilio.png",
+          icon: NodeIcons.TwilioIcon,
+          iconId: "TwilioIcon",
           type: "action",
           category: "Core",
           description: "Send SMS messages via Twilio",
@@ -160,7 +172,8 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "if-condition",
           name: "If Condition",
-          iconUrl: "/images/node-icons/if.png",
+          icon: NodeIcons.IfConditionIcon,
+          iconId: "IfConditionIcon",
           type: "action",
           category: "Flow",
           description: "Evaluate conditions and branch logic",
@@ -168,7 +181,8 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "switch-case",
           name: "Switch Case",
-          iconUrl: "/images/node-icons/switch.png",
+          icon: NodeIcons.SwitchConditionIcon,
+          iconId: "SwitchConditionIcon",
           type: "action",
           category: "Flow",
           description: "Switch between multiple cases based on conditions",
@@ -176,18 +190,11 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "filter",
           name: "Filter",
-          iconUrl: "/images/node-icons/filter.png",
+          icon: NodeIcons.FilterIcon,
+          iconId: "FilterIcon",
           type: "action",
           category: "Flow",
           description: "Filter data based on criteria",
-        },
-        {
-          id: "delay",
-          name: "Delay",
-          iconUrl: "/images/node-icons/delay.png",
-          type: "action",
-          category: "Flow",
-          description: "Delay execution for a specified time",
         },
       ],
     }
@@ -208,7 +215,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
     .filter((category) => category.nodes.length > 0);
 
   const handleNodeClick = (nodeTemplate: NodeTemplate) => {
-    // Remove icon property if present, ensure iconUrl is used
+    // Remove icon property if present, ensure icon is used
     const { icon, ...nodeWithoutIcon } = nodeTemplate as any;
     if (onAddNode) {
       onAddNode(nodeWithoutIcon);
@@ -219,29 +226,26 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
   const createCategoryContent = (category: PaletteCategory) => {
     return (
       <div className="category-nodes">
-        {category.nodes.map((node) => (
-          <div
-            key={node.id}
-            className="node-item"
-            onClick={() => handleNodeClick(node)}
-            title={node.description}
-          >
-            <div className="node-icon">
-              {node.iconUrl && (
-                <img
-                  src={node.iconUrl}
-                  alt={node.name}
-                  className="node-icon-img"
-                />
-              )}
+        {category.nodes.map((node: any) => {
+          const IconComponent = node.icon;
+          return (
+            <div
+              key={node.id}
+              className="node-item"
+              onClick={() => handleNodeClick(node)}
+              title={node.description}
+            >
+              <div className="node-icon">
+                {IconComponent && <IconComponent className="node-icon-img" />}
+              </div>
+              <div className="node-info">
+                <div className="node-name">{node.name}</div>
+                <div className="node-description">{node.description}</div>
+              </div>
+              <div className={`node-type-badge ${node.type}`}>{node.type}</div>
             </div>
-            <div className="node-info">
-              <div className="node-name">{node.name}</div>
-              <div className="node-description">{node.description}</div>
-            </div>
-            <div className={`node-type-badge ${node.type}`}>{node.type}</div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   };

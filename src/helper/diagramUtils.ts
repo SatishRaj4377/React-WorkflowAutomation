@@ -1,70 +1,5 @@
 import { DiagramComponent, NodeModel, Point, PointPortModel, PortConstraints, PortModel } from "@syncfusion/ej2-react-diagrams";
-import { NodeConfig, NodePortDirection, PortSide } from "../types";
-
-// HTML Templates for different node types
-export const getNodeTemplate = (nodeConfig: NodeConfig, nodeId: string): string => {
-    if (!nodeConfig || typeof nodeConfig !== 'object') {
-        console.warn('Invalid nodeConfig provided to getNodeTemplate');
-        return '<div>Invalid Node</div>';
-    }
-
-    // Determine ports HTML based on node type
-    let portsHtml = '';
-
-    // Check if the ID contains specific node types
-    const isIfCondition = nodeConfig.type === 'condition' ||
-        (nodeConfig.id && nodeConfig.id.includes('if-condition'));
-
-    const isAiAgent = nodeConfig.id && nodeConfig.id.includes('ai-agent');
-
-    // Special case for If node with two output ports
-    if (isIfCondition) {
-        portsHtml = `
-        <div class="node-port-left"></div>
-        <div class="node-port-right-top true-port"></div>
-        <div class="node-port-right-bottom false-port"></div>
-        `;
-    }
-    // Special case for AI Agent with multiple ports
-    else if (isAiAgent) {
-        portsHtml = `
-        <div class="node-port-left"></div>
-        <div class="node-port-right"></div>
-        <div class="node-port-bottom-left"></div>
-        <div class="node-port-bottom-middle"></div>
-        <div class="node-port-bottom-right"></div>
-        `;
-    }
-    // Default case for trigger nodes
-    else if (nodeConfig.type === 'trigger') {
-        portsHtml = `<div class="node-port-right"></div>`;
-    }
-    // Default case for action nodes
-    else {
-        portsHtml = `
-        <div class="node-port-left"></div>
-        <div class="node-port-right"></div>
-        `;
-    }
-
-    // Add a special class for different node types
-    const nodeTypeClass =
-        isIfCondition ? 'condition-node' :
-            isAiAgent ? 'ai-agent-node' : '';
-
-    return `
-        <div class="node-template-container">
-        <div class="node-template ${nodeTypeClass}" data-node-id="${nodeId}">
-            ${portsHtml}
-            <div class="node-img-content">
-                <img src="${nodeConfig.iconUrl}" alt="${nodeConfig.name}" />
-                <span>${(isAiAgent && nodeConfig.name) ? nodeConfig.name : ''}</span>
-            </div>
-        </div>
-        <div class="node-name-bar">${(!isAiAgent && nodeConfig.name) ? nodeConfig.name : ''}</div>
-        </div>
-    `;
-};
+import { NodePortDirection, PortSide } from "../types";
 
 // Get sticky note template
 export const getStickyNoteTemplate = (diagram: DiagramComponent, nodeId: string): string => {
@@ -133,7 +68,6 @@ export const getPortOffset = (direction: NodePortDirection): number => {
   };
   return offsetMap[direction] ?? 0.5;
 };
-
 
 // Returns ports with `OutConnect and Draw` constraints for a given node, along with their direction.
 export function getOutConnectDrawPorts(node: NodeModel): Array<{ port: PortModel; direction: NodePortDirection}> {

@@ -51,10 +51,10 @@
   background-position: center;
 }
 .theme-toggle-switch.light .e-switch-handle {
-  background-image: url("../../../public/images/sun.png") !important;
+  background-image: url("../../assets/images/sun.png") !important;
 }
 .theme-toggle-switch.dark .e-switch-handle {
-  background-image: url("../../../public/images/moon.png") !important;
+  background-image: url("../../assets/images/moon.png") !important;
 }
 
 /* ---- Sidebar ---- */

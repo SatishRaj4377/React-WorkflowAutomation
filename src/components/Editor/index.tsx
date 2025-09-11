@@ -168,14 +168,12 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         id: nodeId,
         type: nodeTemplate.type,
         name: nodeTemplate.name,
-        icon: nodeTemplate.icon,
-        iconUrl: nodeTemplate.iconUrl,
+        icon: nodeTemplate.iconId,
         settings: {
           general: {},
           authentication: {},
           advanced: {}
         },
-        disabled: false
       };
 
       // Position relative to the source node where the user handle was triggered
@@ -238,14 +236,12 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         id: nodeId,
         type: nodeTemplate.type,
         name: nodeTemplate.name,
-        icon: nodeTemplate.icon,
-        iconUrl: nodeTemplate.iconUrl,
+        icon: nodeTemplate.iconId,
         settings: {
           general: {},
           authentication: {},
           advanced: {}
         },
-        disabled: false
       };
       if (diagramRef) {
         // Create and add new node to the diagram

@@ -3,13 +3,11 @@ export interface NodeConfig {
   type: 'trigger' | 'action' | 'sticky' | 'form' | 'condition';
   name: string;
   icon?: string;
-  iconUrl?: string;
   settings: {
     general: any;
     authentication?: any;
     advanced?: any;
   };
-  disabled: boolean;
 }
 
 export interface WorkflowData {
@@ -42,9 +40,9 @@ export interface PaletteCategory {
 export interface NodeTemplate {
   id: string;
   name: string;
-  icon?: string;
+  icon?: React.ElementType;
+  iconId?: string;
   type: 'trigger' | 'action' | 'sticky' | 'form';
-  iconUrl?: string;
   category: string;
   description: string;
 }
@@ -83,4 +81,4 @@ export type NodePortDirection =
   | 'bottom-left'
   | 'bottom-right';
 
-export  type PortSide = 'Right' | 'Bottom';
+export type PortSide = 'Right' | 'Bottom';

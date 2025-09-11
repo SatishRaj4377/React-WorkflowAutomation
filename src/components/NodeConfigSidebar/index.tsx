@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { SidebarComponent, TabComponent, TabItemDirective, TabItemsDirective } from '@syncfusion/ej2-react-navigations';
-import { ButtonComponent, CheckBoxComponent, SwitchComponent } from '@syncfusion/ej2-react-buttons';
+import { ButtonComponent, CheckBoxComponent } from '@syncfusion/ej2-react-buttons';
 import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { NodeConfig } from '../../types';
 import './NodeConfigSidebar.css';
@@ -56,15 +56,6 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   };
 
   /**
-   * Handles node enable/disable toggle
-   */
-  const handleDisableToggle = (checked: boolean) => {
-    if (!selectedNode) return;
-    const updatedConfig = { ...selectedNode, disabled: !checked };
-    onNodeConfigChange(selectedNode.id, updatedConfig);
-  };
-
-  /**
    * Toggles the maximized state of the config panel
    */
   const toggleMaximize = () => {
@@ -98,17 +89,6 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
             cssClass="config-textarea"
             multiline
           />
-        </div>
-
-        <div className="config-section">
-          <div className="config-row">
-            <label className="config-label">Enabled</label>
-            <SwitchComponent
-              checked={!selectedNode?.disabled}
-              change={(e: any) => handleDisableToggle(e.checked)}
-              cssClass="config-switch"
-            />
-          </div>
         </div>
 
         {/* Node-specific configuration based on type */}
