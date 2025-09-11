@@ -79,8 +79,8 @@ const Toast: React.FC<ToastProps> = ({
       position={position}
       showCloseButton={true}
       animation={{
-        show: { effect: 'FadeIn', duration: 400, easing: 'ease' },
-        hide: { effect: 'FadeOut', duration: 400, easing: 'ease' }
+        show: { effect: 'SlideRightIn', duration: 400, easing: 'ease' },
+        hide: { effect: 'SlideRightOut', duration: 300, easing: 'ease' }
       }}
       newestOnTop={true}
       showProgressBar={true}

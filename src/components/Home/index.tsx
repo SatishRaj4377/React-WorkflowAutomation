@@ -468,14 +468,14 @@ const Home: React.FC<HomeProps> = ({
                     <>
                       <TooltipComponent content="Export Selected">
                         <ButtonComponent
-                          cssClass="e-primary"
+                          cssClass="e-primary view-toggle-btn"
                           iconCss="e-icons e-export"
                           onClick={handleExportSelected}
                         />
                       </TooltipComponent>
                       <TooltipComponent content="Delete Selected">
                         <ButtonComponent
-                          cssClass="e-danger"
+                          cssClass="e-danger view-toggle-btn"
                           iconCss="e-icons e-trash"
                           onClick={handleDeleteSelected}
                         />

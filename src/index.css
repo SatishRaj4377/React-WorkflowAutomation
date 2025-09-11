@@ -103,6 +103,12 @@ body, .e-control, .e-card{
   border: none;
   transition: background 0.25s, box-shadow 0.2s;
 }
+.e-btn,
+.e-btn.e-danger {
+  color: #fff;
+  border: none;
+  transition: background 0.25s, box-shadow 0.2s;
+}
 .e-btn:hover,
 .e-btn.e-primary:hover {
   background: var(--accent-color);
