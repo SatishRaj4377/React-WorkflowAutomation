@@ -27,7 +27,7 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo }) => {
 
   return (
     <div className="node-template-container">
-      <div className={`node-template ${nodeTypeClass}`}>
+      <div className={`node-template ${nodeTypeClass}`} data-node-id={`${id}`}>
         {/* Port Rendering Logic... */}
         {/* For Trigger Nodes, show port only at the right side */}
         {nodeConfig.type === 'trigger' && <div className="node-port-right"></div>}
