@@ -343,7 +343,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     
     // If the click was not on a port or a custom handle, treat it as a canvas click.
     // This will close the node palette.
-    if (onCanvasClick) {
+    if (onCanvasClick && args.actualObject === undefined) {
       onCanvasClick();
     }
   };
