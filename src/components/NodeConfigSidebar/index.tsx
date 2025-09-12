@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { SidebarComponent, TabComponent, TabItemDirective, TabItemsDirective } from '@syncfusion/ej2-react-navigations';
 import { ButtonComponent, CheckBoxComponent } from '@syncfusion/ej2-react-buttons';
 import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
+import { IconRegistry } from '../../assets/icons';
 import { NodeConfig } from '../../types';
 import './NodeConfigSidebar.css';
 
@@ -22,6 +23,8 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   const [isMaximized, setIsMaximized] = useState(false);
   // Local state for active tab in the configuration tabs
   const [activeTab, setActiveTab] = useState(0);
+
+  const IconComponent = selectedNode?.icon ? IconRegistry[selectedNode.icon] : null;
 
   /**
    * Handles configuration changes for node settings
@@ -384,7 +387,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
       id="config-panel-sidebar"
       className={`custom-config-panel`}
       width={isMaximized ? "80%" : "400px"} // Dynamic width based on maximized state
-      position="Right"
+      position="Left"
       type="Over"
       isOpen={isOpen}
       close={onClose}
@@ -400,22 +403,16 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
         <>
           <div className="config-panel-header">
             <div className="config-panel-title">
-              <span className="node-icon">{selectedNode?.icon}</span>
+              <span className="node-icon">
+                {IconComponent && <IconComponent />}
+              </span>
               <h3>{selectedNode?.name || 'Node'} Configuration</h3>
             </div>
-            <div className="config-panel-actions">
-              <ButtonComponent
-                cssClass="maximize-btn"
-                iconCss={`e-icons ${isMaximized ? 'e-zoom-to-fit' : 'e-zoom-to-fit'}`}
-                onClick={toggleMaximize}
-                title={isMaximized ? 'Minimize' : 'Maximize'}
-              />
               <ButtonComponent
                 cssClass="close-btn"
                 iconCss="e-icons e-close"
                 onClick={onClose}
               />
-            </div>
           </div>
 
           <div className="config-panel-content">

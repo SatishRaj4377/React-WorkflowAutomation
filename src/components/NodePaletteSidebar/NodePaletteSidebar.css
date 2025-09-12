@@ -5,7 +5,7 @@
   display: block;
 }
 /* EJ2 Sidebar Component Styles */
-.custom-sidebar {
+.custom-node-palette {
   background: var(--surface-color);
   display: flex;
   flex-direction: column;
@@ -13,7 +13,7 @@
   height: 100%;
 }
 
-.e-sidebar.custom-sidebar {
+.e-sidebar.custom-node-palette {
   background: var(--surface-color);
   border-right: 1px solid var(--border-color);
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
@@ -234,11 +234,11 @@
   transform: translateX(2px);
 }
 
-.node-icon {
+.custom-node-palette .node-icon {
   font-size: 1.5rem;
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -1,14 +1,3 @@
-/**
- * ConfigPanel Component Styles
- * 
- * This file contains styles for the ConfigPanel component which uses
- * the Syncfusion EJ2 SidebarComponent for professional sidebar behavior.
- * 
- * The panel appears on the right side and allows users to configure
- * properties of selected workflow nodes.
- */
-
-/* Base styles for the config panel sidebar */
 .custom-config-panel {
   background: var(--surface-color);
   display: flex;
@@ -28,9 +17,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-  color: white;
+  padding: .5rem 1rem;
+  color: var(--text-secondary);
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -41,7 +29,7 @@
 }
 
 .config-panel-title h3 {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 600;
   margin: 0;
   white-space: nowrap;
@@ -50,20 +38,15 @@
   max-width: 220px;
 }
 
-.node-icon {
+.custom-config-panel .node-icon {
   font-size: 1.5rem;
   border-radius: 8px;
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-}
-
-.config-panel-actions {
-  display: flex;
-  gap: 0.5rem;
 }
 
 .config-panel-content {

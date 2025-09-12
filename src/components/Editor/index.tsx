@@ -13,7 +13,6 @@ import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosit
 import WorkflowService from '../../services/WorkflowService';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
 import { calculateNewNodePosition, generateOptimizedThumbnail, getNodePortById } from '../../helper/diagramUtils';
-import html2canvas from 'html2canvas';
 import './Editor.css';
 
 interface EditorProps {
@@ -60,6 +59,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       const node = nodes.find((n: any) => n.id === selectedNodeId);
       if (node && node.addInfo && node.addInfo.nodeConfig) {
         setSelectedNode(node.addInfo.nodeConfig);
+        setNodePaletteSidebarOpen(false);
         setConfigPanelOpen(true);
       } else {
         setConfigPanelOpen(false);
@@ -111,6 +111,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const handleNodeDoubleClick = (nodeId: string) => {
     setSelectedNodeId(nodeId);
     setConfigPanelOpen(true);
+    setNodePaletteSidebarOpen(false);
   };
 
   const handleNodeConfigChange = (nodeId: string, config: NodeConfig) => {
@@ -156,6 +157,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       setSelectedPortConnection({ nodeId: node?.id as string, portId });
       setSelectedPortModel(port);
       setUserhandleAddNodeSelectionMode(true);
+      setConfigPanelOpen(false);
       setNodePaletteSidebarOpen(true);
     } else {
       // Not connectable, do nothing
@@ -494,7 +496,10 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         {/* Main Diagram Area */}
         <div className="diagram-container">
           <DiagramEditor 
-            onAddNode={() => setNodePaletteSidebarOpen(true)}
+            onAddNode={() => {
+              setConfigPanelOpen(false);
+              setNodePaletteSidebarOpen(true);
+            }}
             onNodeDoubleClick={handleNodeDoubleClick}
             onDiagramRef={(ref) => setDiagramRef(ref)}
             project={project}
@@ -503,7 +508,10 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
             onUserhandleAddNodeClick={handleUserhandleAddNodeClick}
             diagramSettings={diagramSettings}
             showInitialAddButton={showInitialAddButton}
-            onInitialAddClick={() => setNodePaletteSidebarOpen(true)}
+            onInitialAddClick={() => {
+              setConfigPanelOpen(false);
+              setNodePaletteSidebarOpen(true);
+            }}
             onNodeAddedFirstTime={() => setShowInitialAddButton(false)}
             onCanvasClick={() => setNodePaletteSidebarOpen(false)}
           />
@@ -512,7 +520,10 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         {/* Floating Toolbar */}
         <div className="editor-toolbar">
           <Toolbar 
-            onAddNode={() => setNodePaletteSidebarOpen(true)}
+            onAddNode={() => {
+              setConfigPanelOpen(false);
+              setNodePaletteSidebarOpen(true);
+            }}
             onExecute={handleExecuteWorkflow}
             onCancel={handleCancelExecution}
             onFitToPage={() => diagramRef?.fitToPage({canZoomIn: false, canZoomOut: false, margin:{top: 100, left: 100, bottom: 100, right: 100} })}

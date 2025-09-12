@@ -273,7 +273,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
   return (
     <SidebarComponent
       id="node-palette-sidebar"
-      className="custom-sidebar"
+      className="custom-node-palette"
       width="320px"
       position="Left"
       type="Over"
