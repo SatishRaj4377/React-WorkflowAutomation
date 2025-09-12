@@ -122,7 +122,6 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       const node = diagramRef.getObject(nodeId);
       if (node) {
         node.addInfo = { nodeConfig: config };
-        diagramRef.dataBind();
         setIsDirty(true); // Mark as dirty when node config changes
       }
     }
@@ -477,22 +476,22 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       />
       
       <div className="editor-content">
-        {/* Left Sidebar for Node Palette */}
-        <NodePaletteSidebar 
-          isOpen={nodePaletteSidebarOpen}
-          onClose={() => setNodePaletteSidebarOpen(false)}
-          onAddNode={handleAddNode}
-          port={isUserhandleAddNodeSelectionMode ? selectedPortModel : null}
-        />
-        
-        {/* Right Sidebar for Configuration */}
+        {/* Sidebar for Configuration */}
         <NodeConfigSidebar 
           isOpen={configPanelOpen}
           onClose={() => setConfigPanelOpen(false)}
           selectedNode={selectedNode}
           onNodeConfigChange={handleNodeConfigChange}
         />
-        
+
+        {/* Sidebar for Node Palette */}
+        <NodePaletteSidebar 
+          isOpen={nodePaletteSidebarOpen}
+          onClose={() => setNodePaletteSidebarOpen(false)}
+          onAddNode={handleAddNode}
+          port={isUserhandleAddNodeSelectionMode ? selectedPortModel : null}
+        />
+                
         {/* Main Diagram Area */}
         <div className="diagram-container">
           <DiagramEditor 

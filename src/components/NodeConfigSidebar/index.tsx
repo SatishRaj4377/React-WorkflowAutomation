@@ -19,8 +19,6 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   selectedNode,
   onNodeConfigChange,
 }) => {
-  // Local state for panel maximization
-  const [isMaximized, setIsMaximized] = useState(false);
   // Local state for active tab in the configuration tabs
   const [activeTab, setActiveTab] = useState(0);
 
@@ -56,13 +54,6 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
     if (!selectedNode) return;
     const updatedConfig = { ...selectedNode, name: value };
     onNodeConfigChange(selectedNode.id, updatedConfig);
-  };
-
-  /**
-   * Toggles the maximized state of the config panel
-   */
-  const toggleMaximize = () => {
-    setIsMaximized(!isMaximized);
   };
 
   /**
@@ -386,7 +377,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
     <SidebarComponent
       id="config-panel-sidebar"
       className={`custom-config-panel`}
-      width={isMaximized ? "80%" : "400px"} // Dynamic width based on maximized state
+      width={"400px"}
       position="Left"
       type="Over"
       isOpen={isOpen}
