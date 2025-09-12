@@ -5,6 +5,7 @@ import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { IconRegistry } from '../../assets/icons';
 import { NodeConfig } from '../../types';
 import './NodeConfigSidebar.css';
+import { TooltipComponent } from '@syncfusion/ej2-react-popups';
 
 interface ConfigPanelProps {
   isOpen: boolean;
@@ -397,7 +398,9 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
               <span className="node-icon">
                 {IconComponent && <IconComponent />}
               </span>
-              <h3>{selectedNode?.name || 'Node'} Configuration</h3>
+              <TooltipComponent content={`${selectedNode?.name || 'Node'} Configuration`}>
+                <h3>{selectedNode?.name || 'Node'} Configuration</h3>
+              </TooltipComponent>
             </div>
               <ButtonComponent
                 cssClass="close-btn"
