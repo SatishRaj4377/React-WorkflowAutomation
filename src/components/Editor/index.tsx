@@ -12,7 +12,8 @@ import ConfirmationDialog from '../ConfirmationDialog';
 import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosition } from '../../types';
 import WorkflowService from '../../services/WorkflowService';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
-import { calculateNewNodePosition, getNodePortById } from '../../helper/diagramUtils';
+import { calculateNewNodePosition, generateOptimizedThumbnail, getNodePortById } from '../../helper/diagramUtils';
+import html2canvas from 'html2canvas';
 import './Editor.css';
 
 interface EditorProps {
@@ -70,20 +71,24 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     }
   }, [selectedNodeId, diagramRef]);
 
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     try {
       if (diagramRef) {
         // Save diagram as string using EJ2's built-in method
         const diagramString = diagramRef.saveDiagram();
 
-        const updatedProject = {
+        // Generate thumbnail with current diagram output
+        const thumbnailBase64 = await generateOptimizedThumbnail(diagramRef.id);
+
+        const updatedProject: ProjectData = {
           ...project,
           name: projectName,
           workflowData: {
             ...(project.workflowData ?? {}),
-            diagramString: diagramString
+            diagramString: diagramString,
           },
-          diagramSettings: diagramSettings
+          diagramSettings: diagramSettings,
+          thumbnail: thumbnailBase64 ?? project.thumbnail,
         };
 
         WorkflowService.saveProject(updatedProject);
