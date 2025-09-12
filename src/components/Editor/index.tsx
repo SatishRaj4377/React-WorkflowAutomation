@@ -122,6 +122,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       const node = diagramRef.getObject(nodeId);
       if (node) {
         node.addInfo = { nodeConfig: config };
+        diagramRef.refresh(); // refresh the diagram to update the changes
         setIsDirty(true); // Mark as dirty when node config changes
       }
     }
