@@ -24,7 +24,7 @@ interface EditorProps {
 const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, }) => {
   const { theme } = useTheme();
   const [nodePaletteSidebarOpen, setNodePaletteSidebarOpen] = useState(false);
-  const [configPanelOpen, setConfigPanelOpen] = useState(false);
+  const [nodeConfigPanelOpen, setNodeConfigPanelOpen] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<NodeConfig | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
@@ -60,13 +60,13 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       if (node && node.addInfo && node.addInfo.nodeConfig) {
         setSelectedNode(node.addInfo.nodeConfig);
         setNodePaletteSidebarOpen(false);
-        setConfigPanelOpen(true);
+        setNodeConfigPanelOpen(true);
       } else {
-        setConfigPanelOpen(false);
+        setNodeConfigPanelOpen(false);
         setSelectedNode(null);
       }
     } else {
-      setConfigPanelOpen(false);
+      setNodeConfigPanelOpen(false);
       setSelectedNode(null);
     }
   }, [selectedNodeId, diagramRef]);
@@ -110,7 +110,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
 
   const handleNodeDoubleClick = (nodeId: string) => {
     setSelectedNodeId(nodeId);
-    setConfigPanelOpen(true);
+    setNodeConfigPanelOpen(true);
     setNodePaletteSidebarOpen(false);
   };
 
@@ -157,7 +157,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       setSelectedPortConnection({ nodeId: node?.id as string, portId });
       setSelectedPortModel(port);
       setUserhandleAddNodeSelectionMode(true);
-      setConfigPanelOpen(false);
+      setNodeConfigPanelOpen(false);
       setNodePaletteSidebarOpen(true);
     } else {
       // Not connectable, do nothing
@@ -493,8 +493,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       <div className="editor-content">
         {/* Sidebar for Configuration */}
         <NodeConfigSidebar 
-          isOpen={configPanelOpen}
-          onClose={() => setConfigPanelOpen(false)}
+          isOpen={nodeConfigPanelOpen}
+          onClose={() => setNodeConfigPanelOpen(false)}
           selectedNode={selectedNode}
           onNodeConfigChange={handleNodeConfigChange}
         />
@@ -511,7 +511,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         <div className="diagram-container">
           <DiagramEditor 
             onAddNode={() => {
-              setConfigPanelOpen(false);
+              setNodeConfigPanelOpen(false);
               setNodePaletteSidebarOpen(true);
             }}
             onNodeDoubleClick={handleNodeDoubleClick}
@@ -524,11 +524,14 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
             diagramSettings={diagramSettings}
             showInitialAddButton={showInitialAddButton}
             onInitialAddClick={() => {
-              setConfigPanelOpen(false);
+              setNodeConfigPanelOpen(false);
               setNodePaletteSidebarOpen(true);
             }}
             onNodeAddedFirstTime={() => setShowInitialAddButton(false)}
-            onCanvasClick={() => setNodePaletteSidebarOpen(false)}
+            onCanvasClick={() => {
+              setNodePaletteSidebarOpen(false);
+              setNodeConfigPanelOpen(false);
+            }}
           />
         </div>
         
@@ -536,7 +539,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         <div className="editor-toolbar">
           <Toolbar 
             onAddNode={() => {
-              setConfigPanelOpen(false);
+              setNodeConfigPanelOpen(false);
               setNodePaletteSidebarOpen(true);
             }}
             onExecute={handleExecuteWorkflow}
