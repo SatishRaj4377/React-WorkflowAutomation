@@ -353,14 +353,13 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     if (args && args.source && args.source.id) {
       const nodeId = args.source.id;
       const node = args.source;
-      const nodeConfig = (node.addInfo as any)?.nodeConfig as NodeConfig;
-      
+      const nodeConfig = (node.addInfo as any)?.nodeConfig as NodeConfig | undefined;
+      if (!nodeConfig) return; // Prevent exception if nodeConfig is undefined
       // Handle sticky note double-click
-      if (nodeConfig?.type === 'sticky') {
+      if (nodeConfig.type === 'sticky') {
         handleStickyNoteEdit(node);
         return;
       }
-      
       // Handle regular node double-click
       if (onNodeDoubleClick) {
         setSelectedNodeIds([nodeId]);
