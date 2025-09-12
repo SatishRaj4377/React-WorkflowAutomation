@@ -505,6 +505,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
             onDiagramChange={handleDiagramChange}
             onAddStickyNote={handleAddStickyNote}
             onUserhandleAddNodeClick={handleUserhandleAddNodeClick}
+            isUserHandleAddNodeEnabled= {isUserhandleAddNodeSelectionMode}
             diagramSettings={diagramSettings}
             showInitialAddButton={showInitialAddButton}
             onInitialAddClick={() => {

@@ -41,6 +41,7 @@ interface DiagramEditorProps {
   onDiagramChange?: (args: any) => void;
   onAddStickyNote?: (position: { x: number; y: number }) => void;
   onUserhandleAddNodeClick?: (node: NodeModel, portId: string) => void;
+  isUserHandleAddNodeEnabled?: boolean;
   diagramSettings?: DiagramSettings;
   showInitialAddButton?: boolean;
   onInitialAddClick?: () => void;
@@ -58,6 +59,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   onDiagramChange,
   onAddStickyNote,
   onUserhandleAddNodeClick,
+  isUserHandleAddNodeEnabled,
   diagramSettings,
   showInitialAddButton,
   onInitialAddClick,
@@ -333,7 +335,11 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   // Handle diagram click, 
   const handleClick = (args: any) => {
     const clickedElement = args.element;
-    
+    // on userhandle add node process is ongoing, then on clicking on the diagram don't draw connector(reset the tool)
+    if (isUserHandleAddNodeEnabled && diagramRef && diagramRef.current){
+      diagramRef.current.tool = DiagramTools.Default;
+    }
+
     // If Userhandle was clicked.
     // The onUserHandleMouseDown event handles opening the palette. We stop here to prevent this click from closing it.
     const isCustomUserHandleClick = clickedElement?.name?.startsWith('add-node-from-port-');
