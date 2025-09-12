@@ -187,7 +187,8 @@ body, .e-control, .e-card{
   background-color: var(--center-action-border);
   border-color: var(--center-action-border);
 }
-.e-checkbox-wrapper:hover .e-frame.e-check{
+.e-checkbox-wrapper:hover .e-frame.e-check,
+.e-checkbox-wrapper:hover .e-frame.e-stop {
   background-color: var(--center-action-icon);
   border-color: var(--center-action-icon);
 }
