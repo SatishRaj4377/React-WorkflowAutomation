@@ -19,8 +19,8 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo }) => {
   }
 
   const IconComponent = nodeConfig.icon ? IconRegistry[nodeConfig.icon] : null;
-
-  const isIfCondition = nodeConfig.id && nodeConfig.id.includes('if-condition');
+  const nodeCategory = nodeConfig?.category;
+  const isIfOrSwitchCondition = nodeCategory === 'condition' && (nodeConfig.nodeType === 'If Condition' || nodeConfig.nodeType === 'Switch Case');
   const isAiAgent = nodeConfig.id && nodeConfig.id.includes('ai-agent');
   
   return (
@@ -29,14 +29,14 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo }) => {
         {/* Port Rendering Logic... */}
         {/* For Trigger Nodes, show port only at the right side */}
         {nodeConfig.category === 'trigger' && <div className="node-port-right"></div>}
-        {nodeConfig.category === 'action' && !isIfCondition && !isAiAgent && (
+        {(nodeConfig.category === 'action' || nodeConfig.category === 'condition') && !isIfOrSwitchCondition && !isAiAgent && (
           <>
             <div className="node-port-left"></div>
             <div className="node-port-right"></div>
           </>
         )}
         {/* For If condition Nodes, show port on left and also two output ports in the right */}
-        {isIfCondition && (
+        {isIfOrSwitchCondition && (
           <>
             <div className="node-port-left"></div>
             <div className="node-port-right-top"></div>

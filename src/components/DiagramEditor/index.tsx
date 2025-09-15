@@ -155,18 +155,18 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     
     if (nodeConfig && typeof nodeConfig === "object") {
       // Check if the ID contains specific node types
-      const isIfCondition = nodeCategory === 'condition' && nodeConfig.nodeType === 'If Condition';
+      const isIfOrSwitchCondition = nodeCategory === 'condition' && (nodeConfig.nodeType === 'If Condition' || nodeConfig.nodeType === 'Switch Case');
       const isAiAgent = nodeId.includes('ai-agent');
       
       updateNodeTemplates(nodeCategory, setUpStickyNote, obj);
       
-      updateNodeSize(isAiAgent, obj, isIfCondition, nodeCategory);
+      updateNodeSize(isAiAgent, obj, nodeCategory);
 
       updateNodeConstraints(obj, nodeCategory);
 
       updateNodePosition(obj, diagramRef);
 
-      updateNodePorts(nodeCategory, obj, isAiAgent, isIfCondition);
+      updateNodePorts(nodeCategory, obj, isAiAgent, isIfOrSwitchCondition);
     }
 
     return obj;
@@ -829,7 +829,7 @@ function generatePortBasedUserHandles(node: NodeModel): UserHandleModel[] {
 }
 
 // Configure ports based on node type (skip for existing nodes that already have ports)
-function updateNodePorts(nodeType: string | undefined, obj: NodeModel, isAiAgent: boolean, isIfCondition: boolean) {
+function updateNodePorts(nodeType: string | undefined, obj: NodeModel, isAiAgent: boolean, isIfOrSwitchCondition: boolean) {
   if (!nodeType || nodeType !== "sticky") {
     // Only set ports if they don't already exist (for loaded nodes)
     const shouldSetPorts = !obj.ports || obj.ports.length === 0;
@@ -891,8 +891,8 @@ function updateNodePorts(nodeType: string | undefined, obj: NodeModel, isAiAgent
             tooltip: { content: 'Tools' },
           },
         ];
-      } else if (isIfCondition) {
-        // If Condition with 3 ports
+      } else if (isIfOrSwitchCondition) {
+        // If or Switch Condition with 3 ports
         obj.ports = [
           {
             id: "left-port",
@@ -1020,12 +1020,9 @@ function updateNodeConstraints(obj: NodeModel, nodeType: string | undefined) {
 }
 
 // Set node size based on node type (preserve existing size for loaded nodes)
-function updateNodeSize(isAiAgent: boolean, obj: NodeModel, isIfCondition: boolean, nodeType: string | undefined) {
+function updateNodeSize(isAiAgent: boolean, obj: NodeModel, nodeType: string | undefined) {
   if (isAiAgent) {
     if (!obj.width || obj.width === 0) obj.width = 160; // Larger for AI agent
-    if (!obj.height || obj.height === 0) obj.height = 80;
-  } else if (isIfCondition) {
-    if (!obj.width || obj.width === 0) obj.width = 80; // Width for condition node
     if (!obj.height || obj.height === 0) obj.height = 80;
   } else if (nodeType === 'sticky') {
     // For sticky notes, preserve existing size or set default
