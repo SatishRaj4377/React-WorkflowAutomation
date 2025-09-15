@@ -57,14 +57,16 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo }) => {
         )}
         
         {/* Icon and Name Rendering... */}
-        <div className="node-img-content">
+        <div className="node-img-content" style={isAiAgent ? { gap: '1.2rem' } : {}}>
           {IconComponent && <IconComponent />}
-          <span>{isAiAgent && nodeConfig.name ? nodeConfig.name : ''}</span>
+          <span className='ai-agent-name-bar'>{isAiAgent && nodeConfig.name ? nodeConfig.name : ''}</span>
         </div>
       </div>
-      <div className="node-name-bar">
-        {!isAiAgent && nodeConfig.name ? nodeConfig.name : ''}
-      </div>
+      {!isAiAgent &&(
+        <div className="node-name-bar">
+          {nodeConfig.name ? nodeConfig.name : ''}
+        </div>
+      )}
     </div>
   );
 };
