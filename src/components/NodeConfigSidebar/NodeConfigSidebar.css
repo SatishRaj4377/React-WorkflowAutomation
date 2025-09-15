@@ -114,8 +114,7 @@
 }
 
 .config-input,
-.config-textarea,
-.config-select {
+.config-textarea {
   width: 100%;
   background: var(--background-color);
   border: 1px solid var(--border-color);

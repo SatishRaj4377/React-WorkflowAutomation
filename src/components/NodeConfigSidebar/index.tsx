@@ -1,11 +1,18 @@
 import React, { useState } from 'react';
-import { SidebarComponent, TabComponent, TabItemDirective, TabItemsDirective } from '@syncfusion/ej2-react-navigations';
-import { ButtonComponent, CheckBoxComponent } from '@syncfusion/ej2-react-buttons';
+import {
+  SidebarComponent,
+  TabComponent,
+  TabItemsDirective,
+  TabItemDirective,
+} from '@syncfusion/ej2-react-navigations';
 import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
-import { IconRegistry } from '../../assets/icons';
-import { NodeConfig } from '../../types';
-import './NodeConfigSidebar.css';
+import { DropDownListComponent } from '@syncfusion/ej2-react-dropdowns';
+import { CheckBoxComponent, ButtonComponent } from '@syncfusion/ej2-react-buttons';
 import { TooltipComponent } from '@syncfusion/ej2-react-popups';
+
+import { IconRegistry } from '../../assets/icons';
+import { NodeConfig, NodeType } from '../../types';
+import './NodeConfigSidebar.css';
 
 interface ConfigPanelProps {
   isOpen: boolean;
@@ -14,61 +21,363 @@ interface ConfigPanelProps {
   onNodeConfigChange: (nodeId: string, config: NodeConfig) => void;
 }
 
+/** Shared lists */
+const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
+const TIMEZONES = ['UTC', 'Asia/Kolkata', 'America/New_York', 'Europe/London', 'Asia/Tokyo'];
+
+/** Node types that require an Authentication tab */
+const AUTH_NODE_TYPES: NodeType[] = [
+  'Gmail',
+  'Google Sheets',
+  'Google Calendar',
+  'Google Docs',
+  'Telegram',
+  'Twilio',
+  'Azure Chat Model',
+];
+
+/** Component */
 const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   isOpen,
   onClose,
   selectedNode,
   onNodeConfigChange,
 }) => {
-  // Local state for active tab in the configuration tabs
+  // Hooks first — no conditional hooks to satisfy eslint rules-of-hooks
   const [activeTab, setActiveTab] = useState(0);
 
-  const IconComponent = selectedNode?.icon ? IconRegistry[selectedNode.icon] : null;
+  // Resolve icon component only when node exists
+  const IconComponent =
+    selectedNode?.icon ? (IconRegistry as any)[selectedNode.icon] : null;
 
-  /**
-   * Handles configuration changes for node settings
-   * @param field - The field name to update
-   * @param value - The new value for the field
-   * @param section - The settings section (general, authentication, advanced)
-   */
-  const handleConfigChange = (field: string, value: any, section: 'general' | 'authentication' | 'advanced' = 'general') => {
+  /** Safely update settings */
+  const handleConfigChange = (
+    field: string,
+    value: any,
+    section: 'general' | 'authentication' | 'advanced' = 'general'
+  ) => {
     if (!selectedNode) return;
 
-    const updatedConfig = {
+    const prevSection =
+      (selectedNode.settings && (selectedNode.settings as any)[section]) || {};
+
+    const updatedConfig: NodeConfig = {
       ...selectedNode,
       settings: {
         ...selectedNode.settings,
         [section]: {
-          ...selectedNode.settings[section],
-          [field]: value
-        }
-      }
+          ...prevSection,
+          [field]: value,
+        },
+      },
     };
-
     onNodeConfigChange(selectedNode.id, updatedConfig);
   };
 
-  /**
-   * Handles node name changes
-   */
   const handleNameChange = (value: string) => {
     if (!selectedNode) return;
-    const updatedConfig = { ...selectedNode, displayName: value };
+    const updatedConfig: NodeConfig = { ...selectedNode, displayName: value };
     onNodeConfigChange(selectedNode.id, updatedConfig);
   };
 
-  /**
-   * Renders the General tab content with basic node configuration
-   */
-  const renderGeneralTab = () => {
-    if (!selectedNode) return null;
+  /** Node-specific fields inside the General tab */
+  const renderNodeSpecificFields = (type: NodeType, settings: any) => {
+    switch (type) {
+      case 'Webhook':
+        return (
+          <>
+            <div className="config-section">
+              <label className="config-label">Webhook URL</label>
+              <TextBoxComponent
+                value={settings.url ?? ''}
+                placeholder="https://your-endpoint.example.com/webhook"
+                change={(e: any) => handleConfigChange('url', e.value)}
+                cssClass="config-input"
+              />
+            </div>
+            <div className="config-section">
+              <label className="config-label">Method</label>
+              <DropDownListComponent
+                value={settings.method ?? ''}
+                dataSource={HTTP_METHODS}
+                placeholder="Select method"
+                change={(e: any) => handleConfigChange('method', e.value)}
+                popupHeight="240px"
+                zIndex={1000000}
+              />
+            </div>
+          </>
+        );
 
+      case 'Schedule':
+        return (
+          <>
+            <div className="config-section">
+              <div className="config-row" style={{ justifyContent: 'space-between' }}>
+                <label className="config-label">Cron Expression</label>
+                <TooltipComponent content="e.g., */5 * * * * for every 5 minutes">
+                  <span style={{ color: 'var(--text-secondary)', cursor: 'help' }} className='e-icons e-circle-info'></span>
+                </TooltipComponent>
+              </div>
+              <TextBoxComponent
+                value={settings.cronExpression ?? ''}
+                placeholder="*/5 * * * *"
+                change={(e: any) => handleConfigChange('cronExpression', e.value)}
+                cssClass="config-input"
+              />
+            </div>
+            <div className="config-section">
+              <label className="config-label">Timezone</label>
+              <DropDownListComponent
+                value={settings.timezone ?? ''}
+                dataSource={TIMEZONES}
+                placeholder="Pick a timezone"
+                change={(e: any) => handleConfigChange('timezone', e.value)}
+                popupHeight="240px"
+                zIndex={1000000}
+              />
+            </div>
+          </>
+        );
+
+      case 'Manual Click':
+        return (
+          <>
+            <div className="config-section">
+              <label className="config-label">Button Label</label>
+              <TextBoxComponent
+                value={settings.buttonLabel ?? 'Run'}
+                placeholder="Run"
+                change={(e: any) => handleConfigChange('buttonLabel', e.value)}
+                cssClass="config-input"
+              />
+            </div>
+            <div className="config-section">
+              <label className="config-label">Instruction</label>
+              <TextBoxComponent
+                value={settings.instruction ?? ''}
+                placeholder="Optional instruction for the operator"
+                change={(e: any) => handleConfigChange('instruction', e.value)}
+                cssClass="config-textarea"
+                multiline
+              />
+            </div>
+          </>
+        );
+
+      case 'Chat':
+        return (
+          <>
+            <div className="config-section">
+              <label className="config-label">System Prompt</label>
+              <TextBoxComponent
+                value={settings.systemPrompt ?? ''}
+                placeholder="You are a helpful assistant…"
+                change={(e: any) => handleConfigChange('systemPrompt', e.value)}
+                cssClass="config-textarea"
+                multiline
+              />
+            </div>
+            <div className="config-section">
+              <label className="config-label">Initial Message</label>
+              <TextBoxComponent
+                value={settings.initialMessage ?? ''}
+                placeholder="Hello! How can I help you today?"
+                change={(e: any) => handleConfigChange('initialMessage', e.value)}
+                cssClass="config-input"
+              />
+            </div>
+          </>
+        );
+
+      case 'AI Agent':
+        return (
+          <>
+            <div className="config-section">
+              <label className="config-label">Role</label>
+              <TextBoxComponent
+                value={settings.role ?? 'Assistant'}
+                change={(e: any) => handleConfigChange('role', e.value)}
+                cssClass="config-input"
+              />
+            </div>
+            <div className="config-section">
+              <label className="config-label">Goal</label>
+              <TextBoxComponent
+                value={settings.goal ?? ''}
+                placeholder="Define the agent's objective"
+                change={(e: any) => handleConfigChange('goal', e.value)}
+                cssClass="config-textarea"
+                multiline
+              />
+            </div>
+            <div className="config-section">
+              <label className="config-label">Allow Tools</label>
+              <CheckBoxComponent
+                checked={!!settings.allowTools}
+                change={(e: any) => handleConfigChange('allowTools', !!e.checked)}
+                cssClass="config-checkbox"
+              />
+            </div>
+          </>
+        );
+
+      case 'Azure Chat Model':
+        return (
+          <>
+            <div className="config-section">
+              <label className="config-label">Deployment</label>
+              <TextBoxComponent
+                value={settings.deployment ?? ''}
+                placeholder="Deployment name"
+                change={(e: any) => handleConfigChange('deployment', e.value)}
+                cssClass="config-input"
+              />
+            </div>
+            <div className="config-section">
+              <label className="config-label">Temperature</label>
+              <TextBoxComponent
+                type="number"
+                value={settings.temperature ?? 1}
+                change={(e: any) => handleConfigChange('temperature', e.value)}
+                cssClass="config-input"
+              />
+            </div>
+          </>
+        );
+
+      case 'HTTP Request':
+        return (
+          <>
+            <div className="config-section">
+              <label className="config-label">URL</label>
+              <TextBoxComponent
+                value={settings.url ?? ''}
+                placeholder="https://api.example.com/resource"
+                change={(e: any) => handleConfigChange('url', e.value)}
+                cssClass="config-input"
+              />
+            </div>
+
+            <div className="config-section">
+              <label className="config-label">Method</label>
+              <DropDownListComponent
+                value={settings.method ?? ''}
+                dataSource={HTTP_METHODS}
+                placeholder="Select method"
+                change={(e: any) => handleConfigChange('method', e.value)}
+                popupHeight="240px"
+                zIndex={1000000}
+              />
+            </div>
+
+            <div className="config-section">
+              <label className="config-label">Headers (JSON)</label>
+              <TextBoxComponent
+                value={settings.headers ?? ''}
+                placeholder='{"Content-Type":"application/json"}'
+                change={(e: any) => handleConfigChange('headers', e.value)}
+                cssClass="config-textarea"
+                multiline
+              />
+            </div>
+
+            <div className="config-section">
+              <label className="config-label">Body</label>
+              <TextBoxComponent
+                value={settings.body ?? ''}
+                placeholder='{"key":"value"}'
+                change={(e: any) => handleConfigChange('body', e.value)}
+                cssClass="config-textarea"
+                multiline
+              />
+            </div>
+          </>
+        );
+
+      case 'Gmail':
+      case 'Google Sheets':
+      case 'Google Calendar':
+      case 'Google Docs':
+      case 'Telegram':
+      case 'Twilio':
+        return (
+          <>
+            <div className="config-section">
+              <label className="config-label">Action</label>
+              <DropDownListComponent
+                value={settings.action ?? ''}
+                dataSource={['Create', 'Read', 'Update', 'Delete', 'List', 'Send', 'Search']}
+                placeholder="Select action"
+                change={(e: any) => handleConfigChange('action', e.value)}
+                popupHeight="240px"
+                zIndex={1000000}
+              />
+            </div>
+          </>
+        );
+
+      case 'If Condition':
+        return (
+          <>
+            <div className="config-section">
+              <label className="config-label">Condition</label>
+              <TextBoxComponent
+                value={settings.condition ?? ''}
+                placeholder="Use an expression or template variable"
+                change={(e: any) => handleConfigChange('condition', e.value)}
+                cssClass="config-textarea"
+                multiline
+              />
+            </div>
+          </>
+        );
+
+      case 'Switch Case':
+        return (
+          <>
+            <div className="config-section">
+              <label className="config-label">Expression</label>
+              <TextBoxComponent
+                value={settings.expression ?? ''}
+                placeholder="e.g., {{ $.data.status }}"
+                change={(e: any) => handleConfigChange('expression', e.value)}
+                cssClass="config-input"
+              />
+            </div>
+          </>
+        );
+
+      case 'Filter':
+        return (
+          <>
+            <div className="config-section">
+              <label className="config-label">Predicate</label>
+              <TextBoxComponent
+                value={settings.predicate ?? ''}
+                placeholder="e.g., item.amount > 1000"
+                change={(e: any) => handleConfigChange('predicate', e.value)}
+                cssClass="config-textarea"
+                multiline
+              />
+            </div>
+          </>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  /** General tab */
+  const renderGeneralTab = () => {
+    const settings = (selectedNode?.settings && selectedNode.settings.general) || {};
     return (
       <div className="config-tab-content">
         <div className="config-section">
           <label className="config-label">Node Name</label>
           <TextBoxComponent
-            value={selectedNode?.displayName || ''}
+            value={selectedNode?.displayName ?? ''}
             placeholder="Enter node name"
             change={(e: any) => handleNameChange(e.value)}
             cssClass="config-input"
@@ -80,215 +389,41 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           <TextBoxComponent
             value={selectedNode?.settings?.general?.description || ''}
             placeholder="Enter node description"
-            change={(e: any) => handleConfigChange('description', e.value)}
+            change={(e: any) => handleConfigChange('description', e.value, 'general')}
             cssClass="config-textarea"
             multiline
           />
         </div>
 
-        {/* Node-specific configuration based on type */}
-        {selectedNode.category === 'trigger' && renderTriggerConfig()}
-        {selectedNode.category === 'action' && renderActionConfig()}
-        {/* selectedNode.category === 'form' && renderFormConfig() */}
-        {/* {selectedNode.type === 'sticky' && renderStickyConfig()} */}
+        {renderNodeSpecificFields(selectedNode!.nodeType, settings)}
       </div>
     );
   };
 
-  /**
-   * Renders trigger-specific configuration options
-   */
-  const renderTriggerConfig = () => {
-    if (!selectedNode) return null;
-    const settings = selectedNode.settings.general || {};
-
-    return (
-      <>
-        <div className="config-section">
-          <label className="config-label">Trigger Type</label>
-          <select
-            value={settings.triggerType || 'webhook'}
-            onChange={(e) => handleConfigChange('triggerType', e.target.value)}
-            className="config-select"
-          >
-            <option value="webhook">Webhook</option>
-            <option value="schedule">Schedule</option>
-            <option value="email">Email</option>
-            <option value="file">File Watcher</option>
-          </select>
-        </div>
-
-        {settings.triggerType === 'webhook' && (
-          <div className="config-section">
-            <label className="config-label">Webhook URL</label>
-            <TextBoxComponent
-              value={settings.webhookUrl || ''}
-              placeholder="https://your-webhook-url.com"
-              change={(e: any) => handleConfigChange('webhookUrl', e.value)}
-              cssClass="config-input"
-            />
-          </div>
-        )}
-
-        {settings.triggerType === 'schedule' && (
-          <div className="config-section">
-            <label className="config-label">Cron Expression</label>
-            <TextBoxComponent
-              value={settings.cronExpression || ''}
-              placeholder="0 0 * * *"
-              change={(e: any) => handleConfigChange('cronExpression', e.value)}
-              cssClass="config-input"
-            />
-          </div>
-        )}
-      </>
-    );
-  };
-
-  /**
-   * Renders action-specific configuration options
-   */
-  const renderActionConfig = () => {
-    if (!selectedNode) return null;
-    const settings = selectedNode.settings.general || {};
-
-    return (
-      <>
-        <div className="config-section">
-          <label className="config-label">Action Type</label>
-          <select
-            value={settings.actionType || 'http'}
-            onChange={(e) => handleConfigChange('actionType', e.target.value)}
-            className="config-select"
-          >
-            <option value="http">HTTP Request</option>
-            <option value="email">Send Email</option>
-            <option value="transform">Transform Data</option>
-            <option value="condition">Condition</option>
-          </select>
-        </div>
-
-        {settings.actionType === 'http' && (
-          <>
-            <div className="config-section">
-              <label className="config-label">URL</label>
-              <TextBoxComponent
-                value={settings.url || ''}
-                placeholder="https://api.example.com/endpoint"
-                change={(e: any) => handleConfigChange('url', e.value)}
-                cssClass="config-input"
-              />
-            </div>
-            <div className="config-section">
-              <label className="config-label">Method</label>
-              <select
-                value={settings.method || 'GET'}
-                onChange={(e) => handleConfigChange('method', e.target.value)}
-                className="config-select"
-              >
-                <option value="GET">GET</option>
-                <option value="POST">POST</option>
-                <option value="PUT">PUT</option>
-                <option value="DELETE">DELETE</option>
-              </select>
-            </div>
-          </>
-        )}
-
-        {settings.actionType === 'email' && (
-          <>
-            <div className="config-section">
-              <label className="config-label">To Email</label>
-              <TextBoxComponent
-                value={settings.toEmail || ''}
-                placeholder="recipient@example.com"
-                change={(e: any) => handleConfigChange('toEmail', e.value)}
-                cssClass="config-input"
-              />
-            </div>
-            <div className="config-section">
-              <label className="config-label">Subject</label>
-              <TextBoxComponent
-                value={settings.subject || ''}
-                placeholder="Email subject"
-                change={(e: any) => handleConfigChange('subject', e.value)}
-                cssClass="config-input"
-              />
-            </div>
-          </>
-        )}
-      </>
-    );
-  };
-
-  /**
-   * Renders form-specific configuration options
-   */
-  const renderFormConfig = () => {
-    return (
-      <div className="config-section">
-        <label className="config-label">Form Fields</label>
-        <p className="config-description">Configure form fields and validation rules.</p>
-        <ButtonComponent
-          content="Add Field"
-          iconCss="e-icons e-plus"
-          cssClass="add-field-btn"
-        />
-      </div>
-    );
-  };
-
-  /**
-   * Renders sticky note-specific configuration options
-   */
-  const renderStickyConfig = () => {
-    if (!selectedNode) return null;
-    const settings = selectedNode.settings.general || {};
-
-    return (
-      <div className="config-section">
-        <label className="config-label">Sticky Note Color</label>
-        <div className="color-picker-container">
-          <input
-            type="color"
-            value={settings.color || '#fff59d'}
-            onChange={(e) => handleConfigChange('color', e.target.value)}
-            className="color-picker"
-          />
-        </div>
-      </div>
-    );
-  };
-
-  /**
-   * Renders the Authentication tab content
-   */
+  /** Authentication tab (only when required) */
   const renderAuthenticationTab = () => {
-    if (!selectedNode) return null;
-
+    const auth = (selectedNode?.settings && selectedNode.settings.authentication) || {};
+    const typeVal = auth.type ?? '';
     return (
       <div className="config-tab-content">
         <div className="config-section">
           <label className="config-label">Authentication Type</label>
-          <select
-            value={selectedNode.settings.authentication?.type || 'none'}
-            onChange={(e) => handleConfigChange('type', e.target.value, 'authentication')}
-            className="config-select"
-          >
-            <option value="none">None</option>
-            <option value="basic">Basic Auth</option>
-            <option value="bearer">Bearer Token</option>
-            <option value="oauth">OAuth 2.0</option>
-            <option value="api-key">API Key</option>
-          </select>
+          <DropDownListComponent
+            value={typeVal}
+            dataSource={['Basic Auth', 'Bearer Token', 'OAuth2']}
+            placeholder="Select authentication"
+            change={(e: any) => handleConfigChange('type', e.value, 'authentication')}
+            popupHeight="240px"
+            zIndex={1000000}
+          />
         </div>
 
-        {selectedNode.settings.authentication?.type === 'basic' && (
+        {typeVal === 'Basic Auth' && (
           <>
             <div className="config-section">
               <label className="config-label">Username</label>
               <TextBoxComponent
-                value={selectedNode.settings.authentication.username || ''}
+                value={auth.username ?? ''}
                 change={(e: any) => handleConfigChange('username', e.value, 'authentication')}
                 cssClass="config-input"
               />
@@ -297,7 +432,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
               <label className="config-label">Password</label>
               <TextBoxComponent
                 type="password"
-                value={selectedNode.settings.authentication.password || ''}
+                value={auth.password ?? ''}
                 change={(e: any) => handleConfigChange('password', e.value, 'authentication')}
                 cssClass="config-input"
               />
@@ -305,80 +440,53 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           </>
         )}
 
-        {selectedNode.settings.authentication?.type === 'bearer' && (
+        {typeVal === 'Bearer Token' && (
           <div className="config-section">
             <label className="config-label">Bearer Token</label>
             <TextBoxComponent
-              type="password"
-              value={selectedNode.settings.authentication.token || ''}
+              value={auth.token ?? ''}
               change={(e: any) => handleConfigChange('token', e.value, 'authentication')}
               cssClass="config-input"
             />
           </div>
         )}
+
+        {typeVal === 'OAuth2' && (
+          <>
+            <div className="config-section">
+              <label className="config-label">Account</label>
+              <DropDownListComponent
+                value={auth.account ?? ''}
+                dataSource={['Connect new…']}
+                placeholder="Choose or connect account"
+                change={(e: any) => handleConfigChange('account', e.value, 'authentication')}
+                popupHeight="240px"
+                zIndex={1000000}
+              />
+            </div>
+            <div className="config-section">
+              <label className="config-label">Scopes</label>
+              <TextBoxComponent
+                value={auth.scopes ?? ''}
+                placeholder="space-separated scopes"
+                change={(e: any) => handleConfigChange('scopes', e.value, 'authentication')}
+                cssClass="config-textarea"
+                multiline
+              />
+            </div>
+          </>
+        )}
       </div>
     );
   };
 
-  /**
-   * Renders the Advanced tab content with advanced configuration options
-   */
-  const renderAdvancedTab = () => {
-    if (!selectedNode) return null;
+  const requiresAuthTab = !!selectedNode && AUTH_NODE_TYPES.includes(selectedNode.nodeType);
 
-    return (
-      <div className="config-tab-content">
-        <div className="config-section">
-          <label className="config-label">Timeout (seconds)</label>
-          <TextBoxComponent
-            type="number"
-            value={selectedNode.settings.advanced?.timeout || '30'}
-            change={(e: any) => handleConfigChange('timeout', parseInt(e.value), 'advanced')}
-            cssClass="config-input"
-          />
-        </div>
-
-        <div className="config-section">
-          <label className="config-label">Retry Attempts</label>
-          <TextBoxComponent
-            type="number"
-            value={selectedNode.settings.advanced?.retryAttempts || '3'}
-            change={(e: any) => handleConfigChange('retryAttempts', parseInt(e.value), 'advanced')}
-            cssClass="config-input"
-          />
-        </div>
-
-        <div className="config-section">
-          <div className="config-row">
-            <label className="config-label">Continue on Error</label>
-            <CheckBoxComponent
-              checked={selectedNode.settings.advanced?.continueOnError || false}
-              change={(e: any) => handleConfigChange('continueOnError', e.checked, 'advanced')}
-              cssClass="config-checkbox"
-            />
-          </div>
-        </div>
-
-        <div className="config-section">
-          <label className="config-label">Custom Headers (JSON)</label>
-          <TextBoxComponent
-            value={selectedNode.settings.advanced?.customHeaders || ''}
-            placeholder='{"Content-Type": "application/json"}'
-            change={(e: any) => handleConfigChange('customHeaders', e.value, 'advanced')}
-            cssClass="config-textarea"
-            multiline={true}
-          />
-        </div>
-      </div>
-    );
-  };
-
-  // Render the EJ2 Sidebar component for the configuration panel
   return (
     <SidebarComponent
       id="config-panel-sidebar"
       className={`custom-config-panel`}
-      width={"400px"}
+      width={'400px'}
       position="Left"
       type="Over"
       isOpen={isOpen}
@@ -393,6 +501,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
         </div>
       ) : (
         <>
+          {/* === Header (kept exactly as you requested) === */}
           <div className="config-panel-header">
             <div className="config-panel-title">
               <span className="node-icon">
@@ -402,27 +511,26 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
                 <h3>{selectedNode?.nodeType || 'Node'} Configuration</h3>
               </TooltipComponent>
             </div>
-              <ButtonComponent
-                cssClass="close-btn"
-                iconCss="e-icons e-close"
-                onClick={onClose}
-              />
+            <ButtonComponent
+              cssClass="close-btn"
+              iconCss="e-icons e-close"
+              onClick={onClose}
+            />
           </div>
 
+          {/* === Body === */}
           <div className="config-panel-content">
             <TabComponent
-              id="config-tab"
+              heightAdjustMode="None"
+              selected={(e: any) => setActiveTab(e.selectedIndex)}
               selectedItem={activeTab}
-              selecting={(e: any) => setActiveTab(e.selectedIndex)}
               cssClass="config-tabs"
             >
               <TabItemsDirective>
-                <TabItemDirective header={{ text: 'General' }} content={renderGeneralTab}>
-                </TabItemDirective>
-                <TabItemDirective header={{ text: 'Authentication' }} content={renderAuthenticationTab}>
-                </TabItemDirective>
-                <TabItemDirective header={{ text: 'Advanced' }} content={renderAdvancedTab}>
-                </TabItemDirective>
+                <TabItemDirective header={{ text: 'General' }} content={() => renderGeneralTab()} />
+                {requiresAuthTab && (
+                  <TabItemDirective header={{ text: 'Authentication' }} content={() => renderAuthenticationTab()} />
+                )}
               </TabItemsDirective>
             </TabComponent>
           </div>
