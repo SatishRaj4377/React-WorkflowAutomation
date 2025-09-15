@@ -53,7 +53,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
    */
   const handleNameChange = (value: string) => {
     if (!selectedNode) return;
-    const updatedConfig = { ...selectedNode, name: value };
+    const updatedConfig = { ...selectedNode, displayName: value };
     onNodeConfigChange(selectedNode.id, updatedConfig);
   };
 
@@ -68,7 +68,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
         <div className="config-section">
           <label className="config-label">Node Name</label>
           <TextBoxComponent
-            value={selectedNode?.name || ''}
+            value={selectedNode?.displayName || ''}
             placeholder="Enter node name"
             change={(e: any) => handleNameChange(e.value)}
             cssClass="config-input"
@@ -87,9 +87,9 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
         </div>
 
         {/* Node-specific configuration based on type */}
-        {selectedNode.type === 'trigger' && renderTriggerConfig()}
-        {selectedNode.type === 'action' && renderActionConfig()}
-        {selectedNode.type === 'form' && renderFormConfig()}
+        {selectedNode.category === 'trigger' && renderTriggerConfig()}
+        {selectedNode.category === 'action' && renderActionConfig()}
+        {/* selectedNode.category === 'form' && renderFormConfig() */}
         {/* {selectedNode.type === 'sticky' && renderStickyConfig()} */}
       </div>
     );
@@ -398,8 +398,8 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
               <span className="node-icon">
                 {IconComponent && <IconComponent />}
               </span>
-              <TooltipComponent content={`${selectedNode?.name || 'Node'} Configuration`}>
-                <h3>{selectedNode?.name || 'Node'} Configuration</h3>
+              <TooltipComponent content={`${selectedNode?.nodeType || 'Node'} Configuration`}>
+                <h3>{selectedNode?.nodeType || 'Node'} Configuration</h3>
               </TooltipComponent>
             </div>
               <ButtonComponent

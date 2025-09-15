@@ -1,7 +1,8 @@
 export interface NodeConfig {
   id: string;
-  type: 'trigger' | 'action' | 'sticky' | 'form' | 'condition';
-  name: string;
+  displayName: string;
+  nodeType: NodeType;
+  category: NodeCategories
   icon?: string;
   settings: {
     general: any;
@@ -32,7 +33,7 @@ export interface ProjectData {
 }
 
 export interface PaletteCategory {
-  name: 'Triggers' | 'Core' | 'Flow';
+  name: PaletteCategoryLabels;
   nodes: NodeTemplate[];
   collapsed: boolean;
 }
@@ -42,8 +43,8 @@ export interface NodeTemplate {
   name: string;
   icon?: React.ElementType;
   iconId?: string;
-  type: 'trigger' | 'action' | 'sticky' | 'form';
-  category: string;
+  nodeType: NodeType;
+  category: NodeCategories;
   description: string;
 }
 
@@ -62,7 +63,7 @@ export interface AppState {
 }
 
 export interface DiagramSettings {
-  gridStyle: 'lines' | 'dotted' | 'none';
+  gridStyle: GridStyle;
   enableSnapping: boolean;
   showOverview: boolean;
 }
@@ -82,3 +83,28 @@ export type NodePortDirection =
   | 'bottom-right';
 
 export type PortSide = 'Right' | 'Bottom';
+
+export type NodeCategories = 'trigger' | 'action' | 'sticky' | 'condition';
+
+export type PaletteCategoryLabels = 'Triggers' | 'Core' | 'Flow';
+
+export type GridStyle = 'lines' | 'dotted' | 'none';
+
+export type NodeType = 
+  | 'Webhook'
+  | 'Schedule'
+  | 'Manual Click'
+  | 'Chat'
+  | 'AI Agent'
+  | 'Azure Chat Model'
+  | 'HTTP Request'
+  | 'Gmail'
+  | 'Google Sheets'
+  | 'Telegram'
+  | 'Google Calendar'
+  | 'Google Docs'
+  | 'Twilio'
+  | 'If Condition'
+  | 'Switch Case'
+  | 'Filter'
+;

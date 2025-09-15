@@ -30,8 +30,8 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo }) => {
       <div className={`node-template ${nodeTypeClass}`} data-node-id={`${id}`}>
         {/* Port Rendering Logic... */}
         {/* For Trigger Nodes, show port only at the right side */}
-        {nodeConfig.type === 'trigger' && <div className="node-port-right"></div>}
-        {nodeConfig.type === 'action' && !isIfCondition && !isAiAgent && (
+        {nodeConfig.category === 'trigger' && <div className="node-port-right"></div>}
+        {nodeConfig.category === 'action' && !isIfCondition && !isAiAgent && (
           <>
             <div className="node-port-left"></div>
             <div className="node-port-right"></div>
@@ -59,12 +59,12 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo }) => {
         {/* Icon and Name Rendering... */}
         <div className="node-img-content" style={isAiAgent ? { gap: '1.2rem' } : {}}>
           {IconComponent && <IconComponent />}
-          <span className='ai-agent-name-bar'>{isAiAgent && nodeConfig.name ? nodeConfig.name : ''}</span>
+          <span className='ai-agent-name-bar'>{isAiAgent && nodeConfig.displayName ? nodeConfig.displayName : ''}</span>
         </div>
       </div>
       {!isAiAgent &&(
         <div className="node-name-bar">
-          {nodeConfig.name ? nodeConfig.name : ''}
+          {nodeConfig.displayName ? nodeConfig.displayName : ''}
         </div>
       )}
     </div>

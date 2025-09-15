@@ -184,8 +184,9 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     const nodeId = `${nodeTemplate.id}-${Date.now()}`;
     const newNodeConfig: NodeConfig = {
       id: nodeId,
-      type: nodeTemplate.type,
-      name: nodeTemplate.name,
+      nodeType: nodeTemplate.nodeType,
+      category: nodeTemplate.category,
+      displayName: nodeTemplate.name,
       icon: nodeTemplate.iconId,
       settings: { general: {}, authentication: {}, advanced: {} },
     };
@@ -235,8 +236,9 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     const nodeId = `${nodeTemplate.id}-${Date.now()}`;
     const newNodeConfig: NodeConfig = {
       id: nodeId,
-      type: nodeTemplate.type,
-      name: nodeTemplate.name,
+      nodeType: nodeTemplate.nodeType,
+      category: nodeTemplate.category,
+      displayName: nodeTemplate.name,
       icon: nodeTemplate.iconId,
       settings: { general: {}, authentication: {}, advanced: {} },
     };
@@ -422,8 +424,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         addInfo: {
           nodeConfig: {
             id: `sticky-${timestamp}`,
-            type: 'sticky',
-            name: 'Sticky Note',
+            category: 'sticky',
+            displayName: 'Sticky Note',
           } as NodeConfig
         }
       };

@@ -150,23 +150,23 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
     const addInfo = obj.addInfo as any;
     const nodeConfig = addInfo?.nodeConfig as NodeConfig | undefined;
-    const nodeType = nodeConfig?.type;
+    const nodeCategory = nodeConfig?.category;
     const nodeId = nodeConfig?.id || '';
     
     if (nodeConfig && typeof nodeConfig === "object") {
       // Check if the ID contains specific node types
-      const isIfCondition = nodeType === 'condition' || nodeId.includes('if-condition');
+      const isIfCondition = nodeCategory === 'condition' && nodeConfig.nodeType === 'If Condition';
       const isAiAgent = nodeId.includes('ai-agent');
       
-      updateNodeTemplates(nodeType, setUpStickyNote, obj);
+      updateNodeTemplates(nodeCategory, setUpStickyNote, obj);
       
-      updateNodeSize(isAiAgent, obj, isIfCondition, nodeType);
+      updateNodeSize(isAiAgent, obj, isIfCondition, nodeCategory);
 
-      updateNodeConstraints(obj, nodeType);
+      updateNodeConstraints(obj, nodeCategory);
 
       updateNodePosition(obj, diagramRef);
 
-      updateNodePorts(nodeType, obj, isAiAgent, isIfCondition);
+      updateNodePorts(nodeCategory, obj, isAiAgent, isIfCondition);
     }
 
     return obj;
@@ -362,7 +362,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       const nodeConfig = (node.addInfo as any)?.nodeConfig as NodeConfig | undefined;
       if (!nodeConfig) return; // Prevent exception if nodeConfig is undefined
       // Handle sticky note double-click
-      if (nodeConfig.type === 'sticky') {
+      if (nodeConfig.category === 'sticky') {
         handleStickyNoteEdit(node);
         return;
       }
