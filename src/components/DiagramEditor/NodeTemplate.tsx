@@ -23,11 +23,9 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo }) => {
   const isIfCondition = nodeConfig.id && nodeConfig.id.includes('if-condition');
   const isAiAgent = nodeConfig.id && nodeConfig.id.includes('ai-agent');
   
-  const nodeTypeClass = isIfCondition ? 'condition-node' : isAiAgent ? 'ai-agent-node' : '';
-
   return (
     <div className="node-template-container">
-      <div className={`node-template ${nodeTypeClass}`} data-node-id={`${id}`}>
+      <div className={`node-template`} data-node-id={`${id}`}>
         {/* Port Rendering Logic... */}
         {/* For Trigger Nodes, show port only at the right side */}
         {nodeConfig.category === 'trigger' && <div className="node-port-right"></div>}

@@ -47,6 +47,12 @@
   user-select: none;
   position: relative;
 }
+.node-template.success {
+  border: 2px solid #04c10d;
+}
+.node-template.error {
+  border: 2px solid #c62801;
+}
 .node-port-left {
   position: absolute;
   left: -7px;
