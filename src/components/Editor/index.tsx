@@ -283,9 +283,14 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   };
 
   useEffect(() => {
+    // Check initial pan state on mount
+    if (diagramRef?.tool === DiagramTools.ZoomPan) {
+      setIsPanActive(true);
+    }
+
+    // Spacebar toggles temporary pan in EJ2; reflect active while pressed
     const onKeyDown = (e: KeyboardEvent) => {
-      // Spacebar toggles temporary pan in EJ2; reflect active while pressed
-      // Only toggle pan if not editing text (input, textarea, etc.)
+      // Only toggle pan if not editing text - prevent interfering with typing space key
       const activeElement = document.activeElement;
       const isEditingText = activeElement instanceof HTMLInputElement || 
                            activeElement instanceof HTMLTextAreaElement ||
