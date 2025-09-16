@@ -181,44 +181,6 @@ const router = createBrowserRouter([
 ]);
 
 const App: React.FC = () => {
-  const [eventSource, setEventSource] = useState<EventSource | null>(null);
-
-  useEffect(() => {
-    // Connect to SSE endpoint
-    const baseUrl = process.env.REACT_APP_API_BASE_URL || '';
-    const sse = new EventSource(`${baseUrl}/api/webhooks/events`, { withCredentials: true });
-
-    // Handle connection open
-    sse.onopen = () => {
-      console.log('SSE connection established');
-    };
-
-    // Handle connection error
-    sse.onerror = (error) => {
-      console.error('SSE connection error:', error);
-    };
-
-    // Handle webhook events
-    sse.addEventListener('webhook', (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        console.log('Received webhook event:', data);
-        if (data.type === 'webhook-triggered') {
-          const { webhookName, payload } = data.data;
-          alert(`Webhook "${webhookName}" received new data:\n${JSON.stringify(payload, null, 2)}`);
-        }
-      } catch (error) {
-        console.error('Error processing webhook event:', error);
-      }
-    });
-
-    setEventSource(sse);
-
-    return () => {
-      sse.close();
-    };
-  }, []);
-
   return (
     <ThemeProvider>
       <RouterProvider router={router} />

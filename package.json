@@ -2,7 +2,6 @@
   "name": "react-workflow-automation",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://localhost:3001",
   "dependencies": {
     "@syncfusion/ej2-base": "*",
     "@syncfusion/ej2-layouts": "*",

@@ -11,8 +11,7 @@ import { CheckBoxComponent, ButtonComponent } from '@syncfusion/ej2-react-button
 import { TooltipComponent } from '@syncfusion/ej2-react-popups';
 
 import { IconRegistry } from '../../assets/icons';
-import { NodeConfig, NodeType, WebhookConfig } from '../../types';
-import { WorkflowService } from '../../services/WorkflowService';
+import { NodeConfig, NodeType } from '../../types';
 import './NodeConfigSidebar.css';
 
 interface ConfigPanelProps {
@@ -21,8 +20,6 @@ interface ConfigPanelProps {
   selectedNode: NodeConfig | null;
   onNodeConfigChange: (nodeId: string, config: NodeConfig) => void;
 }
-
-const WEBHOOK_NODE_TYPES: NodeType[] = ['Webhook'];
 
 /** Shared lists */
 const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
@@ -48,36 +45,6 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
 }) => {
   // Hooks first — no conditional hooks to satisfy eslint rules-of-hooks
   const [activeTab, setActiveTab] = useState(0);
-  const workflowService = new WorkflowService();
-
-  const handleWebhookGeneration = async (node: NodeConfig) => {
-    try {
-      const config: WebhookConfig = {
-        name: node.settings.general.name || node.displayName,
-        description: node.settings.general.description,
-        nodeId: node.id,
-      };
-
-      const webhook = await workflowService.createWebhook(config);
-      
-      const updatedConfig: NodeConfig = {
-        ...node,
-        webhook,
-        settings: {
-          ...node.settings,
-          general: {
-            ...node.settings.general,
-            name: config.name,
-          },
-        },
-      };
-      
-      onNodeConfigChange(node.id, updatedConfig);
-    } catch (error) {
-      console.error('Failed to generate webhook:', error);
-      // TODO: Show error toast
-    }
-  };
 
   // Resolve icon component only when node exists
   const IconComponent =
@@ -120,43 +87,14 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
         return (
           <>
             <div className="config-section">
-              <label className="config-label">Webhook Name</label>
+              <label className="config-label">Webhook URL</label>
               <TextBoxComponent
-                value={settings.name ?? ''}
-                placeholder="My Webhook"
-                change={(e: any) => handleConfigChange('name', e.value)}
+                value={settings.url ?? ''}
+                placeholder="https://your-endpoint.example.com/webhook"
+                change={(e: any) => handleConfigChange('url', e.value)}
                 cssClass="config-input"
               />
             </div>
-            <div className="config-section">
-              <label className="config-label">Description</label>
-              <TextBoxComponent
-                multiline={true}
-                value={settings.description ?? ''}
-                placeholder="What this webhook does..."
-                change={(e: any) => handleConfigChange('description', e.value)}
-                cssClass="config-textarea"
-              />
-            </div>
-            {selectedNode?.webhook ? (
-              <div className="config-section">
-                <label className="config-label">Webhook URL (Copy this)</label>
-                <TextBoxComponent
-                  value={selectedNode.webhook.url}
-                  readonly={true}
-                  cssClass="config-input"
-                />
-                <p className="config-help">Use this URL in your Google Apps Script or other services to trigger this webhook.</p>
-              </div>
-            ) : (
-              <div className="config-section">
-                <ButtonComponent
-                  content="Generate Webhook URL"
-                  cssClass="e-primary"
-                  onClick={() => selectedNode && handleWebhookGeneration(selectedNode)}
-                />
-              </div>
-            )}
             <div className="config-section">
               <label className="config-label">Method</label>
               <DropDownListComponent
