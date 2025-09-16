@@ -1,3 +1,20 @@
+export interface WebhookConfig {
+  name: string;
+  description?: string;
+  nodeId: string;
+}
+
+export interface Webhook {
+  id: string;
+  url: string;
+  config: WebhookConfig;
+  createdAt: string;
+  lastTrigger?: {
+    timestamp: string;
+    payload: any;
+  };
+}
+
 export interface NodeConfig {
   id: string;
   displayName: string;
@@ -9,6 +26,7 @@ export interface NodeConfig {
     authentication?: any;
     advanced?: any;
   };
+  webhook?: Webhook;
 }
 
 export interface WorkflowData {

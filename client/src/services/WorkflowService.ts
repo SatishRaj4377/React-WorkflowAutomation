@@ -1,4 +1,4 @@
-import { WorkflowData, ProjectData } from '../types';
+import { WorkflowData, ProjectData, WebhookConfig, Webhook } from '../types';
 
 /**
  * Service for managing workflow data and operations
@@ -6,6 +6,39 @@ import { WorkflowData, ProjectData } from '../types';
  */
 export class WorkflowService {
   private STORAGE_KEY = 'workflow_automation_projects';
+  private baseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
+
+  /**
+   * Create a new webhook
+   */
+  async createWebhook(config: WebhookConfig): Promise<Webhook> {
+    const response = await fetch(`${this.baseUrl}/api/webhooks`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(config),
+    });
+    return response.json();
+  }
+
+  /**
+   * Delete a webhook
+   */
+  async deleteWebhook(webhookId: string): Promise<{ success: boolean }> {
+    const response = await fetch(`${this.baseUrl}/api/webhooks/${webhookId}`, {
+      method: 'DELETE',
+    });
+    return response.json();
+  }
+
+  /**
+   * Get list of all webhooks
+   */
+  async listWebhooks(): Promise<Webhook[]> {
+    const response = await fetch(`${this.baseUrl}/api/webhooks`);
+    return response.json();
+  }
 
   /**
    * Get all saved projects
