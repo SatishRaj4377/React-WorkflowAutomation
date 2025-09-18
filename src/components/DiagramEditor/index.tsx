@@ -7,7 +7,6 @@ import {
   Inject,
   ConnectorModel,
   NodeModel,
-  SnapConstraints,
   DiagramTools,
   UndoRedo,
   DataBinding,
@@ -702,7 +701,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
           connector.cornerRadius = getConnectorCornerRadius(diagramSettings);
         });
       }
-      
+
       // Overview "always show"
       if (diagramSettings.showOverviewAlways) {
         setShowOverview(true);

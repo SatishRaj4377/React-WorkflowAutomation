@@ -130,25 +130,6 @@
   border-color: var(--primary-color);
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .custom-appbar {
-    padding: 0 0.5rem;
-  }
-  
-  .project-name {
-    font-size: 1.1rem;
-    max-width: 200px;
-  }
-
-}
-
-@media (max-width: 480px) {
-  .project-name {
-    max-width: 150px;
-  }
-}
-
 /* Settings Dialog Styles */
 .settings-dialog-container {
   border-radius: 12px;
@@ -173,6 +154,27 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 2rem;
+  row-gap: 2rem;
+  position: relative;
+}
+
+/* Adds a divider betweeen the columns */
+.settings-grid::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  background-color: var(--border-color);
+  transform: translateX(-50%);
+  pointer-events: none;
 }
 
 .settings-section {
@@ -202,54 +204,13 @@
   flex: 1;
 }
 
-.settings-dropdown .e-input-group {
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  background: var(--surface-color);
-  transition: all 0.2s ease;
-}
-
-.settings-dropdown .e-input-group:hover {
-  border-color: var(--primary-color);
-}
-
-.settings-dropdown .e-input-group.e-input-focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
-}
-
-.settings-dropdown .e-input {
-  color: var(--text-primary);
-  font-size: 0.9rem;
-  background: transparent;
-}
-
-.settings-dropdown .e-ddl-icon {
-  color: var(--text-secondary);
-}
-
-.settings-item + .settings-item {
-  margin-top: 10px;        /* tidy vertical rhythm between stacked rows */
-}
-
-/* Right-side control area (switches, radios, numeric, etc.) */
-.settings-row .settings-control {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-/* Sub-section that appears under a main setting (indented + subtle guide) */
+/* Sub-section that appears under a main setting */
 .settings-sub {
-  margin-left: 1rem;                 /* indent aligns under main label text */
+  margin-left: 1rem;
   padding-left: 1rem;
   border-left: 2px dashed var(--border-color);
+  color: var(--text-secondary);
   display: grid;
-}
-
-/* If you ever need to hide sub-groups via class toggling (optional helper) */
-.settings-sub.hidden {
-  display: none !important;
 }
 
 /* Make sub-rows slightly tighter */
@@ -261,73 +222,44 @@
   margin: 0 20px;
 }
 
-/* NumericTextBox (“Connector corner radius”) */
-.settings-number .e-input-group {
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  background: var(--surface-color);
-  transition: all 0.2s ease;
-}
-
-.settings-number .e-input-group:hover {
-  border-color: var(--primary-color);
-}
-
-.settings-number .e-input-group.e-input-focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1); /* matches your .settings-dropdown focus */
-}
-
-/* Text color & sizing inside numeric box */
-.settings-number .e-input {
-  background: transparent;
-  color: var(--text-primary);
-  font-size: 0.9rem;
-}
-
-/* Harmonize height with switches/radios */
-.settings-number .e-input-group .e-input,
-.settings-number .e-numeric .e-input {
-  height: 32px;
-}
-
-/* Spin buttons match theme */
-.settings-number .e-input-group .e-input-group-icon {
-  color: var(--text-secondary);
-}
-
-/* Optional: muted state if you choose to disable (not hide) sub-controls */
-.settings-group--disabled {
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-/* Section headers—reuse your tone but keep vertical rhythm tight */
-.settings-section-title {
-  margin-bottom: 0.25rem;
-}
-
-/* Compact helper text (if you add any hints under a control) */
-.settings-help {
-  margin-top: 6px;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-}
-
-/* Responsive: let radios wrap and keep indentation sensible */
+/* Responsive Design */
 @media (max-width: 768px) {
-  .settings-row {
-    align-items: flex-start;
+  .custom-appbar {
+    padding: 0 0.5rem;
   }
-  .settings-row .settings-control {
-    flex-wrap: wrap;
-    justify-content: flex-end;
+  
+  .project-name {
+    font-size: 1.1rem;
+    max-width: 200px;
   }
-  .radio-group {
-    gap: 0.75rem;
+
+  .settings-grid::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    background-color: var(--border-color);
+    transform: translateX(-50%);
+    pointer-events: none;
   }
-  .settings-sub {
-    margin-left: 1.2rem;
-    padding-left: 0.75rem;
+
+  .settings-grid {
+    grid-template-columns: 1fr;
+    column-gap: 24px;
+    row-gap: 16px;
+  }
+
+  /* Hide the vertical divider in 1-col mode */
+  .settings-grid::before {
+    display: none;
+  }
+
+}
+
+@media (max-width: 480px) {
+  .project-name {
+    max-width: 150px;
   }
 }
