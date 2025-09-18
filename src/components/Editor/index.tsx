@@ -492,7 +492,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
           isOpen={nodePaletteSidebarOpen}
           onClose={() => setNodePaletteSidebarOpen(false)}
           onAddNode={handleAddNode}
-          port={isUserhandleAddNodeSelectionMode ? selectedPortModel : null}
+          isUserHandleClicked={isUserhandleAddNodeSelectionMode ? selectedPortModel : null}
         />
                 
         {/* Main Diagram Area */}
@@ -517,6 +517,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
             }}
             onNodeAddedFirstTime={() => setShowInitialAddButton(false)}
             onCanvasClick={() => {
+              setUserhandleAddNodeSelectionMode(false)
               setNodePaletteSidebarOpen(false);
               setNodeConfigPanelOpen(false);
             }}

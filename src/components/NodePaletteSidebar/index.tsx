@@ -16,14 +16,14 @@ interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
   onAddNode?: (nodeTemplate: NodeTemplate) => void;
-  port?: PortModel | null;
+  isUserHandleClicked?: PortModel | null;
 }
 
 const NodePaletteSidebar: React.FC<SidebarProps> = ({
   isOpen,
   onClose,
   onAddNode,
-  port,
+  isUserHandleClicked,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const searchRef = useRef<TextBoxComponent>(null);
@@ -205,7 +205,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
       ...category,
       nodes: category.nodes.filter((node) => {
         // Hide trigger nodes if connecting from a port
-        if (port && node.category === 'trigger') return false;
+        if (isUserHandleClicked && node.category === 'trigger') return false;
         return (
           node.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           node.description.toLowerCase().includes(searchTerm.toLowerCase())
