@@ -102,6 +102,7 @@
   width: 4.5rem;
   border-radius: 7px;
   font-size: .95rem;
+  transition: none;
 }
 .header-btn:disabled {
   pointer-events: none;
@@ -225,4 +226,108 @@
 
 .settings-dropdown .e-ddl-icon {
   color: var(--text-secondary);
+}
+
+.settings-item + .settings-item {
+  margin-top: 10px;        /* tidy vertical rhythm between stacked rows */
+}
+
+/* Right-side control area (switches, radios, numeric, etc.) */
+.settings-row .settings-control {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Sub-section that appears under a main setting (indented + subtle guide) */
+.settings-sub {
+  margin-left: 1rem;                 /* indent aligns under main label text */
+  padding-left: 1rem;
+  border-left: 2px dashed var(--border-color);
+  display: grid;
+}
+
+/* If you ever need to hide sub-groups via class toggling (optional helper) */
+.settings-sub.hidden {
+  display: none !important;
+}
+
+/* Make sub-rows slightly tighter */
+.settings-sub .settings-item {
+  min-height: 34px;
+}
+
+.settings-sub .e-checkbox-wrapper {
+  margin: 0 20px;
+}
+
+/* NumericTextBox (“Connector corner radius”) */
+.settings-number .e-input-group {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--surface-color);
+  transition: all 0.2s ease;
+}
+
+.settings-number .e-input-group:hover {
+  border-color: var(--primary-color);
+}
+
+.settings-number .e-input-group.e-input-focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1); /* matches your .settings-dropdown focus */
+}
+
+/* Text color & sizing inside numeric box */
+.settings-number .e-input {
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+/* Harmonize height with switches/radios */
+.settings-number .e-input-group .e-input,
+.settings-number .e-numeric .e-input {
+  height: 32px;
+}
+
+/* Spin buttons match theme */
+.settings-number .e-input-group .e-input-group-icon {
+  color: var(--text-secondary);
+}
+
+/* Optional: muted state if you choose to disable (not hide) sub-controls */
+.settings-group--disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Section headers—reuse your tone but keep vertical rhythm tight */
+.settings-section-title {
+  margin-bottom: 0.25rem;
+}
+
+/* Compact helper text (if you add any hints under a control) */
+.settings-help {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+/* Responsive: let radios wrap and keep indentation sensible */
+@media (max-width: 768px) {
+  .settings-row {
+    align-items: flex-start;
+  }
+  .settings-row .settings-control {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .radio-group {
+    gap: 0.75rem;
+  }
+  .settings-sub {
+    margin-left: 1.2rem;
+    padding-left: 0.75rem;
+  }
 }

@@ -1,5 +1,5 @@
-import { DiagramComponent, NodeModel, Point, PointPortModel, PortConstraints, PortModel } from "@syncfusion/ej2-react-diagrams";
-import { NodePortDirection, PortSide } from "../types";
+import { DiagramComponent, NodeModel, Point, PointPortModel, PortConstraints, PortModel, SnapConstraints } from "@syncfusion/ej2-react-diagrams";
+import { DiagramSettings, NodePortDirection, PortSide } from "../types";
 import html2canvas from "html2canvas";
 
 // Get sticky note template
@@ -217,4 +217,51 @@ export const generateOptimizedThumbnail = async (elementId: string): Promise<str
     console.warn('Thumbnail generation failed, continuing without thumbnail.', error);
     return undefined;
   }
+};
+
+export const getDefaultDiagramSettings = (): DiagramSettings =>{
+  const diagramSettings: DiagramSettings = {
+    gridStyle: 'dotted',
+    connectorType: 'Bezier',
+    connectorCornerRadius: 10,
+    snapping: {isEnabled: false, enableSnapToGrid: false, enableSnapToObjects: false},
+    showOverview: true,
+    showOverviewAlways: false,
+  };
+  return diagramSettings;
+}
+
+export const getGridType = (diagramSettings: DiagramSettings) => {
+  if (!diagramSettings?.gridStyle || diagramSettings.gridStyle === 'none') return 'Lines';
+  return diagramSettings.gridStyle === 'lines' ? 'Lines' : 'Dots';
+};
+
+export const getGridColor = (diagramSettings: DiagramSettings) => {
+  if (diagramSettings?.gridStyle === 'none') return 'transparent';
+  if (diagramSettings?.gridStyle === 'lines') return 'var(--grid-line-color)';
+  return 'var(--grid-dotted-color)';
+};
+
+export const getSnapConstraints = (diagramSettings: DiagramSettings) => {
+  if (!diagramSettings?.snapping.isEnabled) return SnapConstraints.ShowLines;
+  
+  let constraints = SnapConstraints.ShowLines;
+  if (diagramSettings?.snapping.enableSnapToGrid) {
+    constraints |= SnapConstraints.SnapToLines        // snaps to both H & V grid lines (grid)
+  }
+  if (diagramSettings?.snapping.enableSnapToObjects) {
+    constraints |= SnapConstraints.SnapToObject;      // snaps to nearby objects
+  }
+
+  return constraints;
+
+};
+
+export const getConnectorType = (diagramSettings: DiagramSettings) => {
+  return diagramSettings?.connectorType ;
+};
+
+export const getConnectorCornerRadius = (diagramSettings: DiagramSettings) => {
+  if (diagramSettings?.connectorType === 'Orthogonal') return diagramSettings.connectorCornerRadius;
+  return 0;
 };

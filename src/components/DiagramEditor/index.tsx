@@ -29,7 +29,7 @@ import {
 } from '@syncfusion/ej2-react-diagrams';
 import { DiagramSettings, NodeConfig, NodePortDirection } from '../../types';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
-import { convertMarkdownToHtml, getFirstSelectedNode, getOutConnectDrawPorts, getPortOffset, getPortSide, getStickyNoteTemplate } from '../../helper/diagramUtils';
+import { convertMarkdownToHtml, getConnectorCornerRadius, getConnectorType, getFirstSelectedNode, getGridColor, getGridType, getOutConnectDrawPorts, getPortOffset, getPortSide, getSnapConstraints, getStickyNoteTemplate } from '../../helper/diagramUtils';
 import './DiagramEditor.css';
 import NodeTemplate from './NodeTemplate';
 
@@ -42,7 +42,7 @@ interface DiagramEditorProps {
   onAddStickyNote?: (position: { x: number; y: number }) => void;
   onUserhandleAddNodeClick?: (node: NodeModel, portId: string) => void;
   isUserHandleAddNodeEnabled?: boolean;
-  diagramSettings?: DiagramSettings;
+  diagramSettings: DiagramSettings;
   showInitialAddButton?: boolean;
   onInitialAddClick?: () => void;
   onNodeAddedFirstTime?: () => void;
@@ -118,27 +118,11 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   };
 
   // Grid and Snap Settings based on diagramSettings
-  const getGridType = () => {
-    if (!diagramSettings?.gridStyle || diagramSettings.gridStyle === 'none') return 'Lines';
-    return diagramSettings.gridStyle === 'lines' ? 'Lines' : 'Dots';
-  };
-
-  const getGridColor = () => {
-    if (diagramSettings?.gridStyle === 'none') return 'transparent';
-    if (diagramSettings?.gridStyle === 'lines') return 'var(--grid-line-color)';
-    return 'var(--grid-dotted-color)';
-  };
-  
-  const getSnapConstraints = () => {
-    if (!diagramSettings?.enableSnapping) return SnapConstraints.ShowLines;
-    return SnapConstraints.SnapToObject | SnapConstraints.SnapToLines | SnapConstraints.ShowLines;
-  };
-
   const snapSettings: SnapSettingsModel = {
-    constraints: getSnapConstraints(),
-    gridType: getGridType(),
-    horizontalGridlines: { lineColor: getGridColor() } as GridlinesModel,
-    verticalGridlines: { lineColor: getGridColor() } as GridlinesModel,
+    constraints: getSnapConstraints(diagramSettings),
+    gridType: getGridType(diagramSettings),
+    horizontalGridlines: { lineColor: getGridColor(diagramSettings) } as GridlinesModel,
+    verticalGridlines: { lineColor: getGridColor(diagramSettings) } as GridlinesModel,
     snapObjectDistance: 5,
     snapLineColor: 'var(--secondary-color)',
     snapAngle: 5,
@@ -177,8 +161,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     if (!obj || typeof obj !== 'object') {
       return obj;
     }
-    obj.type = 'Bezier';
-    obj.segments= [{ type: 'Bezier' }];
+    obj.type = getConnectorType(diagramSettings);
+    obj.cornerRadius = getConnectorCornerRadius(diagramSettings)
     obj.style = {
       strokeColor: '#9193a2ff',
       strokeWidth: 2,
@@ -249,10 +233,12 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       clearTimeout(overviewTimeoutRef.current);
     }
     
-    // Hide overview after 2 seconds
-    overviewTimeoutRef.current = setTimeout(() => {
-      setShowOverview(false);
-    }, 2000);
+    // Hide overview after 2 seconds, if showOverviewAlways is enabled in settings
+    if (!diagramSettings.showOverviewAlways){
+      overviewTimeoutRef.current = setTimeout(() => {
+        setShowOverview(false);
+      }, 2000);
+    }
   };
 
   // on adding the connector, update the stroke dash and make it not able to disconnect
@@ -697,12 +683,10 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     if (diagramRef.current && diagramSettings) {
       const diagram = diagramRef.current;
       
-      // Reuse all existing functions
-      const gridType = getGridType();
-      const gridColor = getGridColor();
-      const constraints = getSnapConstraints();
-      
-      // Apply all changes at once
+      // Update the Grid and Snap Settings 
+      const gridType = getGridType(diagramSettings);
+      const gridColor = getGridColor(diagramSettings);
+      const constraints = getSnapConstraints(diagramSettings);
       diagram.snapSettings = {
         ...diagram.snapSettings,
         gridType,
@@ -710,6 +694,20 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         horizontalGridlines: { ...diagram.snapSettings.horizontalGridlines, lineColor: gridColor },
         verticalGridlines: { ...diagram.snapSettings.verticalGridlines, lineColor: gridColor }
       };
+      
+      // Update Connector types and corner radius
+      if (Array.isArray(diagram.connectors)) {
+        diagram.connectors.forEach((connector: ConnectorModel) => {
+          connector.type = getConnectorType(diagramSettings);
+          connector.cornerRadius = getConnectorCornerRadius(diagramSettings);
+        });
+      }
+      
+      // Overview "always show"
+      if (diagramSettings.showOverviewAlways) {
+        setShowOverview(true);
+      }
+
     }
   }, [diagramSettings]);
 

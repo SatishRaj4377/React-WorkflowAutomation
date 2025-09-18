@@ -64,8 +64,11 @@ export interface AppState {
 
 export interface DiagramSettings {
   gridStyle: GridStyle;
-  enableSnapping: boolean;
+  snapping: SnappingSettings;
+  connectorType: ConnectorType;
+  connectorCornerRadius: number;
   showOverview: boolean;
+  showOverviewAlways: boolean; 
 }
 
 export interface StickyNotePosition {
@@ -73,6 +76,8 @@ export interface StickyNotePosition {
   y: number;
   fromMouse?: boolean; 
 }
+
+export type SnappingSettings = { isEnabled: boolean, enableSnapToObjects: boolean, enableSnapToGrid: boolean }
 
 export type NodePortDirection =
   | 'right'
@@ -89,6 +94,8 @@ export type NodeCategories = 'trigger' | 'action' | 'sticky' | 'condition';
 export type PaletteCategoryLabels = 'Triggers' | 'Core' | 'Flow';
 
 export type GridStyle = 'lines' | 'dotted' | 'none';
+
+export type ConnectorType = 'Bezier' | 'Orthogonal' | 'Straight';
 
 export type NodeType = 
   | 'Webhook'

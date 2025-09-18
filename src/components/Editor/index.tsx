@@ -12,7 +12,7 @@ import ConfirmationDialog from '../ConfirmationDialog';
 import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosition } from '../../types';
 import WorkflowService from '../../services/WorkflowService';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
-import { calculateNewNodePosition, generateOptimizedThumbnail, getNodePortById } from '../../helper/diagramUtils';
+import { calculateNewNodePosition, generateOptimizedThumbnail, getDefaultDiagramSettings, getNodePortById } from '../../helper/diagramUtils';
 import './Editor.css';
 
 interface EditorProps {
@@ -41,11 +41,15 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     !project.workflowData?.diagramString || project.workflowData.diagramString.trim() === ''
   );
   const [diagramSettings, setDiagramSettings] = useState<DiagramSettings>(() => {
+    const defaultDiagramSettings = getDefaultDiagramSettings();
     return {
       ...project.diagramSettings,
-      gridStyle: project.diagramSettings?.gridStyle ?? 'dotted',
-      enableSnapping: project.diagramSettings?.enableSnapping ?? false,
-      showOverview: project.diagramSettings?.showOverview ?? true
+      gridStyle: project.diagramSettings?.gridStyle ?? defaultDiagramSettings.gridStyle,
+      connectorType: project.diagramSettings?.connectorType ?? defaultDiagramSettings.connectorType,
+      connectorCornerRadius: project.diagramSettings?.connectorCornerRadius ?? defaultDiagramSettings.connectorCornerRadius,
+      snapping: project.diagramSettings?.snapping ?? defaultDiagramSettings.snapping,
+      showOverview: project.diagramSettings?.showOverview ?? defaultDiagramSettings.showOverview,
+      showOverviewAlways: project.diagramSettings?.showOverviewAlways ?? defaultDiagramSettings.showOverviewAlways
     }
   });
   
@@ -254,25 +258,6 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const handleDiagramSettingsChange = (settings: DiagramSettings) => {
     setDiagramSettings(settings);
     setIsDirty(true);
-    
-    // Apply settings to diagram immediately
-    if (diagramRef && diagramRef.snapSettings) {
-      // Update grid style
-      const gridType = settings.gridStyle === 'lines' ? 'Lines' : 'Dots';
-      diagramRef.snapSettings.gridType = gridType;
-      
-      // Update snapping
-      if (settings.enableSnapping) {
-        diagramRef.snapSettings.constraints = diagramRef.snapSettings.constraints | 31; // All snap constraints
-      } else {
-        diagramRef.snapSettings.constraints = 0; // No snap constraints
-      }
-      
-      diagramRef.dataBind();
-
-      const updatedProject = { ...project, diagramSettings: settings };
-      onSaveProject(updatedProject);
-    }
   };
 
   const handleTogglePan = () => {
@@ -349,11 +334,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
 
       // Set project data
       setProjectName(importedProject.name || 'Imported Project');
-      setDiagramSettings(importedProject.diagramSettings || {
-        gridStyle: 'dotted',
-        enableSnapping: false,
-        showOverview: true
-      });
+      setDiagramSettings(importedProject.diagramSettings || getDefaultDiagramSettings());
 
       // Load the diagram if available
       if (diagramRef && importedProject.workflowData?.diagramString) {

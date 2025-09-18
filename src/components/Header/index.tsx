@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { AppBarComponent } from '@syncfusion/ej2-react-navigations';
-import { ButtonComponent, SwitchComponent } from '@syncfusion/ej2-react-buttons';
+import { ButtonComponent, CheckBoxComponent, SwitchComponent } from '@syncfusion/ej2-react-buttons';
 import { DialogComponent, TooltipComponent } from '@syncfusion/ej2-react-popups';
 import { DropDownListComponent } from '@syncfusion/ej2-react-dropdowns';
 import { DropDownButtonComponent, ItemModel } from '@syncfusion/ej2-react-splitbuttons';
+import { NumericTextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { DiagramSettings } from '../../types';
+import { getDefaultDiagramSettings } from '../../helper/diagramUtils';
 import './Header.css';
 
 interface AppBarProps {
@@ -25,11 +27,7 @@ const AppBar: React.FC<AppBarProps> = ({
   onSave,
   enableSaveBtn,
   onProjectNameChange,
-  diagramSettings = {
-    gridStyle: 'dotted',
-    enableSnapping: false,
-    showOverview: true
-  },
+  diagramSettings = getDefaultDiagramSettings(),
   onExport,
   onImport,
   onDiagramSettingsChange,
@@ -124,6 +122,12 @@ const AppBar: React.FC<AppBarProps> = ({
     { text: 'None', value: 'none' }
   ];
 
+  const connectorStyleOptions = [
+    { text: 'Bezier', value: 'Bezier' },
+    { text: 'Orthogonal', value: 'Orthogonal' },
+    { text: 'Straight', value: 'Straight' }
+  ]
+
   return (
     <AppBarComponent id="workflow-appbar" cssClass="custom-appbar">
       <div className="appbar-left">
@@ -191,11 +195,13 @@ const AppBar: React.FC<AppBarProps> = ({
         target={document.body}
         isModal={true}
         cssClass="settings-dialog-container"
+        allowDragging={true}
         animationSettings={{ effect: 'None' }}
       >
         <div className="settings-dialog-content">
+          {/* Grid Style Settings */}
           <div className="settings-section">
-            <h3 className="settings-section-title">Grid & Snapping</h3>
+            <h3 className="settings-section-title">Grid Settings</h3>
             
             <div className="settings-item">
               <label className="settings-label">Grid Style</label>
@@ -208,20 +214,89 @@ const AppBar: React.FC<AppBarProps> = ({
                 cssClass="settings-dropdown"
               />
             </div>
+          </div>
 
+          {/* Connector Style Settings */}
+          <div className="settings-section">
+            <h3 className="settings-section-title">Connector Settings</h3>
+            <div className="settings-item">
+              <label className="settings-label">Connector type</label>
+                <DropDownListComponent
+                  dataSource={connectorStyleOptions}
+                  fields={{ text: 'text', value: 'value' }}
+                  value={diagramSettings.connectorType}
+                  change={(args: any) => handleSettingsChange('connectorType', args.value)}
+                  width="150px"
+                  cssClass="settings-dropdown"
+                />
+            </div>
+            {diagramSettings.connectorType === 'Orthogonal' && (
+            <div className="settings-sub">
+              <div className="settings-item">
+                  <label>Connector corner radius</label>
+                  <NumericTextBoxComponent
+                    min={0}
+                    max={50}
+                    step={1}
+                    format="n0"
+                    width="100px"
+                    value={diagramSettings.connectorCornerRadius ?? 0}
+                    change={(args) =>
+                      handleSettingsChange(`connectorCornerRadius`, (args.value as number) ?? 0 )
+                    }
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Snap Settings */}
+          <div className="settings-section">
+            <h3 className="settings-section-title">Snapping Settings</h3>
             <div className="settings-item">
               <label className="settings-label">Enable Snapping</label>
               <SwitchComponent
-                checked={diagramSettings.enableSnapping}
-                change={(args) => handleSettingsChange('enableSnapping', args.checked)}
+                checked={diagramSettings.snapping && (!!diagramSettings.snapping.enableSnapToObjects || !!diagramSettings.snapping.enableSnapToGrid)}
+                change={(e) => {
+                  // Turn on all the sub-settings on switching on the main snapsettings switch 
+                  if (e.checked){
+                    diagramSettings.snapping.enableSnapToObjects = true;
+                    diagramSettings.snapping.enableSnapToGrid = true;
+                  }
+                  // Turn off all the sub-settings on switching off the main snapsettings switch 
+                  if (!e.checked){
+                    diagramSettings.snapping.enableSnapToObjects = false;
+                    diagramSettings.snapping.enableSnapToGrid = false;
+                  }
+                  handleSettingsChange('snapping', {...diagramSettings.snapping, isEnabled: e.checked})
+                }}
                 cssClass="settings-switch"
               />
             </div>
+            {/* Snapping Sub Settings */}
+            {diagramSettings.snapping && (!!diagramSettings.snapping.enableSnapToObjects || !!diagramSettings.snapping.enableSnapToGrid) && (
+              <div className="settings-sub">
+                <div className="settings-item">
+                  <label>Snap to objects</label>
+                  <CheckBoxComponent
+                    checked={!!diagramSettings.snapping.enableSnapToObjects}
+                    change={(e) => handleSettingsChange('snapping', {...diagramSettings.snapping, enableSnapToObjects: e.checked})}
+                  />
+                </div>
+                <div className="settings-item">
+                  <label>Snap to grid</label>
+                  <CheckBoxComponent
+                    checked={!!diagramSettings.snapping.enableSnapToGrid}
+                    change={(e) => handleSettingsChange('snapping', {...diagramSettings.snapping, enableSnapToGrid: e.checked})}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
+          {/* Overview Panel Settings */}
           <div className="settings-section">
-            <h3 className="settings-section-title">Display</h3>
-            
+            <h3 className="settings-section-title">Overview Panel</h3>
             <div className="settings-item">
               <label className="settings-label">Show Overview Panel</label>
               <SwitchComponent
@@ -230,7 +305,18 @@ const AppBar: React.FC<AppBarProps> = ({
                 cssClass="settings-switch"
               />
             </div>
-
+            {/* Overview panel Sub Settings */}
+            {diagramSettings.showOverview && (
+              <div className="settings-sub">
+                <div className="settings-item">
+                  <label>Show overview panel always</label>
+                  <CheckBoxComponent
+                    checked={!!diagramSettings.showOverviewAlways}
+                    change={(e) => handleSettingsChange('showOverviewAlways', e.checked)}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </DialogComponent>
