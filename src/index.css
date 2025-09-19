@@ -46,6 +46,7 @@ body, .e-control, .e-card{
   --danger-color: #d9534f; 
   --danger-accent: #c9302c; 
   --node-selector-outline: #ccd5e2ad;
+  --node-background: #ffffff;
   --node-selector-background: #effdff;
   --node-handle: #a8adb3;
   --node-border-color: #9193a2ff;
@@ -85,7 +86,8 @@ body, .e-control, .e-card{
   --gradient-secondary: linear-gradient(135deg, #93c5fd 0%, #60a5fa 50%, #3b82f6 100%);
   --gradient-accent: linear-gradient(135deg, #60a5fa 0%, #5c83f6 100%);
   --node-selector-outline: #93a9ff3d;
-  --node-selector-background: #416370ba;
+  --node-background: #0e141d;
+  --node-selector-background: #002838ba;
   --scrollbar-bg: #20264b;
   --scrollbar-thumb: #52627a;
   --scrollbar-thumb-hover: #6984b9;
