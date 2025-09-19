@@ -392,8 +392,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         const staggered = getNextStaggeredOffset(diagramRef, x, y, {
           group: 'sticky',
           strategy: 'diagonal',
-          stepX: 16,
-          stepY: 16,
+          stepX: 30,
+          stepY: 30,
         });
         x = staggered.x;
         y = staggered.y;

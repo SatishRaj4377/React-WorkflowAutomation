@@ -271,7 +271,7 @@ export const bringConnectorsToFront = (diagram: DiagramComponent)=> {
   diagram.select(diagram.connectors);
 
   // Move selected connectors forward
-  diagram.moveForward();
+  diagram.bringToFront();
 
   // Clear selection to avoid UI side effects
   diagram.clearSelection();
