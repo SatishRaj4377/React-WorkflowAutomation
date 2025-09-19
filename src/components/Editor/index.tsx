@@ -545,7 +545,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         </div>
       </div>
       
-      <Toast position={{ X: 'Right', Y: 'Bottom' }} />
+      <Toast />
       
       <ConfirmationDialog
         isOpen={showLeaveDialog}

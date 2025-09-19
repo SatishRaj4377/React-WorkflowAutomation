@@ -1,18 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { ToastComponent } from '@syncfusion/ej2-react-notifications';
+import { ToastMessage, ToastType } from '../../types';
 import './Toast.css';
-
-
-
-export type ToastType = 'success' | 'error' | 'info' | 'warning';
-
-export interface ToastMessage {
-  id: string;
-  title: string;
-  content: string;
-  type: ToastType;
-  duration?: number;
-}
 
 interface ToastProps {
   position?: { X: string; Y: string };
@@ -54,11 +43,11 @@ const Toast: React.FC<ToastProps> = ({
 
   const getIconForType = (type: ToastType): string => {
     switch (type) {
-      case 'success': return 'e-success';
-      case 'error': return 'e-error';
-      case 'warning': return 'e-warning';
-      case 'info': return 'e-info';
-      default: return 'e-info';
+      case 'success': return 'e-success toast-icons';
+      case 'error': return 'e-error toast-icons';
+      case 'warning': return 'e-warning toast-icons';
+      case 'info': return 'e-info toast-icons';
+      default: return 'e-info toast-icons';
     }
   };
 

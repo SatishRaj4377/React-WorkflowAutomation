@@ -1,3 +1,4 @@
+// INTERFACES
 export interface NodeConfig {
   id: string;
   displayName: string;
@@ -19,7 +20,7 @@ export interface WorkflowData {
     modified: Date;
     version: number;
   };
-  diagramString: string; // Serialized diagram string from saveDiagram()
+  diagramString: string;
 }
 
 export interface ProjectData {
@@ -76,6 +77,17 @@ export interface StickyNotePosition {
   y: number;
   fromMouse?: boolean; 
 }
+
+export interface ToastMessage {
+  id: string;
+  title: string;
+  content: string;
+  type: ToastType;
+  duration?: number;
+}
+
+// TYPES
+export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
 export type SnappingSettings = { isEnabled: boolean, enableSnapToObjects: boolean, enableSnapToGrid: boolean }
 

@@ -60,6 +60,32 @@ body, .e-control, .e-card{
   --grid-line-color: #d3d5d8; 
   --grid-dotted-color: #a6b4caff; 
   --sticky-note-color: #e7f8ff;
+  
+/* Toast Colors - Light Theme */
+  --toast-success-bg: #eff6ff;
+  --toast-success-border: #2563eb;
+  --toast-success-text: #1e40af;
+  --toast-success-icon-color: #1d4ed8;
+  --toast-success-progress: #2563eb;
+
+  --toast-error-bg: #fff5f5;
+  --toast-error-border: #f56565;
+  --toast-error-text: #742a2a;
+  --toast-error-icon-color: #c53030;
+  --toast-error-progress: #f56565;
+
+  --toast-warning-bg: #fffaf0;
+  --toast-warning-border: #ed8936;
+  --toast-warning-text: #7b341e;
+  --toast-warning-icon-color: #c05621;
+  --toast-warning-progress: #ed8936;
+
+  --toast-info-bg: #f0f9ff;
+  --toast-info-border: #3b82f6;
+  --toast-info-text: #1e40af;
+  --toast-info-icon-color: #2563eb;
+  --toast-info-progress: #3b82f6;
+
 }
 
 /* Dark theme - Professional Blue Dark Palette */
@@ -94,6 +120,31 @@ body, .e-control, .e-card{
   --grid-line-color: #475569;
   --grid-dotted-color: #475569;
   --sticky-note-color: #364253;
+  
+  /* Toast Colors - Dark Theme */
+  --toast-success-bg: #1e3a8a;
+  --toast-success-border: #2563eb;
+  --toast-success-text: #dbeafe;
+  --toast-success-icon-bg: #1d4ed8;
+  --toast-success-icon-color: #dbeafe;
+
+  --toast-error-bg: #341e1e;
+  --toast-error-border: #f56565;
+  --toast-error-text: #fed7d7;
+  --toast-error-icon-bg: #c53030;
+  --toast-error-icon-color: #fed7d7;
+
+  --toast-warning-bg: #332a1c;
+  --toast-warning-border: #ed8936;
+  --toast-warning-text: #feebc8;
+  --toast-warning-icon-bg: #c05621;
+  --toast-warning-icon-color: #feebc8;
+
+  --toast-info-bg: #1e3a8a;
+  --toast-info-border: #3b82f6;
+  --toast-info-text: #dbeafe;
+  --toast-info-icon-bg: #2563eb;
+  --toast-info-icon-color: #dbeafe;
 }
 
 [data-theme="dark"] body {
