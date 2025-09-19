@@ -28,7 +28,7 @@ import {
 } from '@syncfusion/ej2-react-diagrams';
 import { DiagramSettings, NodeConfig, NodePortDirection } from '../../types';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
-import { convertMarkdownToHtml, getConnectorCornerRadius, getConnectorType, getFirstSelectedNode, getGridColor, getGridType, getOutConnectDrawPorts, getPortOffset, getPortSide, getSnapConstraints, getStickyNoteTemplate } from '../../helper/diagramUtils';
+import { bringConnectorsToFront, convertMarkdownToHtml, getConnectorCornerRadius, getConnectorType, getFirstSelectedNode, getGridColor, getGridType, getOutConnectDrawPorts, getPortOffset, getPortSide, getSnapConstraints, getStickyNoteTemplate } from '../../helper/diagramUtils';
 import './DiagramEditor.css';
 import NodeTemplate from './NodeTemplate';
 
@@ -591,15 +591,13 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   function setStickyZIndex(stickyNode: NodeModel) {
     const zIndex = -10000;
 
-    if (stickyNode.id){
-      // update the z-index in dom
+    if (stickyNode.id && diagramRef.current){
+      // update the z-index of sticky node in dom
       const stikcyNodeElement = document.getElementById(`${stickyNode.id}_annotation_html_element`);
       if (stikcyNodeElement) stikcyNodeElement.style.zIndex = zIndex.toString();
 
-      // update z-order from the diagram methods
-      diagramRef.current?.select([stickyNode])
-      diagramRef.current?.sendToBack();
-      diagramRef.current?.clearSelection();
+      // update z-order of connectors - to avoid going behind the sticky note
+      bringConnectorsToFront(diagramRef.current)
     }
   }
 

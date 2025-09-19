@@ -265,3 +265,14 @@ export const getConnectorCornerRadius = (diagramSettings: DiagramSettings) => {
   if (diagramSettings?.connectorType === 'Orthogonal') return diagramSettings.connectorCornerRadius;
   return 0;
 };
+
+export const bringConnectorsToFront = (diagram: DiagramComponent)=> {
+  // Select all connectors
+  diagram.select(diagram.connectors);
+
+  // Move selected connectors forward
+  diagram.moveForward();
+
+  // Clear selection to avoid UI side effects
+  diagram.clearSelection();
+}
