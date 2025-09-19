@@ -933,23 +933,24 @@
   transition: all 0.2s ease;
   box-shadow: none;
 }
-
-.bookmark-btn.e-btn .e-btn-icon {
-  color: var(--text-secondary) !important;
+/* show stroke styled bookmark icon be defualt */
+.bookmark-btn.e-btn .e-btn-icon, .bookmark-btn-card.e-btn .e-btn-icon  {
+  color: transparent !important;
+  -webkit-text-stroke: 1px var(--text-secondary) !important;
   font-size: 16px !important;
   margin: 0 !important;
 }
-
-.bookmark-btn.e-btn .e-star-filled {
+.bookmark-btn.e-btn .e-star-filled.star-filled, .bookmark-btn-card.e-btn .e-star-filled.star-filled  {
   color: var(--box-shadow2) !important;
+  -webkit-text-stroke-width: 0px !important;
 }
+
 
 /* Bookmark Button Styling for Card View */
 .project-bookmark-card {
   position: absolute;
   right: 1.5rem;
 }
-
 .bookmark-btn-card.e-btn {
   background: var(--surface-color) !important;
   width: 36px !important;
@@ -963,59 +964,29 @@
   transition: all 0.2s ease;
   box-shadow: none !important;
 }
-
-.bookmark-btn-card.e-btn .e-btn-icon {
-  color: var(--text-secondary) !important;
-  font-size: 18px !important;
-  margin: 0 !important;
-}
-
 .bookmark-btn-card.e-btn:hover {
   background: var(--list-hover-bg) !important;
   transform: scale(1.05);
 }
 
-.bookmark-btn-card.e-btn .e-star-filled {
-  color: var(--box-shadow2) !important;
-}
-
-/* Show bookmark button on card hover */
-.project-card .project-bookmark-card {
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.project-card:hover .project-bookmark-card {
-  opacity: 1;
-}
-
-/* Always show bookmark if it's bookmarked */
-.project-bookmark-card .e-star-filled {
-  opacity: 1 !important;
-}
-
-.project-card:has(.e-star-filled) .project-bookmark-card {
-  opacity: 1;
-}
-
-/* List view bookmark styling - show only on hover or when bookmarked */
-.project-list-item .project-bookmark {
+/* common bookmark styling - show only on hover or when bookmarked */
+.project-list-item .project-bookmark, .project-card .project-bookmark-card {
   opacity: 0;
   transition: opacity 0.16s;
   box-shadow: none !important;
 }
-
-.project-list-item:hover .project-bookmark,
+.project-list-item:hover .project-bookmark, 
+.project-card:hover .project-bookmark-card,
 .project-list-item:focus .project-bookmark {
   opacity: 1;
   box-shadow: none !important;
 }
-
 /* Always show bookmark in list if it's bookmarked */
-.project-list-item .bookmark-btn .e-star-filled {
+.project-list-item .bookmark-btn .star-filled,
+.project-bookmark-card .star-filled  {
   opacity: 1 !important;
 }
-
-.project-list-item:has(.e-star-filled) .project-bookmark {
+.project-card:has(.star-filled) .project-bookmark-card,
+.project-list-item:has(.star-filled) .project-bookmark {
   opacity: 1;
 }

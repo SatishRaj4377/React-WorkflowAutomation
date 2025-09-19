@@ -395,7 +395,7 @@ const Home: React.FC<HomeProps> = ({
                           <TooltipComponent content={isBookmarked(project.id) ? 'Remove from favorites' : 'Add to favorites'}>
                             <ButtonComponent
                               cssClass="bookmark-btn"
-                              iconCss={`e-icons ${isBookmarked(project.id) ? 'e-star-filled' : 'e-bookmark'}`}
+                              iconCss={`e-icons e-star-filled ${isBookmarked(project.id) ? 'star-filled' : ''}`}
                               onClick={(e) => handleBookmarkToggle(project.id, e)}
                               />
                           </TooltipComponent>
@@ -564,7 +564,7 @@ const Home: React.FC<HomeProps> = ({
                           <span className="project-col project-bookmark">
                             <ButtonComponent
                               cssClass="bookmark-btn"
-                              iconCss={`e-icons ${isBookmarked(project.id) ? 'e-star-filled' : 'e-bookmark'}`}
+                              iconCss={`e-icons e-star-filled ${isBookmarked(project.id) ? 'star-filled' : ''}`}
                               onClick={(e) => handleBookmarkToggle(project.id, e)}
                               title={isBookmarked(project.id) ? 'Remove from favorites' : 'Add to favorites'}
                             />
@@ -610,7 +610,7 @@ const Home: React.FC<HomeProps> = ({
                           <div className="project-bookmark-card">
                             <ButtonComponent
                               cssClass="bookmark-btn-card"
-                              iconCss={`e-icons ${isBookmarked(project.id) ? 'e-star-filled' : 'e-bookmark'}`}
+                              iconCss={`e-icons e-star-filled ${isBookmarked(project.id) ? 'star-filled' : ''}`}
                               onClick={(e) => handleBookmarkToggle(project.id, e)}
                               title={isBookmarked(project.id) ? 'Remove from favorites' : 'Add to favorites'}
                             />
