@@ -384,17 +384,6 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           />
         </div>
 
-        <div className="config-section">
-          <label className="config-label">Description</label>
-          <TextBoxComponent
-            value={selectedNode?.settings?.general?.description || ''}
-            placeholder="Enter node description"
-            change={(e: any) => handleConfigChange('description', e.value, 'general')}
-            cssClass="config-textarea"
-            multiline
-          />
-        </div>
-
         {renderNodeSpecificFields(selectedNode!.nodeType, settings)}
       </div>
     );
@@ -491,6 +480,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
       type="Over"
       isOpen={isOpen}
       close={onClose}
+      enableGestures={false}
       target=".editor-content"
     >
       {!selectedNode ? (

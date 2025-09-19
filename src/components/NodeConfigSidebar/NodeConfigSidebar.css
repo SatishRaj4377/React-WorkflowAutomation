@@ -106,13 +106,6 @@
   font-size: 0.875rem;
 }
 
-.config-description {
-  color: var(--text-secondary);
-  font-size: 0.8125rem;
-  margin-top: -0.25rem;
-  margin-bottom: 0.75rem;
-}
-
 .config-input,
 .config-textarea {
   width: 100%;

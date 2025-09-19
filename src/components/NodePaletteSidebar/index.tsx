@@ -279,6 +279,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
       type="Over"
       isOpen={isOpen}
       close={onClose}
+      enableGestures={false}
       target=".editor-content"
     >
       <div className="sidebar-header">
