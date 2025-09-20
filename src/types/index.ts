@@ -127,3 +127,25 @@ export type NodeType =
   | 'Switch Case'
   | 'Filter'
 ;
+
+export type Variable = {
+  /** short key displayed prominently e.g., "subject" */
+  key: string;
+  /** fully qualified path to insert, e.g., "gmail_1.subject" */
+  path: string;
+  /** quick preview of the value from last execution */
+  preview?: string;
+  /** primitive or structured type hint */
+  type?: 'string' | 'number' | 'boolean' | 'object' | 'array' | 'date' | 'any';
+};
+
+export type VariableGroup = {
+  nodeId: string;
+  nodeName: string;       // "Gmail 1" or "Webhook"
+  nodeType: string;       // "Gmail" | "Google Sheets" | "Webhook" ...
+  variables: Variable[];
+};
+
+export type VariablesProvider = (context?: {
+  activeNodeId?: string | null;
+}) => Promise<VariableGroup[]>;

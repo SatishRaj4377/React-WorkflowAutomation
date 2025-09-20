@@ -13,6 +13,7 @@ import { TooltipComponent } from '@syncfusion/ej2-react-popups';
 import { IconRegistry } from '../../assets/icons';
 import { NodeConfig, NodeType } from '../../types';
 import './NodeConfigSidebar.css';
+import { VariableTextBox } from './VariablePicker';
 
 interface ConfigPanelProps {
   isOpen: boolean;
@@ -195,18 +196,18 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           <>
             <div className="config-section">
               <label className="config-label">Role</label>
-              <TextBoxComponent
+              <VariableTextBox
                 value={settings.role ?? 'Assistant'}
-                change={(e: any) => handleConfigChange('role', e.value)}
+                onChange={(val) => handleConfigChange('role', val)}
                 cssClass="config-input"
               />
             </div>
             <div className="config-section">
               <label className="config-label">Goal</label>
-              <TextBoxComponent
+              <VariableTextBox
                 value={settings.goal ?? ''}
                 placeholder="Define the agent's objective"
-                change={(e: any) => handleConfigChange('goal', e.value)}
+                onChange={(val) => handleConfigChange('goal', val)}
                 cssClass="config-textarea"
                 multiline
               />
@@ -251,10 +252,10 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           <>
             <div className="config-section">
               <label className="config-label">URL</label>
-              <TextBoxComponent
+              <VariableTextBox
                 value={settings.url ?? ''}
                 placeholder="https://api.example.com/resource"
-                change={(e: any) => handleConfigChange('url', e.value)}
+                onChange={(val) => handleConfigChange('url', val)}
                 cssClass="config-input"
               />
             </div>
@@ -284,10 +285,10 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
 
             <div className="config-section">
               <label className="config-label">Body</label>
-              <TextBoxComponent
+              <VariableTextBox
                 value={settings.body ?? ''}
                 placeholder='{"key":"value"}'
-                change={(e: any) => handleConfigChange('body', e.value)}
+                onChange={(val) => handleConfigChange('body', val)}
                 cssClass="config-textarea"
                 multiline
               />
@@ -322,10 +323,10 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           <>
             <div className="config-section">
               <label className="config-label">Condition</label>
-              <TextBoxComponent
+              <VariableTextBox
                 value={settings.condition ?? ''}
                 placeholder="Use an expression or template variable"
-                change={(e: any) => handleConfigChange('condition', e.value)}
+                onChange={(val) => handleConfigChange('condition', val)}
                 cssClass="config-textarea"
                 multiline
               />
@@ -338,10 +339,10 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           <>
             <div className="config-section">
               <label className="config-label">Expression</label>
-              <TextBoxComponent
+              <VariableTextBox
                 value={settings.expression ?? ''}
                 placeholder="e.g., {{ $.data.status }}"
-                change={(e: any) => handleConfigChange('expression', e.value)}
+                onChange={(val) => handleConfigChange('expression', val)}
                 cssClass="config-input"
               />
             </div>
@@ -353,10 +354,10 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           <>
             <div className="config-section">
               <label className="config-label">Predicate</label>
-              <TextBoxComponent
+              <VariableTextBox
                 value={settings.predicate ?? ''}
                 placeholder="e.g., item.amount > 1000"
-                change={(e: any) => handleConfigChange('predicate', e.value)}
+                onChange={(val) => handleConfigChange('predicate', val)}
                 cssClass="config-textarea"
                 multiline
               />

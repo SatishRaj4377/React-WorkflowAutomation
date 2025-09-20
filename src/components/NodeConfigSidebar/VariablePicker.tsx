@@ -1,0 +1,382 @@
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { createPortal } from 'react-dom';
+import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
+import { Variable, VariableGroup, VariablesProvider } from '../../types';
+
+/* =========================
+ * Dummy Data Provider (simulate server)
+ * ======================= */
+
+export const getDummyVariables: VariablesProvider = async (context) => {
+  // Simulate latency
+  await new Promise((r) => setTimeout(r, 120));
+
+  // In real life, you’d call your Express API with the executionId / workflowId.
+  // Here we return a few realistic samples from Gmail, Google Sheets & Webhook.
+  const data: VariableGroup[] = [
+    {
+      nodeId: 'gmail_1',
+      nodeName: 'Gmail 1',
+      nodeType: 'Gmail',
+      variables: [
+        { key: 'from', path: 'gmail_1.from', preview: 'noreply@example.com', type: 'string' },
+        { key: 'to', path: 'gmail_1.to', preview: 'ops@example.com', type: 'string' },
+        { key: 'subject', path: 'gmail_1.subject', preview: 'Invoice #8421', type: 'string' },
+        { key: 'snippet', path: 'gmail_1.snippet', preview: 'Hi team, attached is...', type: 'string' },
+        { key: 'threadId', path: 'gmail_1.threadId', preview: '185e3b31c4', type: 'string' },
+      ],
+    },
+    {
+      nodeId: 'gsheets_1',
+      nodeName: 'Google Sheets 1',
+      nodeType: 'Google Sheets',
+      variables: [
+        { key: 'lastRow.Id', path: 'gsheets_1.lastRow.Id', preview: '42', type: 'number' },
+        { key: 'lastRow.Name', path: 'gsheets_1.lastRow.Name', preview: 'Jane Doe', type: 'string' },
+        { key: 'lastRow.Email', path: 'gsheets_1.lastRow.Email', preview: 'jane@example.com', type: 'string' },
+        { key: 'rowCount', path: 'gsheets_1.rowCount', preview: '128', type: 'number' },
+      ],
+    },
+    {
+      nodeId: 'webhook_1',
+      nodeName: 'Webhook 1',
+      nodeType: 'Webhook',
+      variables: [
+        { key: 'payload.user.name', path: 'webhook_1.payload.user.name', preview: 'Arjun', type: 'string' },
+        { key: 'payload.user.email', path: 'webhook_1.payload.user.email', preview: 'arjun@example.com', type: 'string' },
+        { key: 'payload.event', path: 'webhook_1.payload.event', preview: 'checkout.completed', type: 'string' },
+        { key: 'payload.items[0].amount', path: 'webhook_1.payload.items[0].amount', preview: '2499', type: 'number' },
+      ],
+    },
+  ];
+
+  return data;
+};
+
+/** Insert `text` at the current caret/selection of an input or textarea. */
+function insertAtCaret(
+  el: HTMLInputElement | HTMLTextAreaElement,
+  text: string
+): { nextValue: string; nextCaret: number } {
+  const start = el.selectionStart ?? el.value.length;
+  const end = el.selectionEnd ?? el.value.length;
+  const nextValue = el.value.slice(0, start) + text + el.value.slice(end);
+  const nextCaret = start + text.length;
+  return { nextValue, nextCaret };
+}
+
+/** Find native input/textarea rendered by EJ2 TextBox inside a container */
+function findNativeInput(container: HTMLElement | null) {
+  if (!container) return null;
+  return container.querySelector('input.e-input, textarea.e-input') as
+    | HTMLInputElement
+    | HTMLTextAreaElement
+    | null;
+}
+
+/** Compute best-fit popup position near an anchor rect (to the right or below) */
+function computePopupPosition(
+  rect: DOMRect,
+  doc: Document,
+  offset = 8
+): { top: number; left: number } {
+  const vw = doc.documentElement.clientWidth;
+  const vh = doc.documentElement.clientHeight;
+
+  // Try right side first
+  let left = rect.right + offset + window.scrollX;
+  let top = rect.top + window.scrollY;
+
+  const approximateWidth = 320;
+  const approximateHeight = 280;
+
+  // If it overflows right edge, place below the input aligned left
+  if (left + approximateWidth > window.scrollX + vw) {
+    left = rect.left + window.scrollX;
+    top = rect.bottom + offset + window.scrollY;
+  }
+
+  // If it also overflows bottom, nudge upward
+  if (top + approximateHeight > window.scrollY + vh) {
+    top = Math.max(window.scrollY + vh - approximateHeight - offset, window.scrollY + 8);
+  }
+
+  return { top, left };
+}
+
+/** Basic outside-click hook */
+function useOutsideClick<T extends HTMLElement>(
+  refs: Array<React.RefObject<T | null>>,
+  onOutside: () => void,
+  when = true
+) {
+  useEffect(() => {
+    if (!when) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as Node;
+      const inside = refs.some((r) => r.current && r.current.contains(target));
+      if (!inside) onOutside();
+    };
+    document.addEventListener('mousedown', handler, { capture: true });
+    return () => {
+      document.removeEventListener('mousedown', handler, { capture: true });
+    };
+  }, [when, onOutside, refs]);
+}
+
+
+/* =========================
+ * VariablePickerPopup
+ * ======================= */
+
+type PickerPopupProps = {
+  anchorEl: HTMLElement | null;
+  open: boolean;
+  onClose: () => void;
+  onPick: (variable: Variable) => void;
+  fetchVariables?: VariablesProvider; // defaults to getDummyVariables
+  zIndex?: number;
+};
+
+const PORTAL_ROOT_ID = 'variable-picker-portal-root';
+
+function ensurePortalRoot(): HTMLElement {
+  let root = document.getElementById(PORTAL_ROOT_ID);
+  if (!root) {
+    root = document.createElement('div');
+    root.id = PORTAL_ROOT_ID;
+    document.body.appendChild(root);
+  }
+  return root;
+}
+
+export const VariablePickerPopup: React.FC<PickerPopupProps> = ({
+  anchorEl,
+  open,
+  onClose,
+  onPick,
+  fetchVariables = getDummyVariables,
+  zIndex = 1000010,
+}) => {
+  const popupRef = useRef<HTMLDivElement>(null);
+  const [groups, setGroups] = useState<VariableGroup[]>([]);
+  const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 });
+  const [loading, setLoading] = useState(false);
+
+  // Fetch variables on open
+  useEffect(() => {
+    let cancelled = false;
+    if (open) {
+      setLoading(true);
+      fetchVariables({ activeNodeId: null })
+        .then((g) => !cancelled && setGroups(g))
+        .finally(() => !cancelled && setLoading(false));
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [open, fetchVariables]);
+
+  // Positioning & repositioning
+  const updatePosition = useCallback(() => {
+    if (!anchorEl) return;
+    const rect = anchorEl.getBoundingClientRect();
+    setPos(computePopupPosition(rect, document, 8));
+  }, [anchorEl]);
+
+  useEffect(() => {
+    if (open) updatePosition();
+  }, [open, updatePosition]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onScroll = () => updatePosition();
+    const onResize = () => updatePosition();
+    window.addEventListener('scroll', onScroll, true);
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('scroll', onScroll, true);
+      window.removeEventListener('resize', onResize);
+    };
+  }, [open, updatePosition]);
+
+  // Close when clicking away
+  useOutsideClick([popupRef], onClose, open);
+
+  const content = (
+    <div
+      ref={popupRef}
+      className="vp-popup"
+      style={{ position: 'absolute', top: pos.top, left: pos.left, zIndex }}
+      // Prevent input blur while interacting with the popup
+      onMouseDown={(e) => e.preventDefault()}
+    >
+      <div className="vp-header">
+        <span className="vp-title">Insert variable</span>
+        <button className="vp-close" onClick={onClose} aria-label="Close">✕</button>
+      </div>
+
+      <div className="vp-body">
+        {loading && <div className="vp-loading">Loading variables…</div>}
+        {!loading && groups.length === 0 && (
+          <div className="vp-empty">No variables available yet.</div>
+        )}
+        {!loading &&
+          groups.map((g) => (
+            <div className="vp-group" key={g.nodeId}>
+              <div className="vp-group-title">
+                <span className="vp-node-type">{g.nodeType}</span>
+                <span className="vp-node">{g.nodeName}</span>
+              </div>
+              <ul className="vp-list">
+                {g.variables.map((v) => {
+                  const lastSegment = v.key.split('.').slice(-1)[0];
+                  return (
+                    <li
+                      key={v.path}
+                      className="vp-item"
+                      onClick={() => onPick(v)}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      <div className="vp-item-main">
+                        <code className="vp-key">
+                          <span className="vp-key-em">{lastSegment}</span>
+                          <span className="vp-key-dim">
+                            {v.key.includes('.') ? `  (${v.key})` : ''}
+                          </span>
+                        </code>
+                        <span className={`vp-type ${v.type || 'any'}`}>{v.type || 'any'}</span>
+                      </div>
+                      {v.preview && <div className="vp-preview">{v.preview}</div>}
+                      <div className="vp-path">{"{{ "}{v.path}{" }}"}</div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
+      </div>
+    </div>
+  );
+
+  return open ? createPortal(content, ensurePortalRoot()) : null;
+};
+
+/* =========================
+ * VariableTextBox 
+ * ======================= */
+
+type VariableTextBoxProps = {
+  value: string;
+  onChange: (next: string) => void;
+  placeholder?: string;
+  multiline?: boolean;
+  cssClass?: string;
+  fetchVariables?: VariablesProvider;
+  /** Format how the token is inserted; default -> {{ path }} */
+  tokenFormatter?: (v: Variable) => string;
+  ej2Props?: Partial<React.ComponentProps<typeof TextBoxComponent>>;
+};
+
+export const VariableTextBox: React.FC<VariableTextBoxProps> = ({
+  value,
+  onChange,
+  placeholder,
+  multiline,
+  cssClass,
+  fetchVariables,
+  tokenFormatter = (v) => `{{ ${v.path} }}`,
+  ej2Props = {},
+}) => {
+  // Wrap to find the native input, because EJ2 wraps the element
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
+
+  // Show/hide popup
+  const [open, setOpen] = useState(false);
+
+  // Acquire native input once rendered
+  const captureInput = useCallback(() => {
+    inputRef.current = findNativeInput(wrapperRef.current!);
+  }, []);
+
+  useEffect(() => {
+    captureInput();
+  }, [captureInput, multiline]); // EJ2 swaps to <textarea> if multiline=true
+
+  // Keep a computed cssClass that marks tokens (for subtle styling)
+  const computedCssClass = useMemo(() => {
+    const base = cssClass || '';
+    const tokenClass = /\{\{[^}]+\}\}/.test(value) ? ' has-variables' : '';
+    return `${base}${tokenClass}`.trim();
+  }, [cssClass, value]);
+
+  // Handle selection & insertion
+  const handlePick = useCallback(
+    (v: Variable) => {
+      const el = inputRef.current;
+      if (!el) return;
+      const token = tokenFormatter(v);
+      const { nextValue, nextCaret } = insertAtCaret(el, token);
+      onChange(nextValue);
+      // Restore caret after onChange re-renders
+      requestAnimationFrame(() => {
+        const el2 = inputRef.current;
+        if (el2) {
+          el2.focus();
+          try {
+            el2.setSelectionRange(nextCaret, nextCaret);
+          } catch {
+            // ignore (number/password etc.)
+          }
+        }
+      });
+      setOpen(false);
+    },
+    [onChange, tokenFormatter]
+  );
+
+  // Open the popup when focusing; close on Escape
+  const onFocusIn = useCallback(() => setOpen(true), []);
+  const onKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') setOpen(false);
+  }, []);
+
+  // Close when clicking away (handled by popup outside-click)
+  const onBlur = useCallback(() => {
+    // Do nothing here; blur is prevented when interacting with popup.
+    // The popup has an outside-click listener that closes it.
+  }, []);
+
+  return (
+    <div className="variable-textbox-wrapper" ref={wrapperRef}>
+      <TextBoxComponent
+        value={value}
+        placeholder={placeholder}
+        multiline={!!multiline}
+        cssClass={computedCssClass}
+        change={(e: any) => onChange(e.value)}
+        focus={onFocusIn}
+        blur={onBlur}
+        // @ts-ignore: EJ2 types accept keyboard events, React wrapper passes through.
+        keydown={onKeyDown}
+        {...ej2Props}
+      />
+      {/* Popup anchored to the native input element */}
+      <VariablePickerPopup
+        anchorEl={inputRef.current}
+        open={open}
+        onClose={() => setOpen(false)}
+        onPick={handlePick}
+        fetchVariables={fetchVariables}
+      />
+    </div>
+  );
+};
