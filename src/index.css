@@ -222,7 +222,7 @@ body, .e-control, .e-card{
 
 /* Selection Color Update */
 ::selection {
-  background: var(--primary-color);
+  background: var(--accent-color);
   color: var(--surface-color);
 }
 ::-moz-selection {
@@ -260,8 +260,8 @@ body, .e-control, .e-card{
 /* Scrollbars Styling */
 /* Webkit browsers (Chrome, Edge, Safari) */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   background: var(--scrollbar-bg);
   border-radius: var(--scrollbar-border-radius);
 }
@@ -278,7 +278,7 @@ body, .e-control, .e-card{
   border-radius: var(--scrollbar-border-radius);
 }
 /* Firefox */
-html {
+.home-main {
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-bg);
 }
