@@ -345,15 +345,6 @@ export const VariableTextBox: React.FC<VariableTextBoxProps> = ({
 
   // Open the popup when focusing; close on Escape
   const onFocusIn = useCallback(() => setOpen(true), []);
-  const onKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') setOpen(false);
-  }, []);
-
-  // Close when clicking away (handled by popup outside-click)
-  const onBlur = useCallback(() => {
-    // Do nothing here; blur is prevented when interacting with popup.
-    // The popup has an outside-click listener that closes it.
-  }, []);
 
   return (
     <div className="variable-textbox-wrapper" ref={wrapperRef}>
@@ -364,9 +355,6 @@ export const VariableTextBox: React.FC<VariableTextBoxProps> = ({
         cssClass={computedCssClass}
         change={(e: any) => onChange(e.value)}
         focus={onFocusIn}
-        blur={onBlur}
-        // @ts-ignore: EJ2 types accept keyboard events, React wrapper passes through.
-        keydown={onKeyDown}
         {...ej2Props}
       />
       {/* Popup anchored to the native input element */}
