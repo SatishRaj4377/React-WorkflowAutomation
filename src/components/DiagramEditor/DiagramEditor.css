@@ -47,6 +47,9 @@
   user-select: none;
   position: relative;
 }
+.node-template.trigger-node {
+  border-radius: 26px 8px 8px 26px; /* different shape for trigger node */
+}
 .node-template.success {
   border: 2px solid #04c10d;
 }

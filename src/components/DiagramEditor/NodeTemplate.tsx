@@ -25,11 +25,11 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo }) => {
   
   return (
     <div className="node-template-container">
-      <div className={`node-template`} data-node-id={`${id}`}>
+      <div className={`node-template ${nodeCategory === 'trigger' ? 'trigger-node' : ''}`} data-node-id={`${id}`}>
         {/* Port Rendering Logic... */}
         {/* For Trigger Nodes, show port only at the right side */}
-        {nodeConfig.category === 'trigger' && <div className="node-port-right"></div>}
-        {(nodeConfig.category === 'action' || nodeConfig.category === 'condition') && !isIfOrSwitchCondition && !isAiAgent && (
+        {nodeCategory === 'trigger' && <div className="node-port-right"></div>}
+        {(nodeCategory === 'action' || nodeCategory === 'condition') && !isIfOrSwitchCondition && !isAiAgent && (
           <>
             <div className="node-port-left"></div>
             <div className="node-port-right"></div>
