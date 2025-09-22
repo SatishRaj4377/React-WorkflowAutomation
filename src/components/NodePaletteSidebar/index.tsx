@@ -63,6 +63,8 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "manual-trigger",
           name: "Manual Click",
+          icon: NodeIcons.ManualClickIcon,
+          iconId: "ManualClickIcon",
           category: "trigger",
           nodeType: "Manual Click",
           description: "When clicked, trigger the workflow",

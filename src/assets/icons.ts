@@ -14,6 +14,7 @@ import { ReactComponent as SwitchConditionIcon } from '../assets/images/svg-icon
 import { ReactComponent as TelegramIcon } from '../assets/images/svg-icons/telegram.svg';
 import { ReactComponent as TwilioIcon } from '../assets/images/svg-icons/twilio.svg';
 import { ReactComponent as WebhookIcon } from '../assets/images/svg-icons/webhook.svg';
+import { ReactComponent as ManualClickIcon } from '../assets/images/svg-icons/manual-click.svg';
 
 import ApiIntegrationImage from '../assets/images/template-images/api-integration.jpg';
 import DataProcessingImage from '../assets/images/template-images/data-processing.jpg';
@@ -38,6 +39,7 @@ export const NodeIcons = {
   TelegramIcon,
   TwilioIcon,
   WebhookIcon,
+  ManualClickIcon,
 };
 
 export const IconRegistry: { [key: string]: React.ElementType } = {
@@ -56,6 +58,7 @@ export const IconRegistry: { [key: string]: React.ElementType } = {
   TelegramIcon,
   TwilioIcon,
   WebhookIcon,
+  ManualClickIcon
 };
 
 export const templateImages = {
