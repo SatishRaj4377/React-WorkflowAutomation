@@ -62,7 +62,9 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo }) => {
                 draggable={false}
               />
             )}
-          <span className='ai-agent-name-bar'>{isAiAgent && nodeConfig.displayName ? nodeConfig.displayName : ''}</span>
+            {isAiAgent && (
+              <span className='ai-agent-name-bar'>{nodeConfig.displayName ? nodeConfig.displayName : ''}</span>
+            )}
         </div>
       </div>
       {!isAiAgent &&(
