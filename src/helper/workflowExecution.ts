@@ -114,12 +114,25 @@ export const updateNodeStatus = (
 };
 
 /**
- * Reset execution state of all nodes
+ * Reset execution state of all nodes and connectors
  * @param diagram DiagramComponent instance
  */
-export const resetNodeStates = (diagram: DiagramComponent) => {
+export const resetExecutionStates = (diagram: DiagramComponent) => {
+  // Reset node states
   diagram?.nodes.forEach(node => {
     updateNodeStatus(diagram, node.id as string, 'idle');
+  });
+
+  // Reset connector states
+  diagram?.connectors.forEach(conn => {
+    const connectorPath = document.getElementById(`${conn.id}_path`);
+    const connectorTargetDec = document.getElementById(`${conn.id}_tarDec`);
+    if (connectorPath) {
+      connectorPath.classList.remove('workflow-connector-success', 'workflow-connector-error');
+    }
+    if (connectorTargetDec) {
+      connectorTargetDec.classList.remove('workflow-connector-targetDec-success', 'workflow-connector-targetDec-error');
+    }
   });
 };
 

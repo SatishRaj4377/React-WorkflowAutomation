@@ -1,7 +1,7 @@
 import { DiagramComponent } from '@syncfusion/ej2-react-diagrams';
 import { NodeModel } from '@syncfusion/ej2-diagrams';
 import { ExecutionContext, NodeExecutionResult, WorkflowExecutionOptions, WorkflowExecutionStatus } from '../types';
-import { findTriggerNodes, findConnectedNodes, updateNodeStatus, resetNodeStates, mockExecuteNode } from '../helper/workflowExecution';
+import { findTriggerNodes, findConnectedNodes, updateNodeStatus, resetExecutionStates, mockExecuteNode } from '../helper/workflowExecution';
 import { showErrorToast, showSuccessToast } from '../components/Toast';
 
 /**
@@ -189,7 +189,7 @@ export class WorkflowExecutionService {
       variables: {},
       results: {}
     };
-    resetNodeStates(this.diagram);
+    resetExecutionStates(this.diagram);
   }
 
   /**

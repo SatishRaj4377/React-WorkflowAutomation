@@ -14,6 +14,7 @@ import WorkflowService from '../../services/WorkflowService';
 import { WorkflowExecutionService } from '../../services/WorkflowExecutionService';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
 import { calculateNewNodePosition, generateOptimizedThumbnail, getDefaultDiagramSettings, getNodePortById } from '../../helper/diagramUtils';
+import { resetExecutionStates } from '../../helper/workflowExecution';
 import './Editor.css';
 
 interface EditorProps {
@@ -61,6 +62,9 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const handleSave = useCallback(async () => {
     try {
       if (diagramRef) {
+        // Reset execution states before saving to ensure clean thumbnail
+        resetExecutionStates(diagramRef);
+        
         // Save diagram as string using EJ2's built-in method
         const diagramString = diagramRef.saveDiagram();
 

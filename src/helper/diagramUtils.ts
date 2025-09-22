@@ -181,7 +181,7 @@ export const generateOptimizedThumbnail = async (elementId: string): Promise<str
   try {
     // Render with a specific scale, then resize precisely for optimization
     const canvas = await html2canvas(element as HTMLElement, {
-      backgroundColor: '#ffffff',
+      backgroundColor: '#bbc7d6',
       scale: 1,
       useCORS: true,
       logging: false,
