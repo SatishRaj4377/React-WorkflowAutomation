@@ -42,7 +42,6 @@ export interface PaletteCategory {
 export interface NodeTemplate {
   id: string;
   name: string;
-  icon?: React.ElementType;
   iconId?: string;
   nodeType: NodeType;
   category: NodeCategories;

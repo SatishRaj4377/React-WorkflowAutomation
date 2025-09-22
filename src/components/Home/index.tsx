@@ -10,7 +10,7 @@ import { SwitchComponent } from '@syncfusion/ej2-react-buttons';
 import ConfirmationDialog from '../ConfirmationDialog';
 import { useTheme } from '../../contexts/ThemeContext';
 import { ProjectData } from '../../types';
-import { NodeIcons, templateImages } from '../../assets/icons';
+import { IconRegistry, templateImages } from '../../assets/icons';
 import WorkflowService from '../../services/WorkflowService'; // Import the service
 import './Home.css';
 
@@ -49,7 +49,7 @@ const Home: React.FC<HomeProps> = ({
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   const [isMultiDeleteConfirmOpen, setMultiDeleteConfirmOpen] = useState(false);
 
-  const WorkflowLogoIcon = NodeIcons.WorkflowLogo;
+  const WorkflowLogoIcon = IconRegistry['WorkflowLogo'];
 
   const sortOptions = [
     { text: 'Last Modified', id: 'lastModified' },

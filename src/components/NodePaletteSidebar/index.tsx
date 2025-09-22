@@ -8,7 +8,7 @@ import {
 import { ButtonComponent } from "@syncfusion/ej2-react-buttons";
 import { TextBoxComponent } from "@syncfusion/ej2-react-inputs";
 import { NodeTemplate, PaletteCategory } from "../../types";
-import {NodeIcons} from "../../assets/icons";
+import {IconRegistry} from "../../assets/icons";
 import "./NodePaletteSidebar.css";
 
 import { PortModel } from '@syncfusion/ej2-react-diagrams';
@@ -45,7 +45,6 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "webhook-trigger",
           name: "Webhook",
-          icon: NodeIcons.WebhookIcon,
           iconId: "WebhookIcon",
           category: "trigger",
           nodeType: "Webhook",
@@ -54,7 +53,6 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "schedule-trigger",
           name: "Schedule",
-          icon: NodeIcons.ScheduleIcon,
           iconId: "ScheduleIcon",
           category: "trigger",
           nodeType: "Schedule",
@@ -63,7 +61,6 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "manual-trigger",
           name: "Manual Click",
-          icon: NodeIcons.ManualClickIcon,
           iconId: "ManualClickIcon",
           category: "trigger",
           nodeType: "Manual Click",
@@ -72,7 +69,6 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "chat-trigger",
           name: "Chat Trigger",
-          icon: NodeIcons.ChatIcon,
           iconId: "ChatIcon",
           category: "trigger",
           nodeType: "Chat",
@@ -87,7 +83,6 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "ai-agent",
           name: "AI Agent",
-          icon: NodeIcons.AiAgentIcon,
           iconId: "AiAgentIcon",
           category: "action",
           nodeType: "AI Agent",
@@ -96,7 +91,6 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "azure-chat",
           name: "Azure Chat Model",
-          icon: NodeIcons.AzureModelIcon,
           iconId: "AzureModelIcon",
           category: "action",
           nodeType: "Azure Chat Model",
@@ -105,7 +99,6 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "http-request",
           name: "HTTP Request",
-          icon: NodeIcons.HttpRequestIcon,
           iconId: "HttpRequestIcon",
           category: "action",
           nodeType: "HTTP Request",
@@ -114,7 +107,6 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "send-email",
           name: "GMail",
-          icon: NodeIcons.GmailIcon,
           iconId: "GmailIcon",
           category: "action",
           nodeType: "Gmail",
@@ -123,7 +115,6 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "sheet",
           name: "Google Sheets",
-          icon: NodeIcons.GoogleSheetIcon,
           iconId: "GoogleSheetIcon",
           category: "action",
           nodeType: "Google Sheets",
@@ -132,7 +123,6 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "telegram",
           name: "Telegram",
-          icon: NodeIcons.TelegramIcon,
           iconId: "TelegramIcon",
           category: "action",
           nodeType: "Telegram",
@@ -141,7 +131,6 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "calendar",
           name: "Google Calendar",
-          icon: NodeIcons.GoogleCalendarIcon,
           iconId: "GoogleCalendarIcon",
           category: "action",
           nodeType: "Google Calendar",
@@ -150,7 +139,6 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "docs",
           name: "Google Docs",
-          icon: NodeIcons.GoogleDocsIcon,
           iconId: "GoogleDocsIcon",
           category: "action",
           nodeType: "Google Docs",
@@ -159,7 +147,6 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "twilio",
           name: "Twilio",
-          icon: NodeIcons.TwilioIcon,
           iconId: "TwilioIcon",
           category: "action",
           nodeType: "Twilio",
@@ -174,7 +161,6 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "if-condition",
           name: "If Condition",
-          icon: NodeIcons.IfConditionIcon,
           iconId: "IfConditionIcon",
           category: "condition",
           nodeType: "If Condition",
@@ -183,7 +169,6 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "switch-case",
           name: "Switch Case",
-          icon: NodeIcons.SwitchConditionIcon,
           iconId: "SwitchConditionIcon",
           category: "condition",
           nodeType: "Switch Case",
@@ -192,7 +177,6 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
         {
           id: "filter",
           name: "Filter",
-          icon: NodeIcons.FilterIcon,
           iconId: "FilterIcon",
           category: "condition",
           nodeType: "Filter",
@@ -229,7 +213,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
     return (
       <div className="category-nodes">
         {category.nodes.map((node: any) => {
-          const IconComponent = node.icon;
+          const IconComponent = IconRegistry[node.iconId];
           return (
             <div
               key={node.id}

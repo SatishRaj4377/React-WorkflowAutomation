@@ -22,27 +22,8 @@ import DefaultImageImage from '../assets/images/template-images/default-image.jp
 import EmailAutomationImage from '../assets/images/template-images/email-automation.jpg';
 import NotificationSystemImage from '../assets/images/template-images/notification-system.jpg';
 
-export const NodeIcons = {
-  WorkflowLogo,
-  AiAgentIcon,
-  AzureModelIcon,
-  ChatIcon,
-  FilterIcon,
-  GmailIcon,
-  GoogleDocsIcon,
-  GoogleCalendarIcon,
-  GoogleSheetIcon,
-  HttpRequestIcon,
-  IfConditionIcon,
-  ScheduleIcon,
-  SwitchConditionIcon,
-  TelegramIcon,
-  TwilioIcon,
-  WebhookIcon,
-  ManualClickIcon,
-};
-
 export const IconRegistry: { [key: string]: React.ElementType } = {
+  WorkflowLogo,
   AiAgentIcon,
   AzureModelIcon,
   ChatIcon,
