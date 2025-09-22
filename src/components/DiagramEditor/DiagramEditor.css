@@ -50,10 +50,10 @@
 .node-template.trigger-node {
   border-radius: 26px 8px 8px 26px; /* different shape for trigger node */
 }
-.node-template.success {
+.node-template-container.success .node-template {
   border: 2px solid #04c10d;
 }
-.node-template.error {
+.node-template-container.error .node-template  {
   border: 2px solid #c62801;
 }
 .node-port-left {
@@ -114,7 +114,12 @@
   white-space: nowrap;
   pointer-events: none;
 }
-
+.node-template-container.success .node-name-bar{
+  color: #04c10d;
+}
+.node-template-container.error .node-name-bar{
+  color: #c62801;
+}
 /* Port styles for different node types */
 .node-port-right-top {
   position: absolute;
