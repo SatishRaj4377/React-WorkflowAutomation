@@ -213,7 +213,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
     return (
       <div className="category-nodes">
         {category.nodes.map((node: any) => {
-          const IconComponent = IconRegistry[node.iconId];
+          const nodeIconSrc = IconRegistry[node.iconId];
           return (
             <div
               key={node.id}
@@ -222,7 +222,14 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
               title={node.description}
             >
               <div className="node-icon">
-                {IconComponent && <IconComponent className="node-icon-img" />}
+                {typeof nodeIconSrc === 'string' && (
+                  <img
+                    src={nodeIconSrc}
+                    alt={node.name}
+                    className="node-icon-img"
+                    draggable={false}
+                  />
+                )}
               </div>
               <div className="node-info">
                 <div className="node-name">{node.name}</div>

@@ -18,7 +18,7 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo }) => {
     return <div>Invalid Node</div>;
   }
 
-  const IconComponent = nodeConfig.icon ? IconRegistry[nodeConfig.icon] : null;
+  const nodeIconSrc = nodeConfig.icon ? IconRegistry[nodeConfig.icon] : null;
   const nodeCategory = nodeConfig?.category;
   const isIfOrSwitchCondition = nodeCategory === 'condition' && (nodeConfig.nodeType === 'If Condition' || nodeConfig.nodeType === 'Switch Case');
   const isAiAgent = nodeConfig.id && nodeConfig.id.includes('ai-agent');
@@ -56,7 +56,12 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo }) => {
         
         {/* Icon and Name Rendering... */}
         <div className="node-img-content" style={isAiAgent ? { gap: '1.2rem' } : {}}>
-          {IconComponent && <IconComponent />}
+            {typeof nodeIconSrc === 'string' && (
+              <img
+                src={nodeIconSrc}
+                draggable={false}
+              />
+            )}
           <span className='ai-agent-name-bar'>{isAiAgent && nodeConfig.displayName ? nodeConfig.displayName : ''}</span>
         </div>
       </div>

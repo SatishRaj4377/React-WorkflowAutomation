@@ -48,7 +48,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   const [activeTab, setActiveTab] = useState(0);
 
   // Resolve icon component only when node exists
-  const IconComponent =
+  const nodeIconSrc =
     selectedNode?.icon ? (IconRegistry as any)[selectedNode.icon] : null;
 
   /** Safely update settings */
@@ -496,7 +496,12 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           <div className="config-panel-header">
             <div className="config-panel-title">
               <span className="node-icon">
-                {IconComponent && <IconComponent />}
+                {typeof nodeIconSrc === 'string' && (
+                  <img
+                    src={nodeIconSrc}
+                    draggable={false}
+                  />
+                )}
               </span>
               <TooltipComponent content={`${selectedNode?.nodeType || 'Node'} Configuration`}>
                 <h3>{selectedNode?.nodeType || 'Node'} Configuration</h3>
