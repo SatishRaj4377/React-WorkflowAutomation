@@ -14,6 +14,7 @@ import TelegramIcon from '../assets/images/svg-icons/telegram.svg';
 import TwilioIcon from '../assets/images/svg-icons/twilio.svg';
 import WebhookIcon from '../assets/images/svg-icons/webhook.svg';
 import ManualClickIcon from '../assets/images/svg-icons/manual-click.svg';
+import NodeLoader from '../assets/images/svg-icons/node-loader.svg';
 
 import ApiIntegrationImage from '../assets/images/template-images/api-integration.jpg';
 import DataProcessingImage from '../assets/images/template-images/data-processing.jpg';
@@ -40,7 +41,8 @@ export const IconRegistry: { [key: string]: string | React.ElementType } = {
   TelegramIcon,
   TwilioIcon,
   WebhookIcon,
-  ManualClickIcon
+  ManualClickIcon,
+  NodeLoader
 };
 
 export const templateImages = {

@@ -45,11 +45,16 @@ body, .e-control, .e-card{
   --gradient-accent: linear-gradient(135deg, #2563eb 0%, #6366f1 100%);
   --danger-color: #d9534f; 
   --danger-accent: #c9302c; 
+
+  /* Node Colors */
   --node-selector-outline: #ccd5e2ad;
   --node-background: #ffffff;
   --node-selector-background: #effdff;
   --node-handle: #a8adb3;
   --node-border-color: #9193a2ff;
+  --node-success-color: #00c445;
+  --node-error-color: #d92727;
+
   --list-hover-bg: #e7f1fe;
   --list-selected-bg: #dbeafe;
   --list-selected-color: var(--primary-color);
@@ -61,7 +66,7 @@ body, .e-control, .e-card{
   --grid-dotted-color: #a6b4caff; 
   --sticky-note-color: #e7f8ff;
   
-/* Toast Colors - Light Theme */
+  /* Toast Colors - Light Theme */
   --toast-success-bg: #eff6ff;
   --toast-success-border: #2563eb;
   --toast-success-text: #1e40af;

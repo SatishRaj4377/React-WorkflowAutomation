@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useBlocker } from 'react-router';
 import { DiagramTools, NodeConstraints, NodeModel, PortConstraints, PortModel } from '@syncfusion/ej2-react-diagrams';
 import AppBar from '../Header';
@@ -11,6 +11,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import ConfirmationDialog from '../ConfirmationDialog';
 import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosition } from '../../types';
 import WorkflowService from '../../services/WorkflowService';
+import { WorkflowExecutionService } from '../../services/WorkflowExecutionService';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
 import { calculateNewNodePosition, generateOptimizedThumbnail, getDefaultDiagramSettings, getNodePortById } from '../../helper/diagramUtils';
 import './Editor.css';
@@ -23,6 +24,8 @@ interface EditorProps {
 
 const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, }) => {
   const { theme } = useTheme();
+  const workflowExecutionRef = useRef<WorkflowExecutionService | null>(null);
+
   const [nodePaletteSidebarOpen, setNodePaletteSidebarOpen] = useState(false);
   const [nodeConfigPanelOpen, setNodeConfigPanelOpen] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
@@ -54,26 +57,6 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   });
   
   const blocker = useBlocker(React.useCallback(() => isDirty, [isDirty]));
-
-  useEffect(() => {
-    // Handle selected node changes - will be managed by DiagramEditor
-    if (selectedNodeId && diagramRef) {
-      // Get node from diagram
-      const nodes = diagramRef.nodes;
-      const node = nodes.find((n: any) => n.id === selectedNodeId);
-      if (node && node.addInfo && node.addInfo.nodeConfig) {
-        setSelectedNode(node.addInfo.nodeConfig);
-        setNodePaletteSidebarOpen(false);
-        setNodeConfigPanelOpen(true);
-      } else {
-        setNodeConfigPanelOpen(false);
-        setSelectedNode(null);
-      }
-    } else {
-      setNodeConfigPanelOpen(false);
-      setSelectedNode(null);
-    }
-  }, [selectedNodeId, diagramRef]);
 
   const handleSave = useCallback(async () => {
     try {
@@ -132,19 +115,28 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     }
   };
 
-  const handleExecuteWorkflow = () => {
+  const handleExecuteWorkflow = async () => {
+    if (!workflowExecutionRef.current) {
+      showErrorToast('Execution Failed', 'Workflow service not initialized');
+      return;
+    }
+
     setIsExecuting(true);
     
-    // Simulate workflow execution
-    setTimeout(() => {
+    try {
+      await workflowExecutionRef.current.executeWorkflow();
+    } catch (error) {
+      showErrorToast('Execution Failed', error instanceof Error ? error.message : 'Unknown error occurred');
+    } finally {
       setIsExecuting(false);
-      showSuccessToast('Workflow Executed', 'Your workflow has completed successfully.');
-    }, 3000);
+    }
   };
 
   const handleCancelExecution = () => {
+    if (workflowExecutionRef.current) {
+      workflowExecutionRef.current.stopExecution();
+    }
     setIsExecuting(false);
-    showErrorToast('Execution Cancelled', 'Workflow execution has been cancelled.');
   };
 
   const handleUserhandleAddNodeClick = (node: NodeModel, portId: string) => {
@@ -266,6 +258,38 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     diagramRef.tool = currentlyPan ? DiagramTools.Default : DiagramTools.ZoomPan;
     setIsPanActive(!currentlyPan);
   };
+
+  // Handle selected node changes
+  useEffect(() => {
+    if (selectedNodeId && diagramRef) {
+      // Get node from diagram
+      const nodes = diagramRef.nodes;
+      const node = nodes.find((n: any) => n.id === selectedNodeId);
+      if (node && node.addInfo && node.addInfo.nodeConfig) {
+        setSelectedNode(node.addInfo.nodeConfig);
+        setNodePaletteSidebarOpen(false);
+        setNodeConfigPanelOpen(true);
+      } else {
+        setNodeConfigPanelOpen(false);
+        setSelectedNode(null);
+      }
+    } else {
+      setNodeConfigPanelOpen(false);
+      setSelectedNode(null);
+    }
+  }, [selectedNodeId, diagramRef]);
+
+  // Initialize workflow execution service when diagram ref changes
+  useEffect(() => {
+    if (diagramRef) {
+      workflowExecutionRef.current = new WorkflowExecutionService(diagramRef, {
+        enableDebug: false,
+        timeout: 30000,
+        retryCount: 3,
+        retryDelay: 1000
+      });
+    }
+  }, [diagramRef]);
 
   useEffect(() => {
     // Check initial pan state on mount

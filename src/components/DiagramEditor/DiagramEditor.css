@@ -23,6 +23,12 @@
   stroke: var(--accent-color);
 }
 
+/* Node Template Selection Custom Styles */
+.node-template.selected {
+  outline: 5px solid var(--node-selector-outline);
+  background: var(--node-selector-background) !important;
+}
+
 /* Node Template Styles */
 .node-template-container {
   position: relative;
@@ -50,34 +56,55 @@
 .node-template.trigger-node {
   border-radius: 26px 8px 8px 26px; /* different shape for trigger node */
 }
+.node-template-container.running .node-template {
+  background-color: var(--box-shadow);
+  border: 2px solid var(--accent-color);
+  box-shadow: 0 0 0 1px var(--accent-color);
+}
+.node-template-container.running .node-spinner {
+  opacity: 1;
+}
+.node-template-container.running .node-img-content {
+  filter: blur(2px) brightness(0.8);
+}
 .node-template-container.success .node-template {
-  border: 2px solid #04c10d;
+  border: 1.7px solid var(--node-success-color);
+  box-shadow: 0 0 0 1px var(--node-success-color);
 }
-.node-template-container.error .node-template  {
-  border: 2px solid #c62801;
+.node-template-container.error .node-template {
+  border: 1.7px solid var(--node-error-color);
+  box-shadow: 0 0 0 1px var(--node-error-color);
 }
-.node-port-left {
+
+
+/* Node Execution Spinner */
+.node-spinner {
   position: absolute;
-  left: -7px;
-  width: 12px;
-  height: 12px;
-  background-color: var(--node-border-color);
   top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
-  border-radius: 2px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  z-index: 1000;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
-.node-port-right {
-  position: absolute;
-  right: -7px;
-  width: 12px;
-  height: 12px;
-  background-color: var(--node-border-color);
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
-  border-radius: 50%;
+.node-spinner img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  animation: spinLoader 1.2s ease-in-out infinite;
 }
+@keyframes spinLoader {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .node-img-content {
   width: 100%;
   display: flex;
@@ -87,9 +114,9 @@
   font-weight: 600;
   padding: 0.9rem;
 }
-.node-img-content svg {
-  min-width: 50px;
-  min-height: 50px;
+.node-img-content img {
+  min-width: 48px;
+  min-height: 48px;
   object-fit: contain;
 }
 .ai-agent-name-bar{
@@ -115,12 +142,49 @@
   pointer-events: none;
 }
 .node-template-container.success .node-name-bar{
-  color: #04c10d;
+  color: var(--node-success-color);
 }
 .node-template-container.error .node-name-bar{
-  color: #c62801;
+  color: var(--node-error-color);
 }
+
+/* Node Execution States for Connectors */
+.workflow-connector-success, .workflow-connector-targetDec-success {
+  stroke: var(--node-success-color) !important;
+}
+.workflow-connector-error, .workflow-connector-targetDec-error {
+  stroke: var(--node-error-color) !important;
+}
+.workflow-connector-targetDec-success {
+  fill: var(--node-success-color) !important;
+}
+.workflow-connector-targetDec-error {
+  fill: var(--node-error-color) !important;
+}
+
 /* Port styles for different node types */
+.node-port-left {
+  position: absolute;
+  left: -7px;
+  width: 12px;
+  height: 12px;
+  background-color: var(--node-border-color);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  border-radius: 2px;
+}
+.node-port-right {
+  position: absolute;
+  right: -7px;
+  width: 12px;
+  height: 12px;
+  background-color: var(--node-border-color);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  border-radius: 50%;
+}
 .node-port-right-top {
   position: absolute;
   right: -7px;
@@ -132,7 +196,6 @@
   z-index: 10;
   border-radius: 50%;
 }
-
 .node-port-right-bottom {
   position: absolute;
   right: -7px;
@@ -144,7 +207,6 @@
   z-index: 10;
   border-radius: 50%;
 }
-
 .node-port-bottom-left,
 .node-port-bottom-middle,
 .node-port-bottom-right {
@@ -158,25 +220,17 @@
   z-index: 10;
   border-radius: 0%;
 }
-
 .node-port-bottom-left {
   left: 21%;
 }
-
 .node-port-bottom-middle {
   left: 47%;
 }
-
 .node-port-bottom-right {
   left: 72%;
 }
 
-/* Node Template Selection Custom Styles */
-.node-template.selected {
-  outline: 5px solid var(--node-selector-outline);
-  background: var(--node-selector-background) !important;
-}
-
+/* Diagram Container Styles */
 .diagram-editor-container {
   width: 100%;
   height: 100%;
@@ -187,7 +241,7 @@
   background-attachment: local;
 }
 
-/* Initial action button */
+/* Initial action button style */
 .center-initial-plus-btn {
   position: absolute;
   z-index: 10010;

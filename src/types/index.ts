@@ -3,12 +3,17 @@ export interface NodeConfig {
   id: string;
   displayName: string;
   nodeType: NodeType;
-  category: NodeCategories
+  category: NodeCategories;
   icon?: string;
   settings: {
     general: any;
     authentication?: any;
     advanced?: any;
+  };
+  status?: NodeStatus; // Added for execution tracking
+  executionTime?: {
+    start?: Date;
+    end?: Date;
   };
 }
 
@@ -85,6 +90,36 @@ export interface ToastMessage {
   duration?: number;
 }
 
+// Workflow Execution Context
+export interface ExecutionContext {
+  variables: Record<string, any>;
+  results: Record<string, any>;
+  lastError?: string;
+}
+
+// Node Execution Result
+export interface NodeExecutionResult {
+  success: boolean;
+  data?: any;
+  error?: string;
+}
+
+// Workflow Execution Status
+export interface WorkflowExecutionStatus {
+  isExecuting: boolean;
+  currentNodeId?: string;
+  error?: string;
+  executionPath: string[];
+}
+
+// Workflow Execution Options
+export interface WorkflowExecutionOptions {
+  timeout?: number;
+  retryCount?: number;
+  retryDelay?: number;
+  enableDebug?: boolean;
+}
+
 // TYPES
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
@@ -148,3 +183,6 @@ export type VariableGroup = {
 export type VariablesProvider = (context?: {
   activeNodeId?: string | null;
 }) => Promise<VariableGroup[]>;
+
+// Node Status for workflow execution
+export type NodeStatus = 'idle' | 'running' | 'success' | 'error';
