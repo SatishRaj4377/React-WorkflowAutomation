@@ -1,4 +1,4 @@
-import { DiagramComponent, NodeModel, Point, PointPortModel, PortConstraints, PortModel, SnapConstraints } from "@syncfusion/ej2-react-diagrams";
+import { DiagramComponent, NodeModel, Point, PointPortModel, PortConstraints, PortModel, PortVisibility, SnapConstraints } from "@syncfusion/ej2-react-diagrams";
 import { DiagramSettings, NodePortDirection, PortSide } from "../types";
 import html2canvas from "html2canvas";
 
@@ -169,6 +169,65 @@ export const calculateNewNodePosition = (sourceNode: NodeModel, portId: string):
     return { offsetX, offsetY };
 };
 
+export const createPort = (
+  id: string,
+  offset: { x: number; y: number },
+  shape: "Circle" | "Square" = "Circle",
+  size: number = 20,
+  constraints: PortConstraints,
+  tooltip?: string
+): PointPortModel => ({
+  id,
+  offset,
+  shape,
+  height: size,
+  width: size,
+  style: { fill: "transparent", strokeColor: "transparent" },
+  visibility: PortVisibility.Visible,
+  constraints,
+  ...(tooltip ? { tooltip: { content: tooltip } } : {}),
+});
+
+export const getPortsForNode = (type: string): PortModel[] => {
+  const PORT_POSITIONS = {
+    LEFT: { x: -0.04, y: 0.5 },
+    RIGHT: { x: 1, y: 0.5 },
+    BOTTOM_LEFT: { x: 0.25, y: 1 },
+    BOTTOM_MIDDLE: { x: 0.5, y: 1 },
+    BOTTOM_RIGHT: { x: 0.75, y: 1 },
+    RIGHT_TOP: { x: 1, y: 0.3 },
+    RIGHT_BOTTOM: { x: 1, y: 0.7 },
+  };
+
+  switch (type) {
+    case "ai-agent":
+      return [
+        createPort("left-port", PORT_POSITIONS.LEFT, "Circle", 20, PortConstraints.InConnect),
+        createPort("right-port", PORT_POSITIONS.RIGHT, "Circle", 20, PortConstraints.OutConnect | PortConstraints.Draw),
+        createPort("bottom-left-port", PORT_POSITIONS.BOTTOM_LEFT, "Square", 14, PortConstraints.OutConnect | PortConstraints.Draw, "Chat Model"),
+        createPort("bottom-middle-port", PORT_POSITIONS.BOTTOM_MIDDLE, "Square", 14, PortConstraints.OutConnect | PortConstraints.Draw, "Memory"),
+        createPort("bottom-right-port", PORT_POSITIONS.BOTTOM_RIGHT, "Square", 14, PortConstraints.OutConnect | PortConstraints.Draw, "Tools"),
+      ];
+
+    case "condition":
+      return [
+        createPort("left-port", PORT_POSITIONS.LEFT, "Circle", 20, PortConstraints.InConnect),
+        createPort("right-top-port", PORT_POSITIONS.RIGHT_TOP, "Circle", 20, PortConstraints.OutConnect | PortConstraints.Draw),
+        createPort("right-bottom-port", PORT_POSITIONS.RIGHT_BOTTOM, "Circle", 20, PortConstraints.OutConnect | PortConstraints.Draw),
+      ];
+
+    case "trigger":
+      return [
+        createPort("right-port", PORT_POSITIONS.RIGHT, "Circle", 20, PortConstraints.OutConnect | PortConstraints.Draw),
+      ];
+
+    default: // action node
+      return [
+        createPort("left-port", PORT_POSITIONS.LEFT, "Circle", 20, PortConstraints.InConnect),
+        createPort("right-port", PORT_POSITIONS.RIGHT, "Circle", 20, PortConstraints.OutConnect | PortConstraints.Draw),
+      ];
+  }
+};
 
 // Generates an optimized thumbnail from an HTML element and returns it as a base64 encoded JPEG.
 export const generateOptimizedThumbnail = async (elementId: string): Promise<string | undefined> => {

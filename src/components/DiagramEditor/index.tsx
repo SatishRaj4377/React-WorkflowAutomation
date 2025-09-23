@@ -28,7 +28,7 @@ import {
 } from '@syncfusion/ej2-react-diagrams';
 import { DiagramSettings, NodeConfig, NodePortDirection } from '../../types';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
-import { bringConnectorsToFront, convertMarkdownToHtml, getConnectorCornerRadius, getConnectorType, getFirstSelectedNode, getGridColor, getGridType, getOutConnectDrawPorts, getPortOffset, getPortSide, getSnapConstraints, getStickyNoteTemplate } from '../../helper/diagramUtils';
+import { bringConnectorsToFront, convertMarkdownToHtml, getConnectorCornerRadius, getConnectorType, getFirstSelectedNode, getGridColor, getGridType, getOutConnectDrawPorts, getPortOffset, getPortsForNode, getPortSide, getSnapConstraints, getStickyNoteTemplate } from '../../helper/diagramUtils';
 import './DiagramEditor.css';
 import NodeTemplate from './NodeTemplate';
 
@@ -831,131 +831,13 @@ function updateNodePorts(nodeType: string | undefined, obj: NodeModel, isAiAgent
 
     if (shouldSetPorts) {
       if (isAiAgent) {
-        // AI Agent with 5 ports
-        obj.ports = [
-          {
-            id: "left-port",
-            offset: { x: 0, y: 0.5 },
-            height: 20,
-            width: 20,
-            style: { fill: "transparent", strokeColor: "transparent" },
-            visibility: PortVisibility.Visible,
-            constraints: PortConstraints.InConnect,
-          },
-          {
-            id: "right-port",
-            offset: { x: 1, y: 0.5 },
-            shape: "Circle",
-            height: 20,
-            width: 20,
-            style: { fill: "transparent", strokeColor: "transparent" },
-            visibility: PortVisibility.Visible,
-            constraints: PortConstraints.OutConnect | PortConstraints.Draw,
-          },
-          {
-            id: "bottom-left-port",
-            offset: { x: 0.25, y: 1 },
-            shape: "Square",
-            height: 14,
-            width: 14,
-            style: { fill: "transparent", strokeColor: "transparent" },
-            visibility: PortVisibility.Visible,
-            constraints: PortConstraints.OutConnect | PortConstraints.Draw,
-            tooltip: { content: 'Chat Model' },
-          },
-          {
-            id: "bottom-middle-port",
-            offset: { x: 0.5, y: 1 },
-            shape: "Square",
-            height: 14,
-            width: 14,
-            style: { fill: "transparent", strokeColor: "transparent" },
-            visibility: PortVisibility.Visible,
-            constraints: PortConstraints.OutConnect | PortConstraints.Draw,
-            tooltip: { content: 'Memory' },
-          },
-          {
-            id: "bottom-right-port",
-            offset: { x: 0.75, y: 1 },
-            shape: "Square",
-            height: 14,
-            width: 14,
-            style: { fill: "transparent", strokeColor: "transparent" },
-            visibility: PortVisibility.Visible,
-            constraints: PortConstraints.OutConnect | PortConstraints.Draw,
-            tooltip: { content: 'Tools' },
-          },
-        ];
+        obj.ports = getPortsForNode("ai-agent");
       } else if (isIfOrSwitchCondition) {
-        // If or Switch Condition with 3 ports
-        obj.ports = [
-          {
-            id: "left-port",
-            offset: { x: 0, y: 0.5 },
-            height: 20,
-            width: 20,
-            style: { fill: "transparent", strokeColor: "transparent" },
-            visibility: PortVisibility.Visible,
-            constraints: PortConstraints.InConnect,
-          },
-          {
-            id: "right-top-port",
-            offset: { x: 1, y: 0.3 },
-            shape: "Circle",
-            height: 20,
-            width: 20,
-            style: { fill: "transparent", strokeColor: "transparent" }, // Green for true path
-            visibility: PortVisibility.Visible,
-            constraints: PortConstraints.OutConnect | PortConstraints.Draw,
-          },
-          {
-            id: "right-bottom-port",
-            offset: { x: 1, y: 0.7 },
-            shape: "Circle",
-            height: 20,
-            width: 20,
-            style: { fill: "transparent", strokeColor: "transparent" }, // Red for false path
-            visibility: PortVisibility.Visible,
-            constraints: PortConstraints.OutConnect | PortConstraints.Draw,
-          },
-        ];
+        obj.ports = getPortsForNode("condition");
       } else if (nodeType === "trigger") {
-        // Existing trigger ports setup
-        obj.ports = [
-          {
-            id: "right-port",
-            offset: { x: 1, y: 0.5 },
-            shape: "Circle",
-            height: 20,
-            width: 20,
-            style: { fill: "transparent", strokeColor: "transparent" },
-            visibility: PortVisibility.Visible,
-            constraints: PortConstraints.Draw | PortConstraints.OutConnect,
-          },
-        ];
+        obj.ports = getPortsForNode("trigger");
       } else {
-        // Default action node ports
-        obj.ports = [
-          {
-            id: "left-port",
-            offset: { x: 0, y: 0.5 },
-            height: 20,
-            width: 20,
-            style: { fill: "transparent", strokeColor: "transparent" },
-            visibility: PortVisibility.Visible,
-            constraints: PortConstraints.InConnect,
-          },
-          {
-            id: "right-port",
-            offset: { x: 1, y: 0.5 },
-            shape: "Circle",
-            height: 20,
-            width: 20,
-            style: { fill: "transparent", strokeColor: "transparent" },
-            visibility: PortVisibility.Visible,
-            constraints: PortConstraints.OutConnect | PortConstraints.Draw,
-          },
-        ];
+        obj.ports = getPortsForNode("default");
       }
     }
   }
