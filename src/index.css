@@ -54,6 +54,9 @@ body, .e-control, .e-card{
   --node-border-color: #9193a2ff;
   --node-success-color: #00c445;
   --node-error-color: #d92727;
+  --sticky-note-bg-color: #e7f8ff;
+  --sticky-note-stroke-color: #536381;
+  --sticky-note-text-color: #536381;
 
   --list-hover-bg: #e7f1fe;
   --list-selected-bg: #dbeafe;
@@ -64,7 +67,6 @@ body, .e-control, .e-card{
   --scrollbar-border-radius: 8px;  
   --grid-line-color: #d3d5d8; 
   --grid-dotted-color: #a6b4caff; 
-  --sticky-note-color: #e7f8ff;
   
   /* Toast Colors - Light Theme */
   --toast-success-bg: #eff6ff;
@@ -116,15 +118,20 @@ body, .e-control, .e-card{
   --gradient-primary: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #93c5fd 100%);
   --gradient-secondary: linear-gradient(135deg, #93c5fd 0%, #60a5fa 50%, #3b82f6 100%);
   --gradient-accent: linear-gradient(135deg, #60a5fa 0%, #5c83f6 100%);
+
+  /* Node Colors */
   --node-selector-outline: #93a9ff3d;
   --node-background: #0e141d;
   --node-selector-background: #002838ba;
+  --sticky-note-bg-color: #193d67;
+  --sticky-note-stroke-color: #f1f5f9;
+  --sticky-note-text-color: #f1f5f9;
+
   --scrollbar-bg: #20264b;
   --scrollbar-thumb: #52627a;
   --scrollbar-thumb-hover: #6984b9;
   --grid-line-color: #475569;
   --grid-dotted-color: #475569;
-  --sticky-note-color: #364253;
   
   /* Toast Colors - Dark Theme */
   --toast-success-bg: #1e3a8a;

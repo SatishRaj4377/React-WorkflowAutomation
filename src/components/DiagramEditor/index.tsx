@@ -566,8 +566,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
     // setup sticky node style
     stickyNode.style = {
-      fill: "var(--sticky-note-color)",
-      strokeColor: "#9193a2ff",
+      fill: "var(--sticky-note-bg-color)",
+      strokeColor: "var(--sticky-note-stroke-color)",
       strokeWidth: 2,
       strokeDashArray: '10 4',
       opacity: .7
