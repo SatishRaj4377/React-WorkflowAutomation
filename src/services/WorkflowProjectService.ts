@@ -4,7 +4,7 @@ import { WorkflowData, ProjectData } from '../types';
  * Service for managing workflow data and operations
  * Handles saving, loading, and executing workflows
  */
-export class WorkflowService {
+export class WorkflowProjectService {
   private STORAGE_KEY = 'workflow_automation_projects';
 
   /**
@@ -331,4 +331,4 @@ export class WorkflowService {
 }
 
 // Export a singleton instance
-export default new WorkflowService();
+export default new WorkflowProjectService();

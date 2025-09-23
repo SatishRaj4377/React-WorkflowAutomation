@@ -11,7 +11,7 @@ import ConfirmationDialog from '../ConfirmationDialog';
 import { useTheme } from '../../contexts/ThemeContext';
 import { ProjectData } from '../../types';
 import { IconRegistry, templateImages } from '../../assets/icons';
-import WorkflowService from '../../services/WorkflowService'; // Import the service
+import WorkflowProjectService from '../../services/WorkflowProjectService'; // Import the service
 import './Home.css';
 
 interface HomeProps {
@@ -126,7 +126,7 @@ const Home: React.FC<HomeProps> = ({
         onOpenProject(project);
         break;
       case 'Export Project':
-        WorkflowService.exportProject(project);
+        WorkflowProjectService.exportProject(project);
         break;
       case 'Delete':
         setProjectToDelete(project); 
@@ -193,7 +193,7 @@ const Home: React.FC<HomeProps> = ({
   const handleExportSelected = () => {
     const toExport = projects.filter(p => selectedProjects.includes(p.id));
     if (toExport.length > 0) {
-      WorkflowService.exportMultipleProjects(toExport);
+      WorkflowProjectService.exportMultipleProjects(toExport);
     }
   };
 

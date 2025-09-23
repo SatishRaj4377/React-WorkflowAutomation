@@ -4,7 +4,7 @@ import { ProjectData } from './types';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import Home from './components/Home';
 import Editor from './components/Editor';
-import WorkflowService from './services/WorkflowService';
+import WorkflowProjectService from './services/WorkflowProjectService';
 
 import {
   createBrowserRouter,
@@ -40,7 +40,7 @@ const AppContent: React.FC = () => {
 
   // Load projects on mount
   useEffect(() => {
-    const loaded = WorkflowService.getProjects();
+    const loaded = WorkflowProjectService.getProjects();
     loaded.sort(
       (a, b) =>
         new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime()
@@ -49,23 +49,23 @@ const AppContent: React.FC = () => {
   }, []);
 
   const handleCreateNew = () => {
-    const newProject = WorkflowService.createBlankProject();
+    const newProject = WorkflowProjectService.createBlankProject();
     navigate(`/workflow/${newProject.id}`, { state: { newProject } });
   };
 
   const handleDeleteProject = (projectId: string) => {
-    WorkflowService.deleteProject(projectId);
+    WorkflowProjectService.deleteProject(projectId);
     setProjects((prev) => prev.filter((p) => p.id !== projectId));
   };
 
   const handleMultipleDeleteProjects = (projectIds: string[]) => {
-    WorkflowService.deleteMultipleProjects(projectIds);
+    WorkflowProjectService.deleteMultipleProjects(projectIds);
     setProjects((prev) => prev.filter((p) => !projectIds.includes(p.id)));
   };
 
   const handleSaveProject = (updated: ProjectData) => {
-    WorkflowService.saveProject(updated);
-    const updatedProjects = WorkflowService.getProjects();
+    WorkflowProjectService.saveProject(updated);
+    const updatedProjects = WorkflowProjectService.getProjects();
     updatedProjects.sort(
       (a, b) =>
         new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime()
@@ -78,7 +78,7 @@ const AppContent: React.FC = () => {
   };
 
   const handleBookmarkToggle = (projectId: string) => {
-    const updated = WorkflowService.toggleBookmark(projectId);
+    const updated = WorkflowProjectService.toggleBookmark(projectId);
     if (updated) {
       setProjects((prev) => {
         const next = prev.map((p) =>

@@ -10,7 +10,7 @@ import NodeConfigSidebar from '../NodeConfigSidebar';
 import { useTheme } from '../../contexts/ThemeContext';
 import ConfirmationDialog from '../ConfirmationDialog';
 import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosition } from '../../types';
-import WorkflowService from '../../services/WorkflowService';
+import WorkflowProjectService from '../../services/WorkflowProjectService';
 import { WorkflowExecutionService } from '../../services/WorkflowExecutionService';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
 import { calculateNewNodePosition, generateOptimizedThumbnail, getDefaultDiagramSettings, getNodePortById } from '../../helper/diagramUtils';
@@ -82,7 +82,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
           thumbnail: thumbnailBase64 ?? project.thumbnail,
         };
 
-        WorkflowService.saveProject(updatedProject);
+        WorkflowProjectService.saveProject(updatedProject);
         onSaveProject(updatedProject);
         setIsDirty(false);
         setIsInitialLoad(false);
@@ -347,7 +347,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         diagramSettings,
       };
 
-      WorkflowService.exportProject(currentProjectData);
+      WorkflowProjectService.exportProject(currentProjectData);
       showSuccessToast('Export Complete', 'Project has been exported successfully.');
     }
   };
