@@ -75,23 +75,27 @@
 .home-sidebar .e-listview, .home-sidebar .e-listview .e-list-item {
   border: none !important;
 }
-.create-workflow-btn {
-  background: var(--primary-color) !important;
+.action-btn {
+  background: var(--gradient-primary) !important;
   outline: none !important;
-  width: 90%;
-  margin: 1.5rem auto .5rem auto;
-  padding: .55rem 0;
-  display: block;
-  border-radius: 8rem;
-  font-size: 1rem;
   color: #fff;
   border: none;
+}
+.action-btn:hover {
+  box-shadow: 0 4px 5rem var(--box-shadow2) !important;
+}
+
+.create-workflow-btn {
+  padding: .55rem 0;
+  width: 90%;
+  margin: 1.5rem auto .5rem auto;
+  font-size: 1rem;
+  border-radius: 8rem;
   font-weight: 500;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 .create-workflow-btn:hover {
-  background: var(--secondary-color) !important;
-  box-shadow: var(--shadow-hover);
+  transform: translateY(-1px);
 }
 .sidebar-list .e-list-parent {
   background: transparent !important;
@@ -634,19 +638,13 @@
   margin-right: auto;
 }
 .empty-state .e-btn {
-  background: var(--gradient-primary);
-  border: none;
-  padding: 1rem 2rem;
+  padding: .9rem 2.6rem;
   font-size: 1.1rem;
-  font-weight: 700;
+  font-weight: 500;
   border-radius: 12px;
-  color: white;
-  box-shadow: 0 4px 15px var(--box-shadow);
-  transition: all 0.3s ease;
 }
 .empty-state .e-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px var(--box-shadow2);
 }
 
 /* Loading and interaction states */

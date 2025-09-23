@@ -312,7 +312,7 @@ const Home: React.FC<HomeProps> = ({
       </AppBarComponent>
       <aside className="home-sidebar">
         <ButtonComponent
-          cssClass="e-primary create-workflow-btn"
+          cssClass="e-primary action-btn create-workflow-btn"
           iconCss="e-icons e-plus"
           onClick={onCreateNew}
         >
@@ -504,7 +504,7 @@ const Home: React.FC<HomeProps> = ({
                   <div className="empty-icon">🚀</div>
                   <h3>No workflows yet</h3>
                   <p>Create your first workflow to get started and unlock the power of automation</p>
-                  <ButtonComponent onClick={onCreateNew} cssClass="e-btn">
+                  <ButtonComponent onClick={onCreateNew} cssClass="e-btn action-btn" iconCss='e-icons e-plus'>
                     Create New Workflow
                   </ButtonComponent>
                 </div>
