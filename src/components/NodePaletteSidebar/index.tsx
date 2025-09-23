@@ -29,6 +29,8 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
   const searchRef = useRef<TextBoxComponent>(null);
   const accordionRef = useRef<AccordionComponent>(null);
 
+  const NodeSearchIcon = IconRegistry["NodeSearch"];
+
   const handleSearchCreated = () => {
     setTimeout(() => {
       if (searchRef.current) {
@@ -317,7 +319,9 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
             </AccordionComponent>
           ) : searchTerm ? (
             <div className="no-results">
-              <div className="no-results-icon">🔍</div>
+              <div className="no-results-icon">
+                <NodeSearchIcon className="svg-icon"/>
+              </div>
               <p>No nodes found matching "{searchTerm}"</p>
             </div>
           ) : null}

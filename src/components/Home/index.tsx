@@ -50,6 +50,8 @@ const Home: React.FC<HomeProps> = ({
   const [isMultiDeleteConfirmOpen, setMultiDeleteConfirmOpen] = useState(false);
 
   const WorkflowLogoIcon = IconRegistry['WorkflowLogo'];
+  const WorkflowFolderIcon = IconRegistry['WorkflowFolder'];
+  const WorkflowFolderSearchIcon = IconRegistry['WorkflowFolderSearch'];
 
   const sortOptions = [
     { text: 'Last Modified', id: 'lastModified' },
@@ -293,7 +295,7 @@ const Home: React.FC<HomeProps> = ({
       <AppBarComponent colorMode="Light" className="home-appbar">
         <div className="appbar-left">
           <span className="header-logo">
-            <WorkflowLogoIcon />
+            <WorkflowLogoIcon className="svg-icon"/>
           </span>
           <span className="header-title">Workflow Automation</span>
         </div>
@@ -374,7 +376,7 @@ const Home: React.FC<HomeProps> = ({
                         tabIndex={0}
                       >
                         <span className="project-col project-icon">
-                          <WorkflowLogoIcon />
+                          <WorkflowFolderIcon className="svg-icon"/>
                         </span>
                         <span title={project.name} className="project-col project-title">{project.name}</span>
                         <span className="project-col project-date">
@@ -495,13 +497,17 @@ const Home: React.FC<HomeProps> = ({
              {filteredAndSortedProjects.length === 0 ? (
               searchTerm && projects.length > 0 ? (
                 <div className="empty-state animate-fade-in-up">
-                  <div className="empty-icon">🔍</div>
+                  <div className="empty-icon">
+                    <WorkflowFolderSearchIcon className="svg-icon search-folder"/>
+                  </div>
                   <h3>No workflows found</h3>
                   <p>No workflows match your search.</p>
                 </div>
               ) : (
                 <div className="empty-state animate-fade-in-up">
-                  <div className="empty-icon">🚀</div>
+                  <div className="empty-icon">
+                    <WorkflowLogoIcon className="svg-icon"/>
+                  </div>
                   <h3>No workflows yet</h3>
                   <p>Create your first workflow to get started and unlock the power of automation</p>
                   <ButtonComponent onClick={onCreateNew} cssClass="e-btn action-btn" iconCss='e-icons e-plus'>
@@ -543,7 +549,7 @@ const Home: React.FC<HomeProps> = ({
                               change={(e: CheckBoxChangeEventArgs) => handleMultiSelectToggle(project, e.checked as boolean)}
                             />
                             <span className="project-item-icon-svg">
-                              <WorkflowLogoIcon />
+                              <WorkflowFolderIcon className="svg-icon"/>
                             </span>
                           </span>
                           <span title={project.name} className="project-col project-title">{project.name}</span>

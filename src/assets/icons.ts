@@ -23,9 +23,15 @@ import EmailAutomationImage from '../assets/images/template-images/email-automat
 import NotificationSystemImage from '../assets/images/template-images/notification-system.jpg';
 
 import {ReactComponent as WorkflowLogo} from '../assets/images/svg-icons/workflow-logo.svg';
+import {ReactComponent as WorkflowFolder} from '../assets/images/svg-icons/workflow-folder.svg';
+import {ReactComponent as WorkflowFolderSearch} from '../assets/images/svg-icons/workflow-folder-search.svg';
+import {ReactComponent as NodeSearch} from '../assets/images/svg-icons/node-search.svg';
 
 export const IconRegistry: { [key: string]: string | React.ElementType } = {
   WorkflowLogo,
+  WorkflowFolder,
+  WorkflowFolderSearch,
+  NodeSearch,
   AiAgentIcon,
   AzureModelIcon,
   ChatIcon,

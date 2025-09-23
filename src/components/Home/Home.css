@@ -5,6 +5,14 @@
   flex-direction: row;
 }
 
+/* svg logo  */
+.svg-icon {
+  width: 1.5rem;
+}
+.svg-icon path{
+  stroke: var(--text-primary);
+}
+
 /* ---- App Bar / Header ---- */
 .home-appbar.e-appbar {
   position: fixed;
@@ -19,9 +27,7 @@
   font-size: 2rem;
   margin-right: .5rem;
 }
-.header-logo svg path{
-  stroke: var(--text-primary);
-}
+
 .header-title{
   font-size: 1.2rem;
   font-weight: 500;
@@ -80,6 +86,7 @@
   outline: none !important;
   color: #fff;
   border: none;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 .action-btn:hover {
   box-shadow: 0 4px 5rem var(--box-shadow2) !important;
@@ -92,7 +99,6 @@
   font-size: 1rem;
   border-radius: 8rem;
   font-weight: 500;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 .create-workflow-btn:hover {
   transform: translateY(-1px);
@@ -373,7 +379,6 @@
   font-size: 1rem;
   cursor: pointer;
   border-bottom: 1px solid var(--border-color);
-  transition: background 0.15s;
 }
 .project-list-item:last-child {
    border-bottom: 0;
@@ -415,6 +420,12 @@
   z-index: 5; /* Sit below the checkbox */
 }
 
+/* Svg folder icon style */
+.project-icon svg path, .project-item-icon-svg path{
+  stroke: transparent;
+  fill: var(--scrollbar-thumb-hover);
+}
+
 /* Show item checkbox on hover, but only when no items are selected */
 .project-list-item:hover .project-item-checkbox:not(:checked) {
   opacity: 1;
@@ -441,7 +452,7 @@
 }
 /* Ensure the icon is visible when not hovered or selected */
 .project-item-icon-svg {
-  opacity: 1;
+  opacity: .7;
   transform: scale(1);
   transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
 }
@@ -618,10 +629,18 @@
   margin: 2rem 0;
 }
 .empty-icon {
-  font-size: 5rem;
-  margin-bottom: 2rem;
-  opacity: 0.6;
-  animation: pulse 2s infinite;
+  margin-bottom: 1rem;
+  animation: pulse 3s infinite;
+}
+.empty-icon svg {
+  width: 8rem;
+}
+.empty-icon svg path {
+  stroke: var(--scrollbar-thumb-hover)
+}
+.empty-icon .search-folder path {
+  stroke: transparent;
+  fill: var(--scrollbar-thumb-hover)
 }
 .empty-state h3 {
   font-size: 1.8rem;
@@ -840,7 +859,7 @@
     transform: scale(1);
   }
   50% {
-    transform: scale(1.05);
+    transform: scale(1.1);
   }
 }
 

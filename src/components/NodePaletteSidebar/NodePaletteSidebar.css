@@ -25,6 +25,7 @@
   align-items: center;
   padding: .5rem 1rem;
   color: var(--text-secondary);
+  background-color: var(--background-color);
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -325,9 +326,15 @@
 }
 
 .no-results-icon {
-  font-size: 3rem;
   margin-bottom: 1rem;
-  opacity: 0.5;
+  opacity: .5;
+}
+.no-results-icon svg {
+  width: 30%;
+}
+.no-results-icon svg path {
+  fill: var(--text-secondary);
+  stroke: var(--text-secondary);
 }
 
 .no-results p {

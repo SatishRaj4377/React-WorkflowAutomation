@@ -222,6 +222,8 @@ body, .e-control, .e-card{
 .e-input-group.e-control-wrapper {
   border: 1.5px solid var(--border-color) !important;
   box-shadow: none !important;
+}
+.e-input-group .e-input-group-icon {
   color: var(--text-secondary) !important;
 }
 
