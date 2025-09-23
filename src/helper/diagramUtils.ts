@@ -191,6 +191,7 @@ export const createPort = (
 export const getPortsForNode = (type: string): PortModel[] => {
   const PORT_POSITIONS = {
     LEFT: { x: -0.04, y: 0.5 },
+    AI_AGENT_LEFT: { x: -0.02, y: 0.5 },
     RIGHT: { x: 1, y: 0.5 },
     BOTTOM_LEFT: { x: 0.25, y: 1 },
     BOTTOM_MIDDLE: { x: 0.5, y: 1 },
@@ -202,7 +203,7 @@ export const getPortsForNode = (type: string): PortModel[] => {
   switch (type) {
     case "ai-agent":
       return [
-        createPort("left-port", PORT_POSITIONS.LEFT, "Circle", 20, PortConstraints.InConnect),
+        createPort("left-port", PORT_POSITIONS.AI_AGENT_LEFT, "Circle", 20, PortConstraints.InConnect),
         createPort("right-port", PORT_POSITIONS.RIGHT, "Circle", 20, PortConstraints.OutConnect | PortConstraints.Draw),
         createPort("bottom-left-port", PORT_POSITIONS.BOTTOM_LEFT, "Square", 14, PortConstraints.OutConnect | PortConstraints.Draw, "Chat Model"),
         createPort("bottom-middle-port", PORT_POSITIONS.BOTTOM_MIDDLE, "Square", 14, PortConstraints.OutConnect | PortConstraints.Draw, "Memory"),
