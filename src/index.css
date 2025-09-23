@@ -234,6 +234,14 @@ body, .e-control, .e-card{
   color: var(--text-secondary) !important;
 }
 
+/* Dropdown and context menu text styles */
+.e-popup.e-popup-open, .e-dropdown-popup ul .e-item .e-menu-icon {
+  color: var(--text-secondary) !important;
+}
+.e-dropdown-popup ul .e-item:hover {
+  color: var(--text-secondary) !important;
+}
+
 /* Selection Color Update */
 ::selection {
   background: var(--accent-color);
