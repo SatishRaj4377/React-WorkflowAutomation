@@ -268,7 +268,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
             strokeDashArray: '', // Remove dotted pattern
             opacity: 1
           };
-          connector.constraints = ConnectorConstraints.Default | ConnectorConstraints.ReadOnly & 
+          connector.constraints = (ConnectorConstraints.Default | ConnectorConstraints.ReadOnly) & 
                     ~ConnectorConstraints.DragSourceEnd & 
                     ~ConnectorConstraints.DragTargetEnd &
                     ~ConnectorConstraints.Drag });
