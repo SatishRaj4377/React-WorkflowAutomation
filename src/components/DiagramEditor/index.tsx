@@ -86,7 +86,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       name: 'deleteConnector',
       pathData:
         'M0.97,3.04 L12.78,3.04 L12.78,12.21 C12.78,12.64,12.59,13,12.2,13.3 C11.82,13.6,11.35,13.75,10.8,13.75 L2.95,13.75 C2.4,13.75,1.93,13.6,1.55,13.3 C1.16,13,0.97,12.64,0.97,12.21 Z M4.43,0 L9.32,0 L10.34,0.75 L13.75,0.75 L13.75,2.29 L0,2.29 L0,0.75 L3.41,0.75 Z',
-      tooltip: { content: 'Delete' },
       offset: 0.5,
       backgroundColor: '#9193a2ff',
       pathColor: '#f8fafc',
@@ -811,7 +810,6 @@ function generatePortBasedUserHandles(node: NodeModel): UserHandleModel[] {
         <path d="M8 5 V11 M5 8 H11" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
       </g>
     `,
-    tooltip: { content: 'Add Node' },
     side: getPortSide(direction),
     offset: getPortOffset(direction),
     backgroundColor: '#9193a2ff',
