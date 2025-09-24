@@ -19,6 +19,7 @@ interface ConfigPanelProps {
   isOpen: boolean;
   onClose: () => void;
   selectedNode: NodeConfig | null;
+  onDeleteNode: () => void;
   onNodeConfigChange: (nodeId: string, config: NodeConfig) => void;
 }
 
@@ -41,6 +42,7 @@ const AUTH_NODE_TYPES: NodeType[] = [
 const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   isOpen,
   onClose,
+  onDeleteNode,
   selectedNode,
   onNodeConfigChange,
 }) => {
@@ -489,12 +491,25 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
                 <h3>{selectedNode?.nodeType || 'Node'} Configuration</h3>
               </TooltipComponent>
             </div>
-            <ButtonComponent
-              cssClass="close-btn"
-              iconCss="e-icons e-close"
-              onClick={onClose}
-            />
+            <div>
+              <ButtonComponent
+                cssClass="close-btn"
+                iconCss="e-icons e-trash"
+                onClick={() => {
+                  if (selectedNode && onDeleteNode) {
+                    onDeleteNode();
+                    onClose();
+                  }
+                }}
+              />
+              <ButtonComponent
+                cssClass="close-btn"
+                iconCss="e-icons e-close"
+                onClick={onClose}
+              />
+            </div>
           </div>
+          
 
           {/* === Body === */}
           <div className="config-panel-content">

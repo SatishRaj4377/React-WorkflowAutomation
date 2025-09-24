@@ -171,6 +171,7 @@ body, .e-control, .e-card{
   color: #fff;
   border: none;
   transition: background 0.25s, box-shadow 0.2s;
+  box-shadow: none;
 }
 .e-btn,
 .e-btn.e-danger {
