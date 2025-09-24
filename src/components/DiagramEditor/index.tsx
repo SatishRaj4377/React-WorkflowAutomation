@@ -13,8 +13,6 @@ import {
   HierarchicalTree,
   DiagramContextMenu,
   NodeConstraints,
-  PortVisibility,
-  PortConstraints,
   Keys,
   KeyModifiers,
   CommandManagerModel,
@@ -94,9 +92,11 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     },
   ];
   const firstSelectedNode = getFirstSelectedNode(diagramRef.current);
-  if (firstSelectedNode) {
+  // show userhandle only if single node is selected
+  if (firstSelectedNode && (diagramRef.current as any).selectedItems.nodes.length === 1) {
     const portBasedUserHandles = generatePortBasedUserHandles(firstSelectedNode);
     userHandles.push(...portBasedUserHandles);
+    (diagramRef.current as any).selectedItems.userHandles = userHandles;
   }
 
   // Context Menu Items for the diagram
@@ -377,12 +377,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   const handleContextMenuOpen = (args: any) => {
     const diagram = diagramRef.current!;
 
-    // Don't show context menu for sticky node
     const firstSelectedNode = getFirstSelectedNode(diagram);
-    if (firstSelectedNode && (firstSelectedNode?.addInfo as any).nodeConfig?.type === "sticky"){
-      args.cancel = true;
-      return;
-    }
     
     const selNodes = diagram?.selectedItems?.nodes ?? [];
     const selConns = diagram?.selectedItems?.connectors ?? [];
@@ -409,6 +404,13 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     const lockItem = (args.items || []).find((i: any) => i.id === 'lockWorkflow');
     if (lockItem) lockItem.text = isWorkflowLocked ? 'Unlock Workflow' : 'Lock Workflow';
 
+    // Context menu for the sticky note
+    if (firstSelectedNode && ((firstSelectedNode?.addInfo as any).nodeConfig as NodeConfig)?.category === "sticky") {
+      // Only keep 'delete' if present; else hide everything
+      const allow = availableIds.includes('delete') ? ['delete'] : [];
+      hideAllExcept(allow);
+      return;
+    }
     // Mixed selection (nodes + connectors) → show only Delete (if available)
     if (isMixed) {
       hideAllExcept(availableIds.includes('delete') ? ['delete'] : []);
