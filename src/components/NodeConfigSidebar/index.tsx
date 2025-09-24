@@ -14,6 +14,7 @@ import { IconRegistry } from '../../assets/icons';
 import { NodeConfig, NodeType } from '../../types';
 import './NodeConfigSidebar.css';
 import { VariableTextBox } from './VariablePicker';
+import ChatInConfig from './ChatInConfig';
 
 interface ConfigPanelProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ interface ConfigPanelProps {
   selectedNode: NodeConfig | null;
   onDeleteNode: () => void;
   onNodeConfigChange: (nodeId: string, config: NodeConfig) => void;
+  onChatFirstPrompt?: (nodeId: string, prompt: string) => void;
 }
 
 /** Shared lists */
@@ -45,6 +47,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   onDeleteNode,
   selectedNode,
   onNodeConfigChange,
+  onChatFirstPrompt,
 }) => {
   // Hooks first — no conditional hooks to satisfy eslint rules-of-hooks
   const [activeTab, setActiveTab] = useState(0);
@@ -170,9 +173,11 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
 
       case 'Chat':
         return (
-          <>
-            {/* Implement AI Chat component */}
-          </>
+          <ChatInConfig
+            nodeId={selectedNode!.id}
+            nodeDisplayName={selectedNode!.displayName || selectedNode!.id}
+            onFirstPrompt={(prompt) => onChatFirstPrompt?.(selectedNode!.id, prompt)}
+          />
         );
 
       case 'AI Agent':
