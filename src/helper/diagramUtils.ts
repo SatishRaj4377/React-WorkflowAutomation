@@ -282,9 +282,9 @@ export const generateOptimizedThumbnail = async (elementId: string): Promise<str
 export const getDefaultDiagramSettings = (): DiagramSettings =>{
   const diagramSettings: DiagramSettings = {
     gridStyle: 'dotted',
-    connectorType: 'Bezier',
+    connectorType: 'Orthogonal',
     connectorCornerRadius: 10,
-    snapping: {isEnabled: false, enableSnapToGrid: false, enableSnapToObjects: false},
+    snapping: {isEnabled: true, enableSnapToGrid: true, enableSnapToObjects: false},
     showOverview: true,
     showOverviewAlways: false,
   };

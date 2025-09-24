@@ -123,8 +123,8 @@ const AppBar: React.FC<AppBarProps> = ({
   ];
 
   const connectorStyleOptions = [
-    { text: 'Bezier', value: 'Bezier' },
     { text: 'Orthogonal', value: 'Orthogonal' },
+    { text: 'Bezier', value: 'Bezier' },
     { text: 'Straight', value: 'Straight' }
   ]
 
