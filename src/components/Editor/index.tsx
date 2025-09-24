@@ -41,6 +41,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const [isUserhandleAddNodeSelectionMode, setUserhandleAddNodeSelectionMode] = useState(false);
   const [selectedPortConnection, setSelectedPortConnection] = useState<{nodeId: string, portId: string} | null>(null);
   const [selectedPortModel, setSelectedPortModel] = useState<PortModel | null>(null);
+  const [executionState, setExecutionState] = useState<'idle' | 'starting' | 'running'>('idle');
   const [showInitialAddButton, setShowInitialAddButton] = useState(
     !project.workflowData?.diagramString || project.workflowData.diagramString.trim() === ''
   );
@@ -126,13 +127,15 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     }
 
     setIsExecuting(true);
-    
+    setExecutionState('starting');
+
     try {
       await workflowExecutionRef.current.executeWorkflow();
     } catch (error) {
       showErrorToast('Execution Failed', error instanceof Error ? error.message : 'Unknown error occurred');
     } finally {
       setIsExecuting(false);
+      setExecutionState('idle');
     }
   };
 
@@ -141,6 +144,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       workflowExecutionRef.current.stopExecution();
     }
     setIsExecuting(false);
+    setExecutionState('idle');
   };
 
   const handleUserhandleAddNodeClick = (node: NodeModel, portId: string) => {
@@ -263,6 +267,19 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     setIsPanActive(!currentlyPan);
   };
 
+  const handleChatFirstPrompt = (nodeId: string, prompt: string) => {
+    if (!workflowExecutionRef.current) return;
+
+    if (!isExecuting) {
+      setIsExecuting(true);
+      setExecutionState('starting'); // reflect UI state instantly
+      workflowExecutionRef.current.startWithChatPrompt(nodeId, prompt);
+    } else {
+      // If execution was started and is waiting for chat
+      workflowExecutionRef.current.resumeFromChatTrigger(nodeId, prompt);
+    }
+  };
+
   // Handle selected node changes
   useEffect(() => {
     if (selectedNodeId && diagramRef) {
@@ -290,7 +307,12 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         enableDebug: false,
         timeout: 30000,
         retryCount: 3,
-        retryDelay: 1000
+        retryDelay: 1000,
+        // NEW: when a Chat Trigger is present, pause and ask UI to focus it
+        onChatTriggerWait: (nodeId: string) => {
+          setSelectedNodeId(nodeId);
+          setNodeConfigPanelOpen(true);
+        }
       });
     }
   }, [diagramRef]);
@@ -514,6 +536,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
           onDeleteNode={() => diagramRef.remove()}
           selectedNode={selectedNode}
           onNodeConfigChange={handleNodeConfigChange}
+          onChatFirstPrompt={handleChatFirstPrompt}
         />
 
         {/* Sidebar for Node Palette */}
@@ -568,6 +591,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
             onResetZoom={() => diagramRef?.reset()}
             onAddSticky={handleAddStickyNote}
             isExecuting={isExecuting}
+            executionState={executionState}
             onTogglePan={handleTogglePan}
             isPanActive={isPanActive}
           />

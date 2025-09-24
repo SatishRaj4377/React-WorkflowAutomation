@@ -139,7 +139,36 @@
 .cancel-btn .e-icons {
   font-size: 14px;
 }
+/* Compact execute (spinner-only) + inline cancel layout */
+.wf-exec-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
 
+.execute-compact {
+  min-width: 40px !important;
+  width: 40px !important;
+  height: 36px !important;
+  padding: 0 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Simple spinner */
+.wf-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: wf-spin 0.8s linear infinite;
+}
+
+@keyframes wf-spin {
+  to { transform: rotate(360deg); }
+}
 /* Responsive Design */
 @media (max-width: 768px) {
   .workflow-toolbar-container {
