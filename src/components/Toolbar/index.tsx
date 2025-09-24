@@ -15,7 +15,6 @@ interface ToolbarProps {
   isExecuting?: boolean;
   onTogglePan?: () => void;
   isPanActive?: boolean;
-  executionState?: 'idle' | 'starting' | 'running';
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({
@@ -30,44 +29,17 @@ const Toolbar: React.FC<ToolbarProps> = ({
   isExecuting = false,
   onTogglePan,
   isPanActive,
-  executionState = 'idle',
 }) => {
-  const isBusy = executionState === 'starting' || executionState === 'running';
-
-  // Execute / Cancel controls
-  const executeControlsTemplate = () => {
-    if (!isBusy) {
-      // Normal Execute button (icon + text)
-      return (
-        <ButtonComponent
-          cssClass="execute-btn"
-          iconCss="e-icons e-play"
-          content="Execute"
-          onClick={onExecute}
-          isPrimary
-        />
-      );
-    }
-    // Busy: show compact spinner-only button + separate Cancel button
+  // Template for execute button
+  const executeButtonTemplate = () => {
     return (
-      <div className="wf-exec-controls">
-        <ButtonComponent
-          cssClass="execute-btn execute-compact"
-          // just a spinner inside (no text)
-          content=""
-          onClick={() => {}}
-          disabled
-        >
-          <span className="wf-spinner" aria-label="Running" />
-        </ButtonComponent>
-
-        <ButtonComponent
-          cssClass="cancel-btn"
-          iconCss="e-icons e-stop-rectangle"
-          content="Cancel"
-          onClick={onCancel}
-        />
-      </div>
+      <ButtonComponent
+        cssClass={isExecuting ? 'cancel-btn' : 'execute-btn'}
+        iconCss={isExecuting ? 'e-icons e-stop-rectangle' : 'e-icons e-play'}
+        content={isExecuting ? 'Cancel' : 'Execute'}
+        onClick={isExecuting ? onCancel : onExecute}
+        isPrimary={!isExecuting}
+      />
     );
   };
 
@@ -79,7 +51,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
       click: onAddNode,
       overflow: 'Show',
     },
-    { type: 'Separator' },
+    {
+      type: 'Separator',
+    },
     {
       prefixIcon: 'e-icons e-add-notes',
       tooltipText: 'Add Sticky Note',
@@ -87,15 +61,19 @@ const Toolbar: React.FC<ToolbarProps> = ({
       click: onAddSticky,
       overflow: 'Show',
     },
-    { type: 'Separator' },
     {
-      prefixIcon: 'e-icons e-pan',
-      tooltipText: 'Pan (Spacebar)',
-      id: 'pan-tool',
-      click: onTogglePan,
-      cssClass: isPanActive ? 'e-active' : '',
+      type: 'Separator',
     },
-    { type: 'Separator' },
+    {
+        prefixIcon: 'e-icons e-pan',
+        tooltipText: 'Pan (Spacebar)',
+        id: 'pan-tool',
+        click: onTogglePan,
+        cssClass: isPanActive ? 'e-active' : '',
+    },
+    {
+      type: 'Separator',
+    },
     {
       prefixIcon: 'e-icons e-circle-add',
       tooltipText: 'Zoom In',
@@ -120,18 +98,26 @@ const Toolbar: React.FC<ToolbarProps> = ({
       id: 'fit-page',
       click: onFitToPage,
     },
-    { type: 'Separator' },
     {
-      template: executeControlsTemplate,
-      tooltipText: isBusy ? 'Workflow Running' : 'Execute Workflow',
-      id: isBusy ? 'exec-busy' : 'exec-ready',
-      overflow: 'Show',
+      type: 'Separator'
     },
+    {
+      template: executeButtonTemplate,
+      tooltipText: isExecuting ? 'Cancel Execution' : 'Execute Workflow',
+      id: isExecuting ? 'cancel' : 'execute',
+      overflow: "Show"
+    }
+
   ];
 
   return (
     <div className="workflow-toolbar-container">
-      <ToolbarComponent id="workflow-toolbar" cssClass="custom-toolbar" height="48px" overflowMode="Popup">
+      <ToolbarComponent
+        id="workflow-toolbar"
+        cssClass="custom-toolbar"
+        height="48px"
+        overflowMode="Popup"
+      >
         <ItemsDirective>
           {toolbarItems.map((item, index) => (
             <ItemDirective

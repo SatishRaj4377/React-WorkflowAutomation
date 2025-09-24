@@ -118,7 +118,6 @@ export interface WorkflowExecutionOptions {
   retryCount?: number;
   retryDelay?: number;
   enableDebug?: boolean;
-  onChatTriggerWait?: (nodeId: string) => void
 }
 
 // TYPES

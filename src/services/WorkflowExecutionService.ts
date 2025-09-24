@@ -1,7 +1,7 @@
 import { DiagramComponent } from '@syncfusion/ej2-react-diagrams';
 import { NodeModel } from '@syncfusion/ej2-diagrams';
-import { ExecutionContext, NodeConfig, NodeExecutionResult, WorkflowExecutionOptions, WorkflowExecutionStatus } from '../types';
-import { findTriggerNodes, findConnectedNodes, updateNodeStatus, resetExecutionStates, mockExecuteNode, delay } from '../helper/workflowExecution';
+import { ExecutionContext, NodeExecutionResult, WorkflowExecutionOptions, WorkflowExecutionStatus } from '../types';
+import { findTriggerNodes, findConnectedNodes, updateNodeStatus, resetExecutionStates, mockExecuteNode } from '../helper/workflowExecution';
 import { showErrorToast, showSuccessToast } from '../components/Toast';
 
 /**
@@ -13,10 +13,6 @@ export class WorkflowExecutionService {
   private executionContext: ExecutionContext;
   private options: WorkflowExecutionOptions;
   private abortController: AbortController;
-  private state: 'idle' | 'waiting_for_chat' | 'running' | 'stopped' = 'idle';
-  private waitingChatNodeId?: string;
-  private waitingResolver?: () => void;
-  private preseedChat?: { nodeId: string; prompt: string }; // NEW
 
   constructor(diagram: DiagramComponent, options: WorkflowExecutionOptions = {}) {
     this.diagram = diagram;
@@ -38,54 +34,10 @@ export class WorkflowExecutionService {
     this.abortController = new AbortController();
   }
 
-  public async startWithChatPrompt(nodeId: string, prompt: string): Promise<void> {
-    if (this.state === 'running') return; // already running
-    this.preseedChat = { nodeId, prompt };
-    await this.executeWorkflow();
-  }
-
-  private getChatTriggerNode(): NodeModel | null {
-    const triggers = findTriggerNodes(this.diagram);
-    const chat = triggers.find((n) => {
-      const cfg = (n.addInfo as any)?.nodeConfig as NodeConfig | undefined;
-      const type = cfg?.nodeType?.toLowerCase() ?? '';
-      const id = cfg?.id?.toLowerCase() ?? '';
-      return type.includes('chat') || id.includes('chat-trigger');
-    });
-    return chat ?? null;
-  }
-
-  private async startOrWaitForChat(): Promise<void> {
-    const chatNode = this.getChatTriggerNode();
-    if (!chatNode) return;              // No gating needed
-
-    this.state = 'waiting_for_chat';
-    this.waitingChatNodeId = chatNode.id as string;
-    this.options?.onChatTriggerWait?.(this.waitingChatNodeId);
-
-    await new Promise<void>((resolve) => (this.waitingResolver = resolve));
-  }
-
-  public async resumeFromChatTrigger(nodeId: string, prompt: string): Promise<void> {
-    if (this.state !== 'waiting_for_chat' || this.waitingChatNodeId !== nodeId) return;
-
-    // Show progress on the trigger node, then continue as usual
-    updateNodeStatus(this.diagram, nodeId, 'running');
-    await delay(400);
-    updateNodeStatus(this.diagram, nodeId, 'success');
-
-    this.state = 'running';
-    const resolver = this.waitingResolver;
-    this.waitingResolver = undefined;
-    resolver?.(); // Unblock executeWorkflow traversal
-  }
-
   /**
    * Start workflow execution from trigger nodes
    */
   async executeWorkflow(): Promise<boolean> {
-    this.state = 'running';
-    await this.startOrWaitForChat();
     try {
       // Reset previous execution state and create new abort controller
       this.resetExecution();
