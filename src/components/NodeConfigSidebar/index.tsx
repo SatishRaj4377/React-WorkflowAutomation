@@ -169,25 +169,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
       case 'Chat':
         return (
           <>
-            <div className="config-section">
-              <label className="config-label">System Prompt</label>
-              <TextBoxComponent
-                value={settings.systemPrompt ?? ''}
-                placeholder="You are a helpful assistant…"
-                change={(e: any) => handleConfigChange('systemPrompt', e.value)}
-                cssClass="config-textarea"
-                multiline
-              />
-            </div>
-            <div className="config-section">
-              <label className="config-label">Initial Message</label>
-              <TextBoxComponent
-                value={settings.initialMessage ?? ''}
-                placeholder="Hello! How can I help you today?"
-                change={(e: any) => handleConfigChange('initialMessage', e.value)}
-                cssClass="config-input"
-              />
-            </div>
+            {/* Implement AI Chat component */}
           </>
         );
 
