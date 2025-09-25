@@ -966,7 +966,7 @@
 /* Bookmark Button Styling for Card View */
 .project-bookmark-card {
   position: absolute;
-  right: 1.5rem;
+  right: 10px;
 }
 .bookmark-btn-card.e-btn {
   background: var(--surface-color) !important;
