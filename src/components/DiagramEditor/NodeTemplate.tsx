@@ -1,17 +1,16 @@
-import React, { useState } from 'react';
-import { NodeConfig } from '../../types';
+import React from 'react';
+import { NodeConfig, NodeToolbarAction } from '../../types';
 import { IconRegistry } from '../../assets/icons';
 import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
 
 interface NodeTemplateProps {
   id: string;
   addInfo: { nodeConfig: NodeConfig; };
-  onEditNode?: (id: string) => void;
-  onDeleteNode?: (id: string) => void;
+  onNodeToolbarAction?: (id: string, action: NodeToolbarAction) => void;
 }
 
 
-const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo, onEditNode, onDeleteNode }) => {
+const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo, onNodeToolbarAction }) => {
   // Destructure nodeConfig directly from the addInfo prop
   const { nodeConfig } = addInfo;
   if (!nodeConfig) {
@@ -29,8 +28,8 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo, onEditNode, on
         
         {/* Show Node actions toolbar on hover */}
         <div className="node-hover-toolbar">
-          <ButtonComponent iconCss='e-icons e-edit' className="node-toolbar-btn" onClick={() => onEditNode?.(id)} />
-          <ButtonComponent iconCss='e-icons e-trash' className="node-toolbar-btn" onClick={() => onDeleteNode?.(id)} />
+          <ButtonComponent title='Edit' iconCss='e-icons e-edit' className="node-toolbar-btn" onClick={() => onNodeToolbarAction?.(id, 'edit')} />
+          <ButtonComponent title='Delete' iconCss='e-icons e-trash' className="node-toolbar-btn" onClick={() => onNodeToolbarAction?.(id, 'delete')} />
         </div>
 
         {/* Port Rendering Logic... */}

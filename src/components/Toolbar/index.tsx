@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ToolbarComponent, ItemsDirective, ItemDirective, OverflowOption } from '@syncfusion/ej2-react-navigations';
 import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
 import './Toolbar.css';
+import { Tooltip } from '@syncfusion/ej2-react-popups';
 
 interface ToolbarProps {
   onAddNode?: () => void;
@@ -66,7 +67,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
     },
     {
         prefixIcon: 'e-icons e-pan',
-        tooltipText: 'Pan (Spacebar)',
+        tooltipText: 'Pan',
         id: 'pan-tool',
         click: onTogglePan,
         cssClass: isPanActive ? 'e-active' : '',
@@ -109,6 +110,39 @@ const Toolbar: React.FC<ToolbarProps> = ({
     }
 
   ];
+
+  // Show tooltip with keyboard shortucts
+  useEffect(() => {
+    const tooltip = new Tooltip({
+      target: '#workflow-toolbar [title]',
+      enableHtmlParse: true,
+      position: 'BottomCenter',
+      beforeRender: (args) => {
+        const title = args.target.getAttribute('title');
+
+        if (!title) return;
+        
+        // Set custom HTML tooltip content
+        const shortcutMap: any = {
+          'Pan': 'Pan <kbd>Spacebar</kbd>',
+          'Zoom In': 'Zoom In <kbd>Ctrl</kbd> + <kbd>+</kbd>',
+          'Zoom Out': 'Zoom Out <kbd>Ctrl</kbd> + <kbd>-</kbd>',
+        };
+        
+        const content = shortcutMap[title];
+        if (content) {
+          // Remove native tooltip
+          args.target.removeAttribute('title');
+          // Set custom HTML tooltip content
+          args.target.setAttribute('data-content', content);
+        }
+      }
+    });
+    tooltip.appendTo('.workflow-toolbar-container');
+    return () => {
+      tooltip.destroy();
+    };
+  }, []);
 
   return (
     <div className="workflow-toolbar-container">

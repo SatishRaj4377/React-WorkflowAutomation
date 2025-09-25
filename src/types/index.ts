@@ -121,6 +121,8 @@ export interface WorkflowExecutionOptions {
 }
 
 // TYPES
+export type NodeToolbarAction = 'edit' | 'duplicate' | 'delete';
+
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
 export type SnappingSettings = { isEnabled: boolean, enableSnapToObjects: boolean, enableSnapToGrid: boolean }

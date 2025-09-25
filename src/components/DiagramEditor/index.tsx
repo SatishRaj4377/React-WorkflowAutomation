@@ -24,7 +24,7 @@ import {
   DiagramConstraints,
   DiagramModel,
 } from '@syncfusion/ej2-react-diagrams';
-import { DiagramSettings, NodeConfig, NodePortDirection } from '../../types';
+import { DiagramSettings, NodeConfig, NodePortDirection, NodeToolbarAction } from '../../types';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
 import { bringConnectorsToFront, convertMarkdownToHtml, getConnectorCornerRadius, getConnectorType, getFirstSelectedNode, getGridColor, getGridType, getOutConnectDrawPorts, getPortOffset, getPortsForNode, getPortSide, getSnapConstraints, getStickyNoteTemplate } from '../../helper/diagramUtils';
 import './DiagramEditor.css';
@@ -435,16 +435,23 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     hideAllExcept(presentDiagramMenu);
   };
 
-  // Opens the node config panel
-  const handleEditNode = (nodeId: string) => {
-    onNodeDoubleClick(nodeId);
-  };
-
-  // Deletes the node
-  const handleDeleteNode = (nodeId: string) => {
+  // handle the node toolbar actions
+  const handleNodeToolbarAction = (nodeId: string, action: NodeToolbarAction) => {
     const diagram = diagramRef.current;
-    if (diagram) {
-      diagram.remove(diagram.getNodeObject(nodeId));
+    console.log(action)
+    switch (action) {
+      case 'edit':
+        // open the config panel
+        onNodeDoubleClick(nodeId);
+        break;
+      case 'delete':
+        // handle delete
+        if (diagram) {
+          diagram.remove(diagram.getNodeObject(nodeId));
+        }
+        break;
+      default:
+        console.warn('Unknown action:', action);
     }
   };
 
@@ -767,8 +774,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         nodeTemplate={(props: any) => (
           <NodeTemplate
             {...props}
-            onEditNode={handleEditNode}
-            onDeleteNode={handleDeleteNode}
+            onNodeToolbarAction={handleNodeToolbarAction}
           />
         )}
         getNodeDefaults={getNodeDefaults}
