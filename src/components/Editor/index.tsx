@@ -511,7 +511,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         <NodeConfigSidebar 
           isOpen={nodeConfigPanelOpen}
           onClose={() => setNodeConfigPanelOpen(false)}
-          onDeleteNode={() => diagramRef.remove()}
+          onDeleteNode={(nodeId) => diagramRef.remove(diagramRef.getNodeObject(nodeId))}
           selectedNode={selectedNode}
           onNodeConfigChange={handleNodeConfigChange}
         />

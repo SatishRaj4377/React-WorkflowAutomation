@@ -435,7 +435,18 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     hideAllExcept(presentDiagramMenu);
   };
 
+  // Opens the node config panel
+  const handleEditNode = (nodeId: string) => {
+    onNodeDoubleClick(nodeId);
+  };
 
+  // Deletes the node
+  const handleDeleteNode = (nodeId: string) => {
+    const diagram = diagramRef.current;
+    if (diagram) {
+      diagram.remove(diagram.getNodeObject(nodeId));
+    }
+  };
 
   // handle conext menu click event
   const handleContextMenuClick = (args: any) => {
@@ -753,7 +764,13 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         height="100%"
         nodes={[]}
         connectors={[]}
-        nodeTemplate={NodeTemplate}
+        nodeTemplate={(props: any) => (
+          <NodeTemplate
+            {...props}
+            onEditNode={handleEditNode}
+            onDeleteNode={handleDeleteNode}
+          />
+        )}
         getNodeDefaults={getNodeDefaults}
         getConnectorDefaults={getConnectorDefaults}
         elementDraw={removeDisConnectedConnectors}

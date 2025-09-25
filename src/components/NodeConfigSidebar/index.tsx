@@ -19,7 +19,7 @@ interface ConfigPanelProps {
   isOpen: boolean;
   onClose: () => void;
   selectedNode: NodeConfig | null;
-  onDeleteNode: () => void;
+  onDeleteNode: (nodeId: string) => void;
   onNodeConfigChange: (nodeId: string, config: NodeConfig) => void;
 }
 
@@ -497,7 +497,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
                 iconCss="e-icons e-trash"
                 onClick={() => {
                   if (selectedNode && onDeleteNode) {
-                    onDeleteNode();
+                    onDeleteNode(selectedNode.id);
                     onClose();
                   }
                 }}

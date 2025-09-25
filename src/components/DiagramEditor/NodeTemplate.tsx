@@ -1,19 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NodeConfig } from '../../types';
 import { IconRegistry } from '../../assets/icons';
+import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
 
 interface NodeTemplateProps {
   id: string;
-  addInfo: {
-    nodeConfig: NodeConfig;
-  };
+  addInfo: { nodeConfig: NodeConfig; };
+  onEditNode?: (id: string) => void;
+  onDeleteNode?: (id: string) => void;
 }
 
 
-const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo }) => {
+const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo, onEditNode, onDeleteNode }) => {
   // Destructure nodeConfig directly from the addInfo prop
   const { nodeConfig } = addInfo;
-
   if (!nodeConfig) {
     return <div>Invalid Node</div>;
   }
@@ -25,7 +25,14 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo }) => {
   
   return (
     <div className="node-template-container">
-      <div className={`node-template ${nodeCategory === 'trigger' ? 'trigger-node' : ''}`} data-node-id={`${id}`}>
+      <div className={`node-template ${nodeCategory === 'trigger' ? 'trigger-node' : ''}`} data-node-id={`${id}`} >
+        
+        {/* Show Node actions toolbar on hover */}
+        <div className="node-hover-toolbar">
+          <ButtonComponent iconCss='e-icons e-edit' className="node-toolbar-btn" onClick={() => onEditNode?.(id)} />
+          <ButtonComponent iconCss='e-icons e-trash' className="node-toolbar-btn" onClick={() => onDeleteNode?.(id)} />
+        </div>
+
         {/* Port Rendering Logic... */}
         {/* For Trigger Nodes, show port only at the right side */}
         {nodeCategory === 'trigger' && <div className="node-port-right"></div>}

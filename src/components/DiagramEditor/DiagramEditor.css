@@ -49,7 +49,6 @@
   font-weight: bold;
   font-size: 12px;
   text-align: center;
-  pointer-events: none;
   user-select: none;
   position: relative;
 }
@@ -75,7 +74,34 @@
   border: 1.7px solid var(--node-error-color);
   box-shadow: 0 0 0 1px var(--node-error-color);
 }
-
+/* Node action toolbar styles */
+.node-hover-toolbar {
+  position: absolute;
+  top: -36px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  opacity: 0;
+  gap: 4px;
+  z-index: 1000;
+  pointer-events: all;
+  transition: all 0.2s ease;
+}
+.node-template-container :hover .node-hover-toolbar {
+ opacity: 1;
+}
+.node-toolbar-btn {
+  cursor: pointer;
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+.node-toolbar-btn .e-icons {
+  color: var(--text-secondary);
+  font-size: 1rem !important;
+}
+.node-toolbar-btn:hover .e-icons {
+  color: var(--accent-color);
+}
 
 /* Node Execution Spinner */
 .node-spinner {
