@@ -121,7 +121,7 @@ export interface WorkflowExecutionOptions {
 }
 
 // TYPES
-export type NodeToolbarAction = 'edit' | 'duplicate' | 'delete';
+export type NodeToolbarAction = 'edit' | 'delete';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
