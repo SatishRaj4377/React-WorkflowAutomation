@@ -409,6 +409,7 @@ const Home: React.FC<HomeProps> = ({
                   )}
                 </div>
                 {/* Project Managing Tools */}
+                {projects.length > 0 && (
                 <div className="tools-row">
                   {/* Search Box */}
                   <TextBoxComponent
@@ -462,6 +463,7 @@ const Home: React.FC<HomeProps> = ({
                     />
                   </div>
                 </div>
+                )}
               </div>
 
               {/* Displaying an empty state when there are no projects */}
