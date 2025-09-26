@@ -5,7 +5,6 @@ import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { DropDownButtonComponent, MenuEventArgs } from '@syncfusion/ej2-react-splitbuttons';
 import { ListViewComponent, SelectEventArgs } from '@syncfusion/ej2-react-lists';
 import { CheckBoxComponent, ChangeEventArgs as CheckBoxChangeEventArgs } from '@syncfusion/ej2-react-buttons';
-import { ProjectData } from '../../types';
 import { IconRegistry, templateImages } from '../../assets/icons';
 import WorkflowProjectService from '../../services/WorkflowProjectService';
 import ConfirmationDialog from '../ConfirmationDialog';
@@ -15,6 +14,7 @@ import ProjectCard from './ProjectCard';
 import RecentProjectItem from './RecentProjectItem';
 import ProjectListItem from './ProjectListItem';
 import EmptyState from './EmptyState';
+import { ProjectData } from '../../types';
 import './Home.css';
 
 interface HomeProps {

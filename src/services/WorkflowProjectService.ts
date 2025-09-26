@@ -1,4 +1,4 @@
-import { WorkflowData, ProjectData } from '../types';
+import { ProjectData, WorkflowData } from "../types";
 
 /**
  * Service for managing workflow data and operations
