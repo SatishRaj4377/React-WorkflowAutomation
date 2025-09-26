@@ -5,14 +5,12 @@ import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { DropDownButtonComponent, MenuEventArgs } from '@syncfusion/ej2-react-splitbuttons';
 import { ListViewComponent, SelectEventArgs } from '@syncfusion/ej2-react-lists';
 import { CheckBoxComponent, ChangeEventArgs as CheckBoxChangeEventArgs } from '@syncfusion/ej2-react-buttons';
-import { AppBarComponent } from '@syncfusion/ej2-react-navigations';
-import { SwitchComponent } from '@syncfusion/ej2-react-buttons';
 import ConfirmationDialog from '../ConfirmationDialog';
-import { useTheme } from '../../contexts/ThemeContext';
 import { ProjectData } from '../../types';
 import { IconRegistry, templateImages } from '../../assets/icons';
 import WorkflowProjectService from '../../services/WorkflowProjectService'; // Import the service
 import './Home.css';
+import HomeHeader from '../Header/HomeHeader';
 
 interface HomeProps {
   projects: ProjectData[];
@@ -33,7 +31,6 @@ const Home: React.FC<HomeProps> = ({
   onBookmarkToggle,
   bookmarkedProjects = []
 }) => {
-  const { theme, toggleTheme } = useTheme();
   const searchRef = useRef<TextBoxComponent>(null);
   const sidebarRef = useRef<ListViewComponent>(null);
   const [viewMode, setViewMode] = useState<'card' | 'list'>(() => {
@@ -292,24 +289,10 @@ const Home: React.FC<HomeProps> = ({
 
   return (
     <div className="home-layout">
-      <AppBarComponent colorMode="Light" className="home-appbar">
-        <div className="appbar-left">
-          <span className="header-logo">
-            <WorkflowLogoIcon className="svg-icon"/>
-          </span>
-          <span className="header-title">Workflow Automation</span>
-        </div>
-        
-        <div className="appbar-right">
-          <TooltipComponent content={`Toggle to ${theme === 'dark' ? 'light' : 'dark'} mode`}>
-            <SwitchComponent
-              checked={theme === 'dark'}
-              change={() => toggleTheme()}
-              cssClass={`theme-toggle-switch ${theme}`}
-              />
-          </TooltipComponent>
-        </div>
-      </AppBarComponent>
+      {/* Header */}
+      <HomeHeader />
+
+      {/* Sidebar */}
       <aside className="home-sidebar">
         <ButtonComponent
           cssClass="e-primary action-btn create-workflow-btn"
@@ -328,6 +311,8 @@ const Home: React.FC<HomeProps> = ({
           select={handleSidebarSelect} 
         />
       </aside>
+      
+      {/* Main Section */}
       <main className="home-main">
         <div className="home-content">
           {activeSection === 'dashboard' && (

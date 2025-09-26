@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useBlocker } from 'react-router';
 import { DiagramTools, NodeConstraints, NodeModel, PortConstraints, PortModel } from '@syncfusion/ej2-react-diagrams';
-import AppBar from '../Header';
+import EditorHeader from '../Header/EditorHeader';
 import DiagramEditor from '../DiagramEditor';
 import Toolbar from '../Toolbar';
 import Toast, { showSuccessToast, showErrorToast } from '../Toast';
@@ -528,7 +528,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
 
   return (
     <div className="editor-container" data-theme={theme}>
-      <AppBar
+      {/* Header */}
+      <EditorHeader
         projectName={projectName}
         onBack={() => onBackToHome()}
         onSave={handleSave}
@@ -542,7 +543,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         onExport={handleExport}
         onImport={handleImport}
       />
-      
+      {/* Main Section */}
       <div className="editor-content">
         {/* Sidebar for Configuration */}
         <NodeConfigSidebar 
@@ -600,6 +601,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         </div>
       </div>
       
+      {/* Toast Popup */}
       <Toast />
       
       {/* Show the save confirmation dialog on page leave */}
@@ -631,7 +633,6 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         buttonContent={{ primary: 'Save & Leave', secondary: 'Discard Changes' }}
         variant="primary"
       />
-
     </div>
   );
 };

@@ -7,10 +7,10 @@ import { DropDownButtonComponent, ItemModel } from '@syncfusion/ej2-react-splitb
 import { NumericTextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { DiagramSettings } from '../../types';
 import { getDefaultDiagramSettings } from '../../helper/diagramUtils';
-import './Header.css';
 import { showErrorToast } from '../Toast';
+import './Header.css';
 
-interface AppBarProps {
+interface EditorHeaderProps {
   projectName?: string;
   onBack?: () => void;
   onSave?: () => void;
@@ -41,7 +41,7 @@ const settingsDropdownItems: ItemModel[] = [
   { text: 'Settings', iconCss:'e-icons e-settings'},
 ];
 
-const AppBar: React.FC<AppBarProps> = ({
+const EditorHeader: React.FC<EditorHeaderProps> = ({
   projectName = 'Untitled Workflow',
   onBack,
   onSave,
@@ -330,4 +330,4 @@ const AppBar: React.FC<AppBarProps> = ({
   );
 };
 
-export default AppBar;
+export default EditorHeader;
