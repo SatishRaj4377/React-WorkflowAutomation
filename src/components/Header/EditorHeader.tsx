@@ -9,7 +9,7 @@ import { DiagramSettings } from '../../types';
 import { getDefaultDiagramSettings } from '../../helper/diagramUtils';
 import { showErrorToast } from '../Toast';
 import './Header.css';
-import { connectorStyleOptions, gridStyleOptions, settingsDropdownItems } from '../../constants';
+import { CONNECTOR_STYLE_OPTIONS, GRID_STYLE_OPTIONS, SETTINGS_DROPDOWN_ITEMS } from '../../constants';
 
 interface EditorHeaderProps {
   projectName?: string;
@@ -161,7 +161,7 @@ const EditorHeader: React.FC<EditorHeaderProps> = ({
           </TooltipComponent>
         )}
         <DropDownButtonComponent
-          items={settingsDropdownItems}
+          items={SETTINGS_DROPDOWN_ITEMS}
           select={handleSettingsDropdownSelect}
           iconCss="e-icons e-more-horizontal-1"
           cssClass="header-btn e-caret-hide more-btn"
@@ -193,7 +193,7 @@ const EditorHeader: React.FC<EditorHeaderProps> = ({
               <div className="settings-item" title='Update the diagram grid type.'>
                 <label className="settings-label">Grid Style</label>
                 <DropDownListComponent
-                  dataSource={gridStyleOptions}
+                  dataSource={GRID_STYLE_OPTIONS}
                   fields={{ text: 'text', value: 'value' }}
                   value={diagramSettings.gridStyle}
                   change={(args: any) => handleSettingsChange('gridStyle', args.value)}
@@ -209,7 +209,7 @@ const EditorHeader: React.FC<EditorHeaderProps> = ({
               <div className="settings-item" title='Update the connector segments type.'>
                 <label className="settings-label">Connector type</label>
                   <DropDownListComponent
-                    dataSource={connectorStyleOptions}
+                    dataSource={CONNECTOR_STYLE_OPTIONS}
                     fields={{ text: 'text', value: 'value' }}
                     value={diagramSettings.connectorType}
                     change={(args: any) => handleSettingsChange('connectorType', args.value)}

@@ -4,26 +4,26 @@ import { templateImages } from "../assets/icons";
 export const NODE_MENU = ['editNode', 'delete'];
 export const DIAGRAM_MENU = ['addNode', 'addSticky', 'lockWorkflow', 'selectAll'];
 
-export const gridStyleOptions = [
+export const GRID_STYLE_OPTIONS = [
     { text: 'Lines', value: 'lines' },
     { text: 'Dotted', value: 'dotted' },
     { text: 'None', value: 'none' }
 ];
 
-export const connectorStyleOptions = [
+export const CONNECTOR_STYLE_OPTIONS = [
     { text: 'Orthogonal', value: 'Orthogonal' },
     { text: 'Bezier', value: 'Bezier' },
     { text: 'Straight', value: 'Straight' }
 ];
 
-export const settingsDropdownItems: ItemModel[] = [
+export const SETTINGS_DROPDOWN_ITEMS: ItemModel[] = [
     { text: 'Import', iconCss: 'e-icons e-import' },
     { text: 'Export', iconCss: 'e-icons e-export' },
     { separator: true },
     { text: 'Settings', iconCss: 'e-icons e-settings' },
 ];
 
-export const sortOptions = [
+export const SORT_OPTIONS = [
     { text: 'Last Modified', id: 'lastModified' },
     { text: 'Last Created', id: 'created' },
     { text: 'Name (A-Z)', id: 'nameAsc' },
@@ -31,14 +31,14 @@ export const sortOptions = [
     { text: 'Bookmarked', id: 'bookmarked' }
 ];
 
-export const sidebarItems = [
+export const SIDEBAR_ITEMS = [
     { text: "Dashboard", id: "dashboard", icon: "e-icons e-home" },
     { text: "My Workflows", id: "workflows", icon: "e-icons e-folder" },
     { text: "Templates", id: "templates", icon: "e-icons e-landscape" },
     { text: "Documentation", id: "docs", icon: "e-icons e-file-document" }
 ];
 
-export const templateCards = [
+export const TEMPLATE_CARDS = [
     {
         id: 'email-automation',
         title: 'Email Automation',
@@ -69,7 +69,7 @@ export const templateCards = [
     }
 ];
 
-export const menuItems = [
+export const MENU_ITEMS = [
     { text: 'Edit', iconCss: 'e-icons e-edit' },
     { text: 'Export Project', iconCss: 'e-icons e-export' },
     { text: 'Delete', iconCss: 'e-icons e-trash' }

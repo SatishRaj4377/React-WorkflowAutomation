@@ -15,7 +15,7 @@ import ProjectListItem from './ProjectListItem';
 import EmptyState from './EmptyState';
 import { ProjectData } from '../../types';
 import './Home.css';
-import { menuItems, sidebarItems, sortOptions, templateCards } from '../../constants';
+import { MENU_ITEMS, SIDEBAR_ITEMS, SORT_OPTIONS, TEMPLATE_CARDS } from '../../constants';
 
 interface HomeProps {
   projects: ProjectData[];
@@ -256,7 +256,7 @@ const Home: React.FC<HomeProps> = ({
         <ListViewComponent
           ref={sidebarRef}
           id="sidebar-nav"
-          dataSource={sidebarItems}
+          dataSource={SIDEBAR_ITEMS}
           fields={{ id: "id", text: "text", iconCss: "icon" }}
           cssClass="sidebar-list"
           showIcon={true}
@@ -275,7 +275,7 @@ const Home: React.FC<HomeProps> = ({
               <section className="quick-access-section animate-fade-in-up">
                 <h2 className="section-title">Quick Start</h2>
                 <div className="quick-access-grid">
-                  {templateCards.map((template) => (
+                  {TEMPLATE_CARDS.map((template) => (
                     <TemplateCard
                       key={template.id}
                       id={template.id}
@@ -313,7 +313,7 @@ const Home: React.FC<HomeProps> = ({
                         onOpenProject={onOpenProject}
                         onBookmarkToggle={handleBookmarkToggle}
                         onMenuSelect={handleMenuSelect}
-                        menuItems={menuItems}
+                        menuItems={MENU_ITEMS}
                         formatDate={formatDate}
                         formatDateForListCell={formatDateForListCell}
                       />
@@ -366,7 +366,7 @@ const Home: React.FC<HomeProps> = ({
                   />
                   {/* Sort Dropdown */}
                   <DropDownButtonComponent
-                    items={sortOptions}
+                    items={SORT_OPTIONS}
                     select={handleSortSelect}
                     cssClass="sort-dropdown-btn"
                   >
@@ -453,7 +453,7 @@ const Home: React.FC<HomeProps> = ({
                           onToggleSelect={handleMultiSelectToggle}
                           onBookmarkToggle={handleBookmarkToggle}
                           onMenuSelect={handleMenuSelect}
-                          menuItems={menuItems}
+                          menuItems={MENU_ITEMS}
                           formatDate={formatDate}
                           formatDateForListCell={formatDateForListCell}
                         />
@@ -468,7 +468,7 @@ const Home: React.FC<HomeProps> = ({
                         onOpenProject={onOpenProject}
                         onBookmarkToggle={handleBookmarkToggle}
                         onMenuSelect={handleMenuSelect}
-                        menuItems={menuItems}
+                        menuItems={MENU_ITEMS}
                       />
                     ))
                   )}
@@ -482,7 +482,7 @@ const Home: React.FC<HomeProps> = ({
             <section className="animate-fade-in-up">
               <h2 className="section-title">Templates</h2>
               <div className="quick-access-grid">
-                {templateCards.map((template) => (
+                {TEMPLATE_CARDS.map((template) => (
                   <TemplateCard
                     key={template.id}
                     id={template.id}
