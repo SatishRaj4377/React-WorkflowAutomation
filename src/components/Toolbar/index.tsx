@@ -1,34 +1,19 @@
 import React, { useEffect } from 'react';
 import { ToolbarComponent, ItemsDirective, ItemDirective, OverflowOption } from '@syncfusion/ej2-react-navigations';
 import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
-import './Toolbar.css';
+import { ToolbarAction } from '../../types';
 import { Tooltip } from '@syncfusion/ej2-react-popups';
+import './Toolbar.css';
 
 interface ToolbarProps {
-  onAddNode?: () => void;
-  onFitToPage?: () => void;
-  onResetZoom?: () => void;
-  onZoomIn?: () => void;
-  onZoomOut?: () => void;
-  onAddSticky?: (position: { x: number; y: number }) => void;
-  onExecute?: () => void;
-  onCancel?: () => void;
-  isExecuting?: boolean;
-  onTogglePan?: () => void;
-  isPanActive?: boolean;
+  onAction:(action: ToolbarAction) => void;
+  isExecuting: boolean;
+  isPanActive: boolean;
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({
-  onAddNode,
-  onFitToPage,
-  onResetZoom,
-  onZoomIn,
-  onZoomOut,
-  onAddSticky,
-  onExecute,
-  onCancel,
+  onAction,
   isExecuting = false,
-  onTogglePan,
   isPanActive,
 }) => {
   // Template for execute button
@@ -38,7 +23,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
         cssClass={isExecuting ? 'cancel-btn' : 'execute-btn'}
         iconCss={isExecuting ? 'e-icons e-stop-rectangle' : 'e-icons e-play'}
         content={isExecuting ? 'Cancel' : 'Execute'}
-        onClick={isExecuting ? onCancel : onExecute}
+        onClick={() => onAction(isExecuting ? 'cancel' : 'execute')}
         isPrimary={!isExecuting}
       />
     );
@@ -49,7 +34,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
       prefixIcon: 'e-icons e-plus',
       tooltipText: 'Add Nodes',
       id: 'add-nodes',
-      click: onAddNode,
+      click: () => onAction('addNode'),
       overflow: 'Show',
     },
     {
@@ -59,7 +44,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
       prefixIcon: 'e-icons e-add-notes',
       tooltipText: 'Add Sticky Note',
       id: 'add-sticky',
-      click: onAddSticky,
+      click: () => onAction('addSticky'),
       overflow: 'Show',
     },
     {
@@ -69,7 +54,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
         prefixIcon: 'e-icons e-pan',
         tooltipText: 'Pan',
         id: 'pan-tool',
-        click: onTogglePan,
+        click: () => onAction('togglePan'),
         cssClass: isPanActive ? 'e-active' : '',
     },
     {
@@ -79,25 +64,25 @@ const Toolbar: React.FC<ToolbarProps> = ({
       prefixIcon: 'e-icons e-circle-add',
       tooltipText: 'Zoom In',
       id: 'zoom-in',
-      click: onZoomIn,
+      click: () => onAction('zoomIn'),
     },
     {
       prefixIcon: 'e-icons e-circle-remove',
       tooltipText: 'Zoom Out',
       id: 'zoom-out',
-      click: onZoomOut,
+      click: () => onAction('zoomOut'),
     },
     {
       prefixIcon: 'e-icons e-refresh',
       tooltipText: 'Reset Zoom',
       id: 'reset-zoom',
-      click: onResetZoom,
+      click: () => onAction('resetZoom'),
     },
     {
       prefixIcon: 'e-icons e-bring-to-center',
       tooltipText: 'Fit to Page',
       id: 'fit-page',
-      click: onFitToPage,
+      click: () => onAction('fitToPage'),
     },
     {
       type: 'Separator'

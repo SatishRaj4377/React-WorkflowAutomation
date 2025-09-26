@@ -121,6 +121,8 @@ export interface WorkflowExecutionOptions {
 }
 
 // TYPES
+export type ToolbarAction = 'addNode' | 'execute' | 'cancel' | 'fitToPage' | 'zoomIn' | 'zoomOut' | 'resetZoom' | 'addSticky' | 'togglePan';
+
 export type NodeToolbarAction = 'edit' | 'delete';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';

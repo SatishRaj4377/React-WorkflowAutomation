@@ -9,7 +9,7 @@ import NodePaletteSidebar from '../NodePaletteSidebar';
 import NodeConfigSidebar from '../NodeConfigSidebar';
 import { useTheme } from '../../contexts/ThemeContext';
 import ConfirmationDialog from '../ConfirmationDialog';
-import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosition } from '../../types';
+import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosition, ToolbarAction } from '../../types';
 import WorkflowProjectService from '../../services/WorkflowProjectService';
 import { WorkflowExecutionService } from '../../services/WorkflowExecutionService';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
@@ -117,30 +117,6 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         setIsDirty(true); // Mark as dirty when node config changes
       }
     }
-  };
-
-  const handleExecuteWorkflow = async () => {
-    if (!workflowExecutionRef.current) {
-      showErrorToast('Execution Failed', 'Workflow service not initialized');
-      return;
-    }
-
-    setIsExecuting(true);
-    
-    try {
-      await workflowExecutionRef.current.executeWorkflow();
-    } catch (error) {
-      showErrorToast('Execution Failed', error instanceof Error ? error.message : 'Unknown error occurred');
-    } finally {
-      setIsExecuting(false);
-    }
-  };
-
-  const handleCancelExecution = () => {
-    if (workflowExecutionRef.current) {
-      workflowExecutionRef.current.stopExecution();
-    }
-    setIsExecuting(false);
   };
 
   const handleUserhandleAddNodeClick = (node: NodeModel, portId: string) => {
@@ -256,12 +232,130 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     setIsDirty(true);
   };
 
+  // TOOLBAR HANDLERS - BEGIN
+  const handleToolbarAction = (action: ToolbarAction) => {
+    switch (action) {
+      case 'addNode':
+        setNodeConfigPanelOpen(false);
+        setNodePaletteSidebarOpen(true);
+        break;
+      case 'execute':
+        handleExecuteWorkflow();
+        break;
+      case 'cancel':
+        handleCancelExecution();
+        break;
+      case 'fitToPage':
+        diagramRef?.fitToPage({
+          canZoomIn: false,
+          canZoomOut: false,
+          margin: { top: 100, left: 100, bottom: 100, right: 100 },
+        });
+        break;
+      case 'zoomIn':
+        diagramRef?.zoomTo({ type: 'ZoomIn', zoomFactor: 0.2 });
+        break;
+      case 'zoomOut':
+        diagramRef?.zoomTo({ type: 'ZoomOut', zoomFactor: 0.2 });
+        break;
+      case 'resetZoom':
+        diagramRef?.reset();
+        break;
+      case 'addSticky':
+        handleAddStickyNote();
+        break;
+      case 'togglePan':
+        handleTogglePan();
+        break;
+      default:
+        console.warn(`Unhandled toolbar action: ${action}`);
+    }
+  };
+  const handleExecuteWorkflow = async () => {
+    if (!workflowExecutionRef.current) {
+      showErrorToast('Execution Failed', 'Workflow service not initialized');
+      return;
+    }
+
+    setIsExecuting(true);
+    
+    try {
+      await workflowExecutionRef.current.executeWorkflow();
+    } catch (error) {
+      showErrorToast('Execution Failed', error instanceof Error ? error.message : 'Unknown error occurred');
+    } finally {
+      setIsExecuting(false);
+    }
+  };
+  const handleCancelExecution = () => {
+    if (workflowExecutionRef.current) {
+      workflowExecutionRef.current.stopExecution();
+    }
+    setIsExecuting(false);
+  };
   const handleTogglePan = () => {
     if (!diagramRef) return;
     const currentlyPan = diagramRef.tool === DiagramTools.ZoomPan;
     diagramRef.tool = currentlyPan ? DiagramTools.Default : DiagramTools.ZoomPan;
     setIsPanActive(!currentlyPan);
   };
+  const handleAddStickyNote = (position?: StickyNotePosition) => {
+    if (diagramRef) {
+      if (
+        !position ||
+        typeof position !== 'object' ||
+        typeof position.x !== 'number' ||
+        typeof position.y !== 'number'
+      ) {
+        // Position the sticky note to center of the diagram
+        position = {
+          x: diagramRef.scrollSettings.viewPortWidth / 2,
+          y: diagramRef.scrollSettings.viewPortHeight / 2,
+        };
+      }
+      
+      let x : number= position.x;
+      let y :number = position.y;
+      let index: number | undefined;
+
+      // Apply staggering only if postion is not from mouse
+      if (!position.fromMouse) {
+        const staggered = getNextStaggeredOffset(diagramRef, x, y, {
+          group: 'sticky',
+          strategy: 'diagonal',
+          stepX: 30,
+          stepY: 30,
+        });
+        x = staggered.x;
+        y = staggered.y;
+        index = staggered.index;
+      }
+      const timestamp = Date.now();
+      const stickyNote: NodeModel = {
+        id: `sticky-${timestamp}`,
+        width: 240,
+        height: 240,
+        offsetX: x,
+        offsetY: y - 64, // removing the header height
+        constraints: (NodeConstraints.Default & ~NodeConstraints.Rotate),
+        addInfo: {
+          nodeConfig: {
+            id: `sticky-${timestamp}`,
+            category: 'sticky',
+            displayName: 'Sticky Note',
+          } as NodeConfig
+        }
+      };
+
+      // Persist stagger metadata only if staggering was applied
+      if (index !== undefined) {
+        applyStaggerMetadata(stickyNote, 'sticky', index);
+      }
+
+      diagramRef.add(stickyNote);
+    }
+  };
+  // TOOLBAR HANDLERS - END
 
   // Handle selected node changes
   useEffect(() => {
@@ -396,63 +490,6 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     }
   };
 
-  const handleAddStickyNote = (position: StickyNotePosition) => {
-    if (diagramRef) {
-      if (
-        !position ||
-        typeof position !== 'object' ||
-        typeof position.x !== 'number' ||
-        typeof position.y !== 'number'
-      ) {
-        // Position the sticky note to center of the diagram
-        position = {
-          x: diagramRef.scrollSettings.viewPortWidth / 2,
-          y: diagramRef.scrollSettings.viewPortHeight / 2,
-        };
-      }
-      
-      let x : number= position.x;
-      let y :number = position.y;
-      let index: number | undefined;
-
-      // Apply staggering only if postion is not from mouse
-      if (!position.fromMouse) {
-        const staggered = getNextStaggeredOffset(diagramRef, x, y, {
-          group: 'sticky',
-          strategy: 'diagonal',
-          stepX: 30,
-          stepY: 30,
-        });
-        x = staggered.x;
-        y = staggered.y;
-        index = staggered.index;
-      }
-      const timestamp = Date.now();
-      const stickyNote: NodeModel = {
-        id: `sticky-${timestamp}`,
-        width: 240,
-        height: 240,
-        offsetX: x,
-        offsetY: y - 64, // removing the header height
-        constraints: (NodeConstraints.Default & ~NodeConstraints.Rotate),
-        addInfo: {
-          nodeConfig: {
-            id: `sticky-${timestamp}`,
-            category: 'sticky',
-            displayName: 'Sticky Note',
-          } as NodeConfig
-        }
-      };
-
-      // Persist stagger metadata only if staggering was applied
-      if (index !== undefined) {
-        applyStaggerMetadata(stickyNote, 'sticky', index);
-      }
-
-      diagramRef.add(stickyNote);
-    }
-  };
-
   // When a navigation is blocked, open your confirmation dialog
   useEffect(() => {
     if (blocker.state === 'blocked') {
@@ -556,19 +593,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         {/* Floating Toolbar */}
         <div className="editor-toolbar">
           <Toolbar 
-            onAddNode={() => {
-              setNodeConfigPanelOpen(false);
-              setNodePaletteSidebarOpen(true);
-            }}
-            onExecute={handleExecuteWorkflow}
-            onCancel={handleCancelExecution}
-            onFitToPage={() => diagramRef?.fitToPage({canZoomIn: false, canZoomOut: false, margin:{top: 100, left: 100, bottom: 100, right: 100} })}
-            onZoomIn={() => diagramRef?.zoomTo({type: 'ZoomIn', zoomFactor: 0.2})}
-            onZoomOut={() => diagramRef?.zoomTo({type: 'ZoomOut', zoomFactor: 0.2})}
-            onResetZoom={() => diagramRef?.reset()}
-            onAddSticky={handleAddStickyNote}
+            onAction={handleToolbarAction}
             isExecuting={isExecuting}
-            onTogglePan={handleTogglePan}
             isPanActive={isPanActive}
           />
         </div>
