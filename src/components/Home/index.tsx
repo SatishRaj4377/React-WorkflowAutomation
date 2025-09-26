@@ -5,12 +5,17 @@ import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { DropDownButtonComponent, MenuEventArgs } from '@syncfusion/ej2-react-splitbuttons';
 import { ListViewComponent, SelectEventArgs } from '@syncfusion/ej2-react-lists';
 import { CheckBoxComponent, ChangeEventArgs as CheckBoxChangeEventArgs } from '@syncfusion/ej2-react-buttons';
-import ConfirmationDialog from '../ConfirmationDialog';
 import { ProjectData } from '../../types';
 import { IconRegistry, templateImages } from '../../assets/icons';
-import WorkflowProjectService from '../../services/WorkflowProjectService'; // Import the service
-import './Home.css';
+import WorkflowProjectService from '../../services/WorkflowProjectService';
+import ConfirmationDialog from '../ConfirmationDialog';
 import HomeHeader from '../Header/HomeHeader';
+import TemplateCard from './TemplateCard';
+import ProjectCard from './ProjectCard';
+import RecentProjectItem from './RecentProjectItem';
+import ProjectListItem from './ProjectListItem';
+import EmptyState from './EmptyState';
+import './Home.css';
 
 interface HomeProps {
   projects: ProjectData[];
@@ -294,6 +299,7 @@ const Home: React.FC<HomeProps> = ({
 
       {/* Sidebar */}
       <aside className="home-sidebar">
+        {/* Action Button */}
         <ButtonComponent
           cssClass="e-primary action-btn create-workflow-btn"
           iconCss="e-icons e-plus"
@@ -301,6 +307,8 @@ const Home: React.FC<HomeProps> = ({
         >
           Create Workflow
         </ButtonComponent>
+
+        {/* Navigation Options */}
         <ListViewComponent
           ref={sidebarRef}
           id="sidebar-nav"
@@ -311,10 +319,12 @@ const Home: React.FC<HomeProps> = ({
           select={handleSidebarSelect} 
         />
       </aside>
-      
+
       {/* Main Section */}
       <main className="home-main">
         <div className="home-content">
+          
+          {/* DASHBOARD SECTION */}
           {activeSection === 'dashboard' && (
             <>
               {/* Quick Access Section */}
@@ -322,17 +332,13 @@ const Home: React.FC<HomeProps> = ({
                 <h2 className="section-title">Quick Start</h2>
                 <div className="quick-access-grid">
                   {templateCards.map((template) => (
-                    <div key={template.id} className="e-card modern-card quick-access-card template-card">
-                      <div className="e-card-image template-image">
-                        {template.image && (
-                          <img src={template.image} alt={template.title} />
-                        )}
-                      </div>
-                      <div className="e-card-content">
-                        <h3>{template.title}</h3>
-                        <p>{template.description}</p>
-                      </div>
-                    </div>
+                    <TemplateCard
+                      key={template.id}
+                      id={template.id}
+                      title={template.title}
+                      description={template.description}
+                      image={template.image}
+                    />
                   ))}
                 </div>
               </section>
@@ -341,6 +347,8 @@ const Home: React.FC<HomeProps> = ({
               {filteredAndSortedProjects.length > 0 && (
                 <section className="recent-projects-section animate-fade-in-up">
                   <h2 className="section-title">Recent Workflows</h2>
+
+                  {/* Show available projects in list view */}
                   <div className="projects-container list-view">
                     {/* List Header Row */}
                     <div className="project-list-header">
@@ -351,52 +359,24 @@ const Home: React.FC<HomeProps> = ({
                       <span className="project-col project-bookmark-header"></span>
                       <span className="project-col project-menu-header"></span>
                     </div>
-                    {filteredAndSortedProjects.slice(0, 5).map((project) => (
-                      <div
-                        key={project.id}
-                        className="project-list-item"
-                        onClick={() => onOpenProject(project)}
-                        tabIndex={0}
-                      >
-                        <span className="project-col project-icon">
-                          <WorkflowFolderIcon className="svg-icon"/>
-                        </span>
-                        <span title={project.name} className="project-col project-title">{project.name}</span>
-                        <span className="project-col project-date">
-                          <TooltipComponent content={formatDate(project.workflowData?.metadata?.created || project.lastModified)}>
-                            <span className="project-date">
-                              {formatDateForListCell(project.workflowData?.metadata?.created || project.lastModified)}
-                            </span>
-                          </TooltipComponent>
-                        </span>
-                        <span className="project-col project-date">
-                          <TooltipComponent content={formatDate(project.lastModified)}>
-                            <span className="project-date">
-                              {formatDateForListCell(project.lastModified)}
-                            </span>
-                          </TooltipComponent>
-                        </span>
-                        <span className="project-col project-bookmark">
-                          <TooltipComponent content={isBookmarked(project.id) ? 'Remove from favorites' : 'Add to favorites'}>
-                            <ButtonComponent
-                              cssClass="bookmark-btn"
-                              iconCss={`e-icons e-star-filled ${isBookmarked(project.id) ? 'star-filled' : ''}`}
-                              onClick={(e) => handleBookmarkToggle(project.id, e)}
-                              />
-                          </TooltipComponent>
-                        </span>
-                        <span className="project-col project-menu">
-                          <DropDownButtonComponent
-                            items={menuItems}
-                            iconCss="e-icons e-more-vertical-1"
-                            cssClass="e-caret-hide project-menu-dropdown"
-                            select={handleMenuSelect(project)}
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        </span>
-                      </div>
+                    {filteredAndSortedProjects.slice(0, 5).map((project, index) => (
+                      <RecentProjectItem
+                        key={getProjectKey(project, index, 'recent-')}
+                        project={project}
+                        index={index}
+                        isBookmarked={isBookmarked(project.id)}
+                        getProjectKey={getProjectKey}
+                        onOpenProject={onOpenProject}
+                        onBookmarkToggle={handleBookmarkToggle}
+                        onMenuSelect={handleMenuSelect}
+                        menuItems={menuItems}
+                        formatDate={formatDate}
+                        formatDateForListCell={formatDateForListCell}
+                      />
                     ))}
                   </div>
+
+                  {/* If projects are more than 5, then show the button to navigate to the My Workflow Section */}
                   {filteredAndSortedProjects.length > 5 && (
                     <div className="show-more-container">
                       <ButtonComponent
@@ -416,6 +396,7 @@ const Home: React.FC<HomeProps> = ({
             </>
           )}
 
+          {/* MY WORKFLOWS SECTION */}
           {activeSection === 'workflows' && (
             <section className="workflows-section animate-fade-in-up">
               <div className="section-header">
@@ -427,7 +408,9 @@ const Home: React.FC<HomeProps> = ({
                     </span>
                   )}
                 </div>
+                {/* Project Managing Tools */}
                 <div className="tools-row">
+                  {/* Search Box */}
                   <TextBoxComponent
                     ref={searchRef}
                     placeholder="Search Workflows"
@@ -436,6 +419,7 @@ const Home: React.FC<HomeProps> = ({
                     cssClass="project-search"
                     created={handleSearchCreated}
                   />
+                  {/* Sort Dropdown */}
                   <DropDownButtonComponent
                     items={sortOptions}
                     select={handleSortSelect}
@@ -443,6 +427,7 @@ const Home: React.FC<HomeProps> = ({
                   >
                     {sortText}
                   </DropDownButtonComponent>
+                  {/* Multiple Projects Export and Delete Button */}
                   {viewMode === 'list' && selectedProjects.length > 0 && (
                     <>
                       <TooltipComponent content="Export Selected">
@@ -461,6 +446,7 @@ const Home: React.FC<HomeProps> = ({
                       </TooltipComponent>
                     </>
                   )}
+                  {/* Project View Mode - List/Card*/}
                   <div className="view-toggle">
                     <ButtonComponent
                       cssClass={`view-toggle-btn ${viewMode === 'card' ? 'active' : ''}`}
@@ -477,29 +463,20 @@ const Home: React.FC<HomeProps> = ({
                   </div>
                 </div>
               </div>
-             {filteredAndSortedProjects.length === 0 ? (
-              searchTerm && projects.length > 0 ? (
-                <div className="empty-state animate-fade-in-up">
-                  <div className="empty-icon">
-                    <WorkflowFolderSearchIcon className="svg-icon search-folder"/>
-                  </div>
-                  <h3>No workflows found</h3>
-                  <p>No workflows match your search.</p>
-                </div>
+
+              {/* Displaying an empty state when there are no projects */}
+              {filteredAndSortedProjects.length === 0 ? (
+                // When no projects found using search action
+                searchTerm && projects.length > 0 ? (
+                  <EmptyState type="search" />
+                ) : (
+                // When no projects are created yet
+                  <EmptyState type="empty" onCreateNew={onCreateNew} />
+                )
               ) : (
-                <div className="empty-state animate-fade-in-up">
-                  <div className="empty-icon">
-                    <WorkflowLogoIcon className="svg-icon"/>
-                  </div>
-                  <h3>No workflows yet</h3>
-                  <p>Create your first workflow to get started and unlock the power of automation</p>
-                  <ButtonComponent onClick={onCreateNew} cssClass="e-btn action-btn" iconCss='e-icons e-plus'>
-                    Create New Workflow
-                  </ButtonComponent>
-                </div>
-              )
-              ) : (
+                // Display the projects
                 <div className={`projects-container ${viewMode === 'list' ? 'list-view' : 'card-view'} ${selectedProjects.length > 0 ? 'selection-active' : ''}`}>
+                  {/* List view with multi select functionality */}
                   {viewMode === 'list' ? (
                     <>
                       {/* Table header row */}
@@ -519,93 +496,34 @@ const Home: React.FC<HomeProps> = ({
                         <span className="project-col project-menu-header"></span>
                       </div>
                       {filteredAndSortedProjects.map((project, index) => (
-                        <div
+                        <ProjectListItem
                           key={getProjectKey(project, index, 'list-')}
-                          className={`project-list-item ${selectedProjects.includes(project.id) ? 'selected' : ''}`}
-                          onClick={() => onOpenProject(project)}
-                          tabIndex={0}
-                        >
-                          <span className="project-col project-icon" onClick={(e) => e.stopPropagation()}>
-                            <CheckBoxComponent
-                              cssClass="project-item-checkbox"
-                              checked={selectedProjects.includes(project.id)}
-                              change={(e: CheckBoxChangeEventArgs) => handleMultiSelectToggle(project, e.checked as boolean)}
-                            />
-                            <span className="project-item-icon-svg">
-                              <WorkflowFolderIcon className="svg-icon"/>
-                            </span>
-                          </span>
-                          <span title={project.name} className="project-col project-title">{project.name}</span>
-                          <span className="project-col project-date">
-                            <TooltipComponent content={formatDate(project.workflowData?.metadata?.created || project.lastModified)}>
-                              <span className="project-date">
-                                {formatDateForListCell(project.workflowData?.metadata?.created || project.lastModified)}
-                              </span>
-                            </TooltipComponent>
-                          </span>
-                          <span className="project-col project-date">
-                            <TooltipComponent content={formatDate(project.lastModified)}>
-                              <span className="project-date">
-                                {formatDateForListCell(project.lastModified)}
-                              </span>
-                            </TooltipComponent>
-                          </span>
-                          <span className="project-col project-bookmark">
-                            <ButtonComponent
-                              cssClass="bookmark-btn"
-                              iconCss={`e-icons e-star-filled ${isBookmarked(project.id) ? 'star-filled' : ''}`}
-                              onClick={(e) => handleBookmarkToggle(project.id, e)}
-                              title={isBookmarked(project.id) ? 'Remove from favorites' : 'Add to favorites'}
-                            />
-                          </span>
-                          <span className="project-col project-menu">
-                            <DropDownButtonComponent
-                              items={menuItems}
-                              iconCss="e-icons e-more-vertical-1"
-                              cssClass="e-caret-hide project-menu-dropdown"
-                              select={handleMenuSelect(project)}
-                              onClick={(e) => e.stopPropagation()}
-                            />
-                          </span>
-                        </div>
+                          project={project}
+                          index={index}
+                          isSelected={selectedProjects.includes(project.id)}
+                          isBookmarked={isBookmarked(project.id)}
+                          getProjectKey={getProjectKey}
+                          onOpenProject={onOpenProject}
+                          onToggleSelect={handleMultiSelectToggle}
+                          onBookmarkToggle={handleBookmarkToggle}
+                          onMenuSelect={handleMenuSelect}
+                          menuItems={menuItems}
+                          formatDate={formatDate}
+                          formatDateForListCell={formatDateForListCell}
+                        />
                       ))}
                     </>
                   ) : (
                     filteredAndSortedProjects.map((project, index) => (
-                      <div
+                      <ProjectCard
                         key={getProjectKey(project, index, 'card-')}
-                        className={`e-card modern-card project-card card-item`}
-                        onClick={() => onOpenProject(project)}
-                      >
-                        <div className="e-card-image project-thumbnail">
-                          <img src={project.thumbnail || templateImages.DefaultImageImage} alt={project.name} />
-                          <div className="project-card-overlay">
-                            <DropDownButtonComponent
-                              items={menuItems}
-                              iconCss="e-icons e-more-vertical-1"
-                              cssClass="e-caret-hide project-menu-dropdown"
-                              select={handleMenuSelect(project)}
-                              onClick={(e) => e.stopPropagation()}
-                            />
-                          </div>
-                        </div>
-                        <div className="e-card-content">
-                          <div className="project-info">
-                            <h3 title={project.name} className="project-title">{project.name}</h3>
-                            <p className="project-modified">
-                              Modified: {formatDate(project.lastModified)}
-                            </p>
-                          </div>
-                          <div className="project-bookmark-card">
-                            <ButtonComponent
-                              cssClass="bookmark-btn-card"
-                              iconCss={`e-icons e-star-filled ${isBookmarked(project.id) ? 'star-filled' : ''}`}
-                              onClick={(e) => handleBookmarkToggle(project.id, e)}
-                              title={isBookmarked(project.id) ? 'Remove from favorites' : 'Add to favorites'}
-                            />
-                          </div>
-                        </div>
-                      </div>
+                        project={project}
+                        isBookmarked={isBookmarked(project.id)}
+                        onOpenProject={onOpenProject}
+                        onBookmarkToggle={handleBookmarkToggle}
+                        onMenuSelect={handleMenuSelect}
+                        menuItems={menuItems}
+                      />
                     ))
                   )}
                 </div>
@@ -613,25 +531,25 @@ const Home: React.FC<HomeProps> = ({
             </section>
           )}
 
+          {/* TEMPLATES SECTION */}
           {activeSection === 'templates' && (
             <section className="animate-fade-in-up">
               <h2 className="section-title">Templates</h2>
               <div className="quick-access-grid">
                 {templateCards.map((template) => (
-                  <div key={template.id} className="e-card modern-card quick-access-card template-card">
-                    <div className="e-card-image template-image">
-                      <img src={template.image} alt={template.title} />
-                    </div>
-                    <div className="e-card-content">
-                      <h3>{template.title}</h3>
-                      <p>{template.description}</p>
-                    </div>
-                  </div>
+                  <TemplateCard
+                    key={template.id}
+                    id={template.id}
+                    title={template.title}
+                    description={template.description}
+                    image={template.image}
+                  />
                 ))}
               </div>
             </section>
           )}
 
+          {/* DOCS SECTION */}
           {activeSection === 'docs' && (
             <section className="animate-fade-in-up">
               <h2 className="section-title">Documentation</h2>
@@ -639,6 +557,8 @@ const Home: React.FC<HomeProps> = ({
             </section>
           )}
         </div>
+
+        {/* FILE DELETE CONFIRMATION DIALOG */}
         <ConfirmationDialog
           isOpen={!!projectToDelete || isMultiDeleteConfirmOpen}
           onClose={handleCloseDeleteDialog}
