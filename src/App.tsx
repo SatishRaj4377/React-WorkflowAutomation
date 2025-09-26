@@ -38,15 +38,12 @@ const AppContent: React.FC = () => {
   const [projects, setProjects] = useState<ProjectData[]>([]);
   const navigate = useNavigate();
 
+  const refreshProjects = () => {
+    setProjects(WorkflowProjectService.getSortedProjects());
+  };
+
   // Load projects on mount
-  useEffect(() => {
-    const loaded = WorkflowProjectService.getProjects();
-    loaded.sort(
-      (a, b) =>
-        new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime()
-    );
-    setProjects(loaded);
-  }, []);
+  useEffect(refreshProjects, []);
 
   const handleCreateNew = () => {
     const newProject = WorkflowProjectService.createBlankProject();
@@ -55,42 +52,26 @@ const AppContent: React.FC = () => {
 
   const handleDeleteProject = (projectId: string) => {
     WorkflowProjectService.deleteProject(projectId);
-    setProjects((prev) => prev.filter((p) => p.id !== projectId));
+    refreshProjects();
   };
 
   const handleMultipleDeleteProjects = (projectIds: string[]) => {
     WorkflowProjectService.deleteMultipleProjects(projectIds);
-    setProjects((prev) => prev.filter((p) => !projectIds.includes(p.id)));
+    refreshProjects();
   };
 
   const handleSaveProject = (updated: ProjectData) => {
     WorkflowProjectService.saveProject(updated);
-    const updatedProjects = WorkflowProjectService.getProjects();
-    updatedProjects.sort(
-      (a, b) =>
-        new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime()
-    );
-    setProjects(updatedProjects);
+    refreshProjects();
+  };
+
+  const handleBookmarkToggle = (projectId: string) => {
+    WorkflowProjectService.toggleBookmark(projectId);
+    refreshProjects();
   };
 
   const handleOpenProject = (project: ProjectData) => {
     navigate(`/workflow/${project.id}`);
-  };
-
-  const handleBookmarkToggle = (projectId: string) => {
-    const updated = WorkflowProjectService.toggleBookmark(projectId);
-    if (updated) {
-      setProjects((prev) => {
-        const next = prev.map((p) =>
-          p.id === projectId ? { ...p, isBookmarked: updated.isBookmarked } : p
-        );
-        return next.sort(
-          (a, b) =>
-            new Date(b.lastModified).getTime() -
-            new Date(a.lastModified).getTime()
-        );
-      });
-    }
   };
 
   const bookmarkedProjects = projects

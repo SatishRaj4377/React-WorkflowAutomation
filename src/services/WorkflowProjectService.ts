@@ -36,6 +36,21 @@ export class WorkflowProjectService {
   }
 
   /**
+   * Get projects in sorted order
+   */
+  getSortedProjects(): ProjectData[] {
+    const projects = this.getProjects();
+    return projects.sort((a, b) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime());
+  }
+
+  /**
+   * Get all bookmarked projects id
+   */
+  getBookmarkedProjectIds(): string[] {
+    return this.getProjects().filter(p => p.isBookmarked).map(p => p.id);
+  }
+
+  /**
    * Get a specific project by ID
    */
   getProjectById(id: string): ProjectData | null {
