@@ -5,7 +5,6 @@ import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { DropDownButtonComponent, MenuEventArgs } from '@syncfusion/ej2-react-splitbuttons';
 import { ListViewComponent, SelectEventArgs } from '@syncfusion/ej2-react-lists';
 import { CheckBoxComponent, ChangeEventArgs as CheckBoxChangeEventArgs } from '@syncfusion/ej2-react-buttons';
-import { IconRegistry, templateImages } from '../../assets/icons';
 import WorkflowProjectService from '../../services/WorkflowProjectService';
 import ConfirmationDialog from '../ConfirmationDialog';
 import HomeHeader from '../Header/HomeHeader';
@@ -16,6 +15,7 @@ import ProjectListItem from './ProjectListItem';
 import EmptyState from './EmptyState';
 import { ProjectData } from '../../types';
 import './Home.css';
+import { menuItems, sidebarItems, sortOptions, templateCards } from '../../constants';
 
 interface HomeProps {
   projects: ProjectData[];
@@ -50,62 +50,6 @@ const Home: React.FC<HomeProps> = ({
   const [projectsToDelete, setProjectsToDelete] = useState<ProjectData[]>([]);
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   const [isMultiDeleteConfirmOpen, setMultiDeleteConfirmOpen] = useState(false);
-
-  const WorkflowLogoIcon = IconRegistry['WorkflowLogo'];
-  const WorkflowFolderIcon = IconRegistry['WorkflowFolder'];
-  const WorkflowFolderSearchIcon = IconRegistry['WorkflowFolderSearch'];
-
-  const sortOptions = [
-    { text: 'Last Modified', id: 'lastModified' },
-    { text: 'Last Created', id: 'created' },
-    { text: 'Name (A-Z)', id: 'nameAsc' },
-    { text: 'Name (Z-A)', id: 'nameDesc' },
-    { text: 'Bookmarked', id: 'bookmarked' }
-  ];
-
-  const sidebarItems = [
-    { text: "Dashboard", id: "dashboard", icon: "e-icons e-home" },
-    { text: "My Workflows", id: "workflows", icon: "e-icons e-folder" },
-    { text: "Templates", id: "templates", icon: "e-icons e-landscape" },
-    { text: "Documentation", id: "docs", icon: "e-icons e-file-document" }
-  ];
-
-  const templateCards = [
-    {
-      id: 'email-automation',
-      title: 'Email Automation',
-      description: 'Template for email-based workflows',
-      image: templateImages.EmailAutomationImage,
-      category: 'Communication'
-    },
-    {
-      id: 'api-integration',
-      title: 'API Integration',
-      description: 'Connect and integrate with external APIs',
-      image: templateImages.ApiIntegrationImage,
-      category: 'Integration'
-    },
-    {
-      id: 'data-processing',
-      title: 'Data Processing',
-      description: 'Process and transform data workflows',
-      image: templateImages.DataProcessingImage,
-      category: 'Data'
-    },
-    {
-      id: 'notification-system',
-      title: 'Notification System',
-      description: 'Automated notification workflows',
-      image: templateImages.NotificationSystemImage,
-      category: 'Communication'
-    }
-  ];
-
-  const menuItems = [
-    { text: 'Edit', iconCss: 'e-icons e-edit' },
-    { text: 'Export Project', iconCss: 'e-icons e-export' },
-    { text: 'Delete', iconCss: 'e-icons e-trash' }
-  ];
 
   const handleSearchCreated = () => {
     setTimeout(() => {

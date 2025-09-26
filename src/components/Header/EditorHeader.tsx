@@ -9,6 +9,7 @@ import { DiagramSettings } from '../../types';
 import { getDefaultDiagramSettings } from '../../helper/diagramUtils';
 import { showErrorToast } from '../Toast';
 import './Header.css';
+import { connectorStyleOptions, gridStyleOptions, settingsDropdownItems } from '../../constants';
 
 interface EditorHeaderProps {
   projectName?: string;
@@ -21,25 +22,6 @@ interface EditorHeaderProps {
   onExport?: () => void;
   onImport?: (projectData: any) => void;
 }
-
-const gridStyleOptions = [
-  { text: 'Lines', value: 'lines' },
-  { text: 'Dotted', value: 'dotted' },
-  { text: 'None', value: 'none' }
-];
-
-const connectorStyleOptions = [
-  { text: 'Orthogonal', value: 'Orthogonal' },
-  { text: 'Bezier', value: 'Bezier' },
-  { text: 'Straight', value: 'Straight' }
-];
-
-const settingsDropdownItems: ItemModel[] = [
-  { text: 'Import', iconCss:'e-icons e-import' },
-  { text: 'Export', iconCss:'e-icons e-export' },
-  { separator: true },
-  { text: 'Settings', iconCss:'e-icons e-settings'},
-];
 
 const EditorHeader: React.FC<EditorHeaderProps> = ({
   projectName = 'Untitled Workflow',

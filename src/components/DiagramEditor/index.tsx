@@ -29,6 +29,7 @@ import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagg
 import { bringConnectorsToFront, convertMarkdownToHtml, getConnectorCornerRadius, getConnectorType, getFirstSelectedNode, getGridColor, getGridType, getOutConnectDrawPorts, getPortOffset, getPortsForNode, getPortSide, getSnapConstraints, getStickyNoteTemplate } from '../../helper/diagramUtils';
 import './DiagramEditor.css';
 import NodeTemplate from './NodeTemplate';
+import { DIAGRAM_MENU, NODE_MENU } from '../../constants';
 
 interface DiagramEditorProps {
   onAddNode?: () => void;
@@ -389,10 +390,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     const availableIds: string[] = (args.items ?? [])
       .map((i: any) => i?.id)
       .filter(Boolean);
-
-    // Define your logical groups (IDs must match your contextMenuSettings.items)
-    const NODE_MENU    = ['editNode', 'delete'];
-    const DIAGRAM_MENU = ['addNode', 'addSticky', 'lockWorkflow', 'selectAll'];
 
     // Helper: hide everything except a small allowlist (that is also available)
     const hideAllExcept = (allowIds: string[]) => {
