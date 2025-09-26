@@ -602,6 +602,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       
       <Toast />
       
+      {/* Show the save confirmation dialog on page leave */}
       <ConfirmationDialog
         isOpen={showLeaveDialog}
         onDismiss={() => {

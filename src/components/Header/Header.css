@@ -1,4 +1,4 @@
-.custom-appbar {
+#workflow-appbar {
   background: var(--surface-color);
   box-shadow: var(--shadow);
   border-bottom: 1px solid var(--border-color);
@@ -11,7 +11,7 @@
   height: 56px;
 }
 
-.custom-appbar .appbar-left, .custom-appbar .appbar-right {
+#workflow-appbar .appbar-left, #workflow-appbar .appbar-right {
   display: flex;
   align-items: center;
 }
@@ -23,8 +23,11 @@
   color: var(--text-primary);
   width: 40px;
   height: 40px;
+  margin: 0 !important;
 }
-
+.back-button .e-btn-icon {
+  margin-top: 4px;
+}
 .back-button:hover {
   background-color: var(--background-color);
   color: var(--text-primary);
@@ -119,7 +122,7 @@
 }
 
 /* Theme-specific styles */
-[data-theme="dark"] .custom-appbar {
+[data-theme="dark"] #workflow-appbar {
   background: var(--surface-color);
   border-bottom-color: var(--border-color);
 }
@@ -224,7 +227,7 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .custom-appbar {
+  #workflow-appbar {
     padding: 0 0.5rem;
   }
   

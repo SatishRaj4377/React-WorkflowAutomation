@@ -300,8 +300,6 @@ const Home: React.FC<HomeProps> = ({
           <span className="header-title">Workflow Automation</span>
         </div>
         
-        <div className="e-appbar-spacer"></div>
-        
         <div className="appbar-right">
           <TooltipComponent content={`Toggle to ${theme === 'dark' ? 'light' : 'dark'} mode`}>
             <SwitchComponent

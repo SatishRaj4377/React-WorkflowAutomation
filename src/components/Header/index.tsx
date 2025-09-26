@@ -8,6 +8,7 @@ import { NumericTextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { DiagramSettings } from '../../types';
 import { getDefaultDiagramSettings } from '../../helper/diagramUtils';
 import './Header.css';
+import { showErrorToast } from '../Toast';
 
 interface AppBarProps {
   projectName?: string;
@@ -20,6 +21,25 @@ interface AppBarProps {
   onExport?: () => void;
   onImport?: (projectData: any) => void;
 }
+
+const gridStyleOptions = [
+  { text: 'Lines', value: 'lines' },
+  { text: 'Dotted', value: 'dotted' },
+  { text: 'None', value: 'none' }
+];
+
+const connectorStyleOptions = [
+  { text: 'Orthogonal', value: 'Orthogonal' },
+  { text: 'Bezier', value: 'Bezier' },
+  { text: 'Straight', value: 'Straight' }
+];
+
+const settingsDropdownItems: ItemModel[] = [
+  { text: 'Import', iconCss:'e-icons e-import' },
+  { text: 'Export', iconCss:'e-icons e-export' },
+  { separator: true },
+  { text: 'Settings', iconCss:'e-icons e-settings'},
+];
 
 const AppBar: React.FC<AppBarProps> = ({
   projectName = 'Untitled Workflow',
@@ -36,19 +56,52 @@ const AppBar: React.FC<AppBarProps> = ({
   const [editValue, setEditValue] = useState(projectName);
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
 
-  const settingsDropdownItems: ItemModel[] = [
-    { text: 'Import', iconCss:'e-icons e-import' },
-    { text: 'Export', iconCss:'e-icons e-export' },
-    { separator: true },
-    { text: 'Settings', iconCss:'e-icons e-settings'},
-  ];
+  // PROJECT NAME EDIT HANDLERS - BEGIN
+  const handleProjectNameEdit = () => {
+    setIsEditing(true);
+    setEditValue(projectName);
+  };
+  const handleProjectNameSave = () => {
+    if (onProjectNameChange && editValue.trim()) {
+      onProjectNameChange(editValue.trim());
+    }
+    setIsEditing(false);
+  };
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleProjectNameSave();
+    } else if (e.key === 'Escape') {
+      setEditValue(projectName);
+      setIsEditing(false);
+    }
+  };
+  // PROJECT NAME EDIT HANDLERS - END
 
+  // PROJECT SETTINGS HANDLERS - BEGIN
+  const handleSettingsChange = (key: keyof DiagramSettings, value: any) => {
+    if (onDiagramSettingsChange) {
+      const newSettings = { ...diagramSettings, [key]: value };
+      onDiagramSettingsChange(newSettings);
+    }
+  };
+  const handleSettingsDropdownSelect = (args: any) => {
+    switch (args.item.text) {
+      case 'Settings':
+        setIsSettingsDialogOpen(true);
+        break;
+      case 'Export':
+        handleExport();
+        break;
+      case 'Import':
+        handleImport();
+        break;
+    }
+  };
   const handleExport = () => {
     if (onExport) {
       onExport();
     }
   };
-
   const handleImport = () => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -65,7 +118,7 @@ const AppBar: React.FC<AppBarProps> = ({
             }
           } catch (error) {
             console.error('Error parsing JSON file:', error);
-            alert('Invalid JSON file. Please select a valid project file.');
+            showErrorToast('Invalid JSON file','Please select a valid project file.');
           }
         };
         reader.readAsText(file);
@@ -73,63 +126,10 @@ const AppBar: React.FC<AppBarProps> = ({
     };
     input.click();
   };
-
-  const handleSettingsDropdownSelect = (args: any) => {
-    switch (args.item.text) {
-      case 'Settings':
-        setIsSettingsDialogOpen(true);
-        break;
-      case 'Export':
-        handleExport();
-        break;
-      case 'Import':
-        handleImport();
-        break;
-    }
-  };
-
-  const handleProjectNameEdit = () => {
-    setIsEditing(true);
-    setEditValue(projectName);
-  };
-
-  const handleProjectNameSave = () => {
-    if (onProjectNameChange && editValue.trim()) {
-      onProjectNameChange(editValue.trim());
-    }
-    setIsEditing(false);
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleProjectNameSave();
-    } else if (e.key === 'Escape') {
-      setEditValue(projectName);
-      setIsEditing(false);
-    }
-  };
-
-  const handleSettingsChange = (key: keyof DiagramSettings, value: any) => {
-    if (onDiagramSettingsChange) {
-      const newSettings = { ...diagramSettings, [key]: value };
-      onDiagramSettingsChange(newSettings);
-    }
-  };
-
-  const gridStyleOptions = [
-    { text: 'Lines', value: 'lines' },
-    { text: 'Dotted', value: 'dotted' },
-    { text: 'None', value: 'none' }
-  ];
-
-  const connectorStyleOptions = [
-    { text: 'Orthogonal', value: 'Orthogonal' },
-    { text: 'Bezier', value: 'Bezier' },
-    { text: 'Straight', value: 'Straight' }
-  ]
+  // PROJECT SETTINGS HANDLERS - END
 
   return (
-    <AppBarComponent id="workflow-appbar" cssClass="custom-appbar">
+    <AppBarComponent id="workflow-appbar">
       <div className="appbar-left">
         {onBack && (
           <ButtonComponent
@@ -160,8 +160,6 @@ const AppBar: React.FC<AppBarProps> = ({
           )}
         </div>
       </div>
-
-      <div className="e-appbar-spacer"></div>
 
       <div className="appbar-right">
         {onSave && (
