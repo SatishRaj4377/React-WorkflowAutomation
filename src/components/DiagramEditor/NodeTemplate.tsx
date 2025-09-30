@@ -2,13 +2,16 @@ import React from 'react';
 import { NodeConfig, NodeToolbarAction } from '../../types';
 import { IconRegistry } from '../../assets/icons';
 import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
+import { 
+  isAiAgentNode, 
+  getNodePortConfiguration 
+} from '../../helper/nodeTypeUtils';
 
 interface NodeTemplateProps {
   id: string;
   addInfo: { nodeConfig: NodeConfig; };
   onNodeToolbarAction?: (id: string, action: NodeToolbarAction) => void;
 }
-
 
 const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo, onNodeToolbarAction }) => {
   // Destructure nodeConfig directly from the addInfo prop
@@ -18,13 +21,12 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo, onNodeToolbarA
   }
 
   const nodeIconSrc = nodeConfig.icon ? IconRegistry[nodeConfig.icon] : null;
-  const nodeCategory = nodeConfig?.category;
-  const isIfOrSwitchCondition = nodeCategory === 'condition' && (nodeConfig.nodeType === 'If Condition' || nodeConfig.nodeType === 'Switch Case');
-  const isAiAgent = nodeConfig.id && nodeConfig.id.includes('ai-agent');
+  const portConfig = getNodePortConfiguration(nodeConfig);
+  const isAiAgent = isAiAgentNode(nodeConfig);
   
   return (
     <div className="node-template-container">
-      <div className={`node-template ${nodeCategory === 'trigger' ? 'trigger-node' : ''}`} data-node-id={`${id}`} >
+      <div className={`node-template ${portConfig.rightPort && !portConfig.leftPort ? 'trigger-node' : ''}`} data-node-id={`${id}`} >
         
         {/* Show Node actions toolbar on hover */}
         <div className="node-hover-toolbar">
@@ -32,33 +34,14 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo, onNodeToolbarA
           <ButtonComponent title='Delete' iconCss='e-icons e-trash' className="node-toolbar-btn" onClick={() => onNodeToolbarAction?.(id, 'delete')} />
         </div>
 
-        {/* Port Rendering Logic... */}
-        {/* For Trigger Nodes, show port only at the right side */}
-        {nodeCategory === 'trigger' && <div className="node-port-right"></div>}
-        {(nodeCategory === 'action' || nodeCategory === 'condition') && !isIfOrSwitchCondition && !isAiAgent && (
-          <>
-            <div className="node-port-left"></div>
-            <div className="node-port-right"></div>
-          </>
-        )}
-        {/* For If condition Nodes, show port on left and also two output ports in the right */}
-        {isIfOrSwitchCondition && (
-          <>
-            <div className="node-port-left"></div>
-            <div className="node-port-right-top"></div>
-            <div className="node-port-right-bottom"></div>
-          </>
-        )}
-        {/* For AI AGent Nodes, show port on left and right and also in the bottom */}
-        {isAiAgent && (
-          <>
-            <div className="node-port-left"></div>
-            <div className="node-port-right"></div>
-            <div className="node-port-bottom-left"></div>
-            <div className="node-port-bottom-middle"></div>
-            <div className="node-port-bottom-right"></div>
-          </>
-        )}
+        {/* Port Rendering Logic based on configuration */}
+        {portConfig.leftPort && <div className="node-port-left"></div>}
+        {portConfig.rightPort && <div className="node-port-right"></div>}
+        {portConfig.rightTopPort && <div className="node-port-right-top"></div>}
+        {portConfig.rightBottomPort && <div className="node-port-right-bottom"></div>}
+        {portConfig.bottomLeftPort && <div className="node-port-bottom-left"></div>}
+        {portConfig.bottomMiddlePort && <div className="node-port-bottom-middle"></div>}
+        {portConfig.bottomRightPort && <div className="node-port-bottom-right"></div>}
         
         {/* Icon and Name Rendering... */}
         <div className="node-img-content" style={isAiAgent ? { gap: '1.2rem' } : {}}>

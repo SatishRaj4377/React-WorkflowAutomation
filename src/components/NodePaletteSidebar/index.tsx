@@ -86,7 +86,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
           id: "ai-agent",
           name: "AI Agent",
           iconId: "AiAgentIcon",
-          category: "action",
+          category: "ai-agent",
           nodeType: "AI Agent",
           description: "Use AI agents to process data",
         },

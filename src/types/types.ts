@@ -16,7 +16,7 @@ export type NodePortDirection =
 
 export type PortSide = 'Right' | 'Bottom';
 
-export type NodeCategories = 'trigger' | 'action' | 'sticky' | 'condition';
+export type NodeCategories = 'trigger' | 'action' | 'sticky' | 'condition' | 'ai-agent';
 
 export type PaletteCategoryLabels = 'Triggers' | 'Core' | 'Flow';
 

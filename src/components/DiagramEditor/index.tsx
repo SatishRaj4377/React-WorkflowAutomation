@@ -26,10 +26,12 @@ import {
 } from '@syncfusion/ej2-react-diagrams';
 import { DiagramSettings, NodeConfig, NodePortDirection, NodeToolbarAction } from '../../types';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
-import { bringConnectorsToFront, convertMarkdownToHtml, getConnectorCornerRadius, getConnectorType, getFirstSelectedNode, getGridColor, getGridType, getOutConnectDrawPorts, getPortOffset, getPortsForNode, getPortSide, getSnapConstraints, getStickyNoteTemplate } from '../../helper/diagramUtils';
-import './DiagramEditor.css';
+import { bringConnectorsToFront, convertMarkdownToHtml, getConnectorCornerRadius, getConnectorType, getFirstSelectedNode, getGridColor, getGridType, getSnapConstraints, getStickyNoteTemplate } from '../../helper/diagramUtils';
+import { isAiAgentNode, isIfOrSwitchCondition, isStickyNote } from '../../helper/nodeTypeUtils';
 import NodeTemplate from './NodeTemplate';
 import { DIAGRAM_MENU, NODE_MENU } from '../../constants';
+import './DiagramEditor.css';
+import { getOutConnectDrawPorts, getPortOffset, getPortsForNode, getPortSide } from '../../helper/diagramNodeUtils';
 
 interface DiagramEditorProps {
   onAddNode?: () => void;
@@ -133,13 +135,12 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
     const addInfo = obj.addInfo as any;
     const nodeConfig = addInfo?.nodeConfig as NodeConfig | undefined;
-    const nodeCategory = nodeConfig?.category;
-    const nodeId = nodeConfig?.id || '';
     
     if (nodeConfig && typeof nodeConfig === "object") {
+      const nodeCategory = nodeConfig.category;
       // Check if the ID contains specific node types
-      const isIfOrSwitchCondition = nodeCategory === 'condition' && (nodeConfig.nodeType === 'If Condition' || nodeConfig.nodeType === 'Switch Case');
-      const isAiAgent = nodeId.includes('ai-agent');
+      const isConditionNode = isIfOrSwitchCondition(nodeConfig);
+      const isAiAgent = isAiAgentNode(nodeConfig);
       
       updateNodeTemplates(nodeCategory, setUpStickyNote, obj);
       
@@ -149,7 +150,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
       updateNodePosition(obj, diagramRef);
 
-      updateNodePorts(nodeCategory, obj, isAiAgent, isIfOrSwitchCondition);
+      updateNodePorts(nodeCategory, obj, isAiAgent, isConditionNode);
     }
 
     return obj;
@@ -347,7 +348,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       const nodeConfig = (node.addInfo as any)?.nodeConfig as NodeConfig | undefined;
       if (!nodeConfig) return; // Prevent exception if nodeConfig is undefined
       // Handle sticky note double-click
-      if (nodeConfig.category === 'sticky') {
+      if (isStickyNote(nodeConfig)) {
         handleStickyNoteEdit(node);
         return;
       }
@@ -402,7 +403,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     if (lockItem) lockItem.text = isWorkflowLocked ? 'Unlock Workflow' : 'Lock Workflow';
 
     // Context menu for the sticky note
-    if (firstSelectedNode && ((firstSelectedNode?.addInfo as any).nodeConfig as NodeConfig)?.category === "sticky") {
+    if (firstSelectedNode && isStickyNote((firstSelectedNode?.addInfo as any)?.nodeConfig as NodeConfig)) {
       // Only keep 'delete' if present; else hide everything
       const allow = availableIds.includes('delete') ? ['delete'] : [];
       hideAllExcept(allow);
@@ -850,14 +851,10 @@ function updateNodePorts(nodeType: string | undefined, obj: NodeModel, isAiAgent
     const shouldSetPorts = !obj.ports || obj.ports.length === 0;
 
     if (shouldSetPorts) {
-      if (isAiAgent) {
-        obj.ports = getPortsForNode("ai-agent");
-      } else if (isIfOrSwitchCondition) {
-        obj.ports = getPortsForNode("condition");
-      } else if (nodeType === "trigger") {
-        obj.ports = getPortsForNode("trigger");
-      } else {
-        obj.ports = getPortsForNode("default");
+      alert("Ports Set")
+      const nodeConfig = (obj.addInfo as any)?.nodeConfig as NodeConfig;
+      if (nodeConfig) {
+        obj.ports = getPortsForNode(nodeConfig.category || 'default');
       }
     }
   }
@@ -904,36 +901,39 @@ function updateNodePosition(obj: NodeModel, diagramRef: React.RefObject<DiagramC
 
 // Sets the constraints for nodes
 function updateNodeConstraints(obj: NodeModel, nodeType: string | undefined) {
+  const nodeConfig = (obj.addInfo as any)?.nodeConfig as NodeConfig;
+  
   // Base constraints remain the same
   let baseConstraints = NodeConstraints.Default &
     ~NodeConstraints.Rotate &
     ~NodeConstraints.InConnect &
     ~NodeConstraints.OutConnect;
 
-  // For sticky note node, don't hide the thumbs(this enables resizing for sticky notes)
-  obj.constraints = nodeType === 'sticky'
+  // For sticky note node, don't hide the thumbs (this enables resizing for sticky notes)
+  obj.constraints = nodeConfig && isStickyNote(nodeConfig)
     ? baseConstraints
     : (baseConstraints & ~NodeConstraints.Resize) | NodeConstraints.HideThumbs | NodeConstraints.ReadOnly;
 }
 
 // Set node size based on node type (preserve existing size for loaded nodes)
 function updateNodeSize(isAiAgent: boolean, obj: NodeModel, nodeType: string | undefined) {
-  if (isAiAgent) {
-    if (!obj.width || obj.width === 0) obj.width = 160; // Larger for AI agent
-    if (!obj.height || obj.height === 0) obj.height = 80;
-  } else if (nodeType === 'sticky') {
-    // For sticky notes, preserve existing size or set default
-    if (!obj.width || obj.width === 0) obj.width = 200;
-    if (!obj.height || obj.height === 0) obj.height = 120;
-  } else {
-    if (!obj.width || obj.width === 0) obj.width = 80;
-    if (!obj.height || obj.height === 0) obj.height = 80;
-  }
+  const nodeConfig = (obj.addInfo as any)?.nodeConfig as NodeConfig;
+  
+  // Set default dimensions based on node type
+  const dimensions = {
+    width: isAiAgent ? 160 : nodeConfig && isStickyNote(nodeConfig) ? 200 : 80,
+    height: isAiAgent ? 80 : nodeConfig && isStickyNote(nodeConfig) ? 120 : 80
+  };
+
+  // Preserve existing dimensions if they exist and are valid
+  if (!obj.width || obj.width === 0) obj.width = dimensions.width;
+  if (!obj.height || obj.height === 0) obj.height = dimensions.height;
 }
 
 // Sets the node template for nodes
 function updateNodeTemplates(nodeType: string | undefined, setUpStickyNote: (stickyNode: NodeModel) => void, obj: NodeModel) {
-  if (nodeType === "sticky") {
+  const nodeConfig = (obj.addInfo as any)?.nodeConfig as NodeConfig;
+  if (nodeConfig && isStickyNote(nodeConfig)) {
     // For sticky notes render annotation template
     setUpStickyNote(obj);
   }
@@ -947,6 +947,9 @@ function updateNodeTemplates(nodeType: string | undefined, setUpStickyNote: (sti
 
 // Handle sticky note editing
 const handleStickyNoteEdit = (node: NodeModel) => {
+  const nodeConfig = (node.addInfo as any)?.nodeConfig as NodeConfig;
+  if (!nodeConfig || !isStickyNote(nodeConfig)) return;
+  
   const preview = document.getElementById(`preview-${node.id}`);
   const editor = document.getElementById(`editor-${node.id}`) as HTMLTextAreaElement;
   const storedMarkdown = (node.addInfo as any)?.markdown || 'Double-click to edit\n\nYou can use **bold**, *italic*, `code`, and\n# Headers\n- Lists';

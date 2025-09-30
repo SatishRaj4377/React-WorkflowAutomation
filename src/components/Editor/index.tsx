@@ -13,7 +13,8 @@ import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosit
 import WorkflowProjectService from '../../services/WorkflowProjectService';
 import { WorkflowExecutionService } from '../../services/WorkflowExecutionService';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
-import { calculateNewNodePosition, generateOptimizedThumbnail, getDefaultDiagramSettings, getNodePortById } from '../../helper/diagramUtils';
+import { generateOptimizedThumbnail, getDefaultDiagramSettings } from '../../helper/diagramUtils';
+import { createNodeFromTemplate, createConnector, getNodePortById, calculateNewNodePosition } from '../../helper/diagramNodeUtils';
 import { resetExecutionStates } from '../../helper/workflowExecution';
 import './Editor.css';
 
@@ -122,7 +123,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const handleUserhandleAddNodeClick = (node: NodeModel, portId: string) => {
     if (!diagramRef && !node) return;
     const port = getNodePortById(node, portId); 
-    if (!port || port.constraints === undefined || port.constraints === null) return;
+    if (!port?.constraints) return;
     
     // Only allow if port is OutConnect and Draw (connectable)
     const isConnectable =
@@ -157,16 +158,6 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const addNodeFromPort = (nodeTemplate: NodeTemplate) => {
     if (!diagramRef || !selectedPortConnection) return;
 
-    const nodeId = `${nodeTemplate.id}-${Date.now()}`;
-    const newNodeConfig: NodeConfig = {
-      id: nodeId,
-      nodeType: nodeTemplate.nodeType,
-      category: nodeTemplate.category,
-      displayName: nodeTemplate.name,
-      icon: nodeTemplate.iconId,
-      settings: { general: {}, authentication: {}, advanced: {} },
-    };
-
     // Get the source node where the user handle was triggered
     const sourceNode = diagramRef.getObject(selectedPortConnection.nodeId);
     if (!sourceNode) {
@@ -175,22 +166,15 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     }
 
     // Calculate position for the new node based on the source
-    const { offsetX, offsetY } = calculateNewNodePosition(sourceNode, selectedPortConnection.portId);
-
-    // Create the new node and connector configuration
-    const newNode = {
-      id: nodeId,
-      offsetX,
-      offsetY,
-      addInfo: { nodeConfig: newNodeConfig },
-    };
-    const connector = {
-      id: `connector-${Date.now()}`,
-      sourceID: selectedPortConnection.nodeId,
-      sourcePortID: selectedPortConnection.portId,
-      targetID: nodeId,
-      targetPortID: 'left-port',
-    };
+    const { offsetX: x, offsetY: y } = calculateNewNodePosition(sourceNode, selectedPortConnection.portId);
+    
+    // Create the new node and connector using utility functions
+    const newNode = createNodeFromTemplate(nodeTemplate, { x, y });
+    const connector = createConnector(
+      selectedPortConnection.nodeId,
+      newNode.id || '',
+      selectedPortConnection.portId
+    );
 
     // Add the new elements to the diagram
     diagramRef.add(newNode);
@@ -208,22 +192,9 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   // Handles adding a new node directly to the diagram canvas
   const addNodeToDiagram = (nodeTemplate: NodeTemplate) => {
     if (!diagramRef) return;
-
-    const nodeId = `${nodeTemplate.id}-${Date.now()}`;
-    const newNodeConfig: NodeConfig = {
-      id: nodeId,
-      nodeType: nodeTemplate.nodeType,
-      category: nodeTemplate.category,
-      displayName: nodeTemplate.name,
-      icon: nodeTemplate.iconId,
-      settings: { general: {}, authentication: {}, advanced: {} },
-    };
-
-    // Create and add the new node to the diagram
-    const newNode = {
-      id: nodeId,
-      addInfo: { nodeConfig: newNodeConfig },
-    };
+    
+    // Create new node using utility function
+    const newNode = createNodeFromTemplate(nodeTemplate);
     diagramRef.add(newNode);
   };
 
