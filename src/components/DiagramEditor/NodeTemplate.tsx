@@ -2,7 +2,7 @@ import React from 'react';
 import { NodeConfig, NodeToolbarAction } from '../../types';
 import { IconRegistry } from '../../assets/icons';
 import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
-import { getNodePortConfiguration, isAiAgentNode } from '../../helper/diagramUtils';
+import { getNodePortConfiguration, isAiAgentNode } from '../../helper/utilities';
 
 interface NodeTemplateProps {
   id: string;

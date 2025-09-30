@@ -6,7 +6,7 @@ import { DropDownListComponent } from '@syncfusion/ej2-react-dropdowns';
 import { DropDownButtonComponent, ItemModel } from '@syncfusion/ej2-react-splitbuttons';
 import { NumericTextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { DiagramSettings } from '../../types';
-import { getDefaultDiagramSettings } from '../../helper/diagramUtils';
+import { getDefaultDiagramSettings } from '../../helper/utilities/diagramUtils';
 import { showErrorToast } from '../Toast';
 import './Header.css';
 import { CONNECTOR_STYLE_OPTIONS, GRID_STYLE_OPTIONS, SETTINGS_DROPDOWN_ITEMS } from '../../constants';

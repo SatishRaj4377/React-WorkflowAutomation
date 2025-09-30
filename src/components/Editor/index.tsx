@@ -13,7 +13,7 @@ import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosit
 import WorkflowProjectService from '../../services/WorkflowProjectService';
 import { WorkflowExecutionService } from '../../services/WorkflowExecutionService';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
-import { calculateNewNodePosition, createConnector, createNodeFromTemplate, generateOptimizedThumbnail, getDefaultDiagramSettings, getNodePortById } from '../../helper/diagramUtils';
+import { calculateNewNodePosition, createConnector, createNodeFromTemplate, generateOptimizedThumbnail, getDefaultDiagramSettings, getNodePortById } from '../../helper/utilities';
 import { resetExecutionStates } from '../../helper/workflowExecution';
 import './Editor.css';
 
