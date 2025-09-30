@@ -26,9 +26,7 @@ import {
 } from '@syncfusion/ej2-react-diagrams';
 import { DiagramSettings, NodeConfig, NodePortDirection, NodeToolbarAction } from '../../types';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
-import { bringConnectorsToFront, convertMarkdownToHtml, getConnectorCornerRadius, getConnectorType, getFirstSelectedNode, getGridColor, getGridType, getSnapConstraints, getStickyNoteTemplate } from '../../helper/diagramUtils';
-import { getNodeConfig, getPortOffset, getPortSide, initializeNodeDimensions, prepareUserHandlePortData, updateNodeConstraints } from '../../helper/diagramNodeUtils';
-import { isStickyNote } from '../../helper/nodeTypeUtils';
+import { bringConnectorsToFront, convertMarkdownToHtml, getConnectorCornerRadius, getConnectorType, getFirstSelectedNode, getGridColor, getGridType, getNodeConfig, getPortOffset, getPortSide, getSnapConstraints, getStickyNoteTemplate, initializeNodeDimensions, isStickyNote, prepareUserHandlePortData, updateNodeConstraints } from '../../helper/diagramUtils';
 import { DIAGRAM_MENU, NODE_MENU } from '../../constants';
 import NodeTemplate from './NodeTemplate';
 import './DiagramEditor.css';

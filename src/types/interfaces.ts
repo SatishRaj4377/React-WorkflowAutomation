@@ -83,6 +83,16 @@ export interface StickyNotePosition {
   fromMouse?: boolean; 
 }
 
+export interface PortConfiguration {
+  leftPort?: boolean;
+  rightPort?: boolean;
+  rightTopPort?: boolean;
+  rightBottomPort?: boolean;
+  bottomLeftPort?: boolean;
+  bottomMiddlePort?: boolean;
+  bottomRightPort?: boolean;
+}
+
 export interface ToastMessage {
   id: string;
   title: string;
