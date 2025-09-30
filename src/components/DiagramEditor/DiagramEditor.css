@@ -390,11 +390,36 @@
   height: 100%;
   color: var(--sticky-note-text-color);
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible;
   position: relative;
   opacity: 0.9;
   box-shadow: 0 2px 5px rgba(39, 39, 39, 0.1);
   user-select: none;
+}
+
+.sticky-note-delete-btn {
+  position: absolute;
+  top: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  width: 20px;
+  height: 30px;
+  color: var(--node-toolbar-btn-color);
+  font-size: .9rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 1000;
+}
+
+.sticky-note-container:hover .sticky-note-delete-btn {
+  opacity: 1;
+}
+
+.sticky-note-delete-btn:hover {
+  color: var(--accent-color);
 }
 
 .sticky-note-content {

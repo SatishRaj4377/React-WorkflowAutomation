@@ -9,6 +9,7 @@ export const getStickyNoteTemplate = (diagram: DiagramComponent, nodeId: string)
 
   return `
     <div class="sticky-note-container" data-node-id="${nodeId}">
+        <button class="sticky-note-delete-btn e-icons e-trash" id="delete-${nodeId}" title="Delete sticky note"></button>
         <div class="sticky-note-content">
         <div class="markdown-preview" id="preview-${nodeId}" style="display: block;">
             ${markdownHtml}

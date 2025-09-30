@@ -570,6 +570,17 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
           : '<div>Loading sticky note...</div>'
     }]
 
+    // Add delete button click handler
+    setTimeout(() => {
+      const deleteBtn = document.getElementById(`delete-${stickyNode.id}`);
+      if (deleteBtn && diagramRef.current) {
+        deleteBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          diagramRef.current?.remove(stickyNode);
+        });
+      }
+    }, 0);
+
     // Set node minimum dimensions
     stickyNode.minWidth = 160;
     stickyNode.minHeight = 80;
