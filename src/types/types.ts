@@ -14,6 +14,13 @@ export type NodePortDirection =
   | 'bottom-left'
   | 'bottom-right';
 
+export type NodeDimensions = {
+  WIDTH: number;
+  HEIGHT: number;
+  MIN_WIDTH?: number;
+  MIN_HEIGHT?: number;
+};
+
 export type PortSide = 'Right' | 'Bottom';
 
 export type NodeCategories = 'trigger' | 'action' | 'sticky' | 'condition' | 'ai-agent';

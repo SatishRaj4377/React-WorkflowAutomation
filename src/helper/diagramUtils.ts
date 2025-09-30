@@ -1,5 +1,5 @@
-import { DiagramComponent, NodeModel, Point, PointPortModel, PortConstraints, PortModel, PortVisibility, SnapConstraints } from "@syncfusion/ej2-react-diagrams";
-import { DiagramSettings, NodeCategories, NodePortDirection, PortSide } from "../types";
+import { DiagramComponent, NodeModel, SnapConstraints } from "@syncfusion/ej2-react-diagrams";
+import { DiagramSettings } from "../types";
 import html2canvas from "html2canvas";
 
 // Get sticky note template

@@ -74,3 +74,31 @@ export const MENU_ITEMS = [
     { text: 'Export Project', iconCss: 'e-icons e-export' },
     { text: 'Delete', iconCss: 'e-icons e-trash' }
 ];
+
+export const NODE_DIMENSIONS = {
+  DEFAULT: {
+    WIDTH: 80,
+    HEIGHT: 80
+  },
+  AI_AGENT: {
+    WIDTH: 160,
+    HEIGHT: 80
+  },
+  STICKY_NOTE: {
+    WIDTH: 200,
+    HEIGHT: 120,
+    MIN_WIDTH: 160,
+    MIN_HEIGHT: 80
+  }
+};
+
+export const PORT_POSITIONS = {
+LEFT: { x: -0.04, y: 0.5 }, // Slight left offset to improve connector link visibility
+AI_AGENT_LEFT: { x: -0.02, y: 0.5 }, // Slight left offset to improve connector link visibility
+RIGHT: { x: 1, y: 0.5 },
+BOTTOM_LEFT: { x: 0.25, y: 1 },
+BOTTOM_MIDDLE: { x: 0.5, y: 1 },
+BOTTOM_RIGHT: { x: 0.75, y: 1 },
+RIGHT_TOP: { x: 1, y: 0.3 },
+RIGHT_BOTTOM: { x: 1, y: 0.7 },
+};

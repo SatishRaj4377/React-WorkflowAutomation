@@ -1,5 +1,7 @@
-import { NodeModel, ConnectorModel, PortModel, PointPortModel, Point, PortConstraints, PortVisibility } from '@syncfusion/ej2-react-diagrams';
-import { NodeCategories, NodeConfig, NodePortDirection, NodeTemplate, PortSide } from '../types';
+import { NodeModel, ConnectorModel, PortModel, PointPortModel, Point, PortConstraints, PortVisibility, DiagramComponent } from '@syncfusion/ej2-react-diagrams';
+import { NodeCategories, NodeConfig, NodeDimensions, NodePortDirection, NodeTemplate, PortSide } from '../types';
+import { isAiAgentNode, isStickyNote } from './nodeTypeUtils';
+import { NODE_DIMENSIONS, PORT_POSITIONS } from '../constants';
 
 // Convert direction to side
 export const getPortSide = (direction: NodePortDirection): PortSide =>
@@ -117,6 +119,67 @@ export const calculateNewNodePosition = (sourceNode: NodeModel, portId: string):
     return { offsetX, offsetY };
 };
 
+// Safely retrieves NodeConfig from a node's addInfo
+export const getNodeConfig = (node: NodeModel | null | undefined): NodeConfig | undefined => {
+  if (!node?.addInfo) return undefined;
+  return (node.addInfo as any)?.nodeConfig;
+};
+
+// Get node display name safely
+export const getNodeDisplayName = (node: NodeModel | null | undefined): string => {
+  const config = getNodeConfig(node);
+  return config?.displayName || 'Unnamed Node';
+};
+
+export const getNodeDimensions = (node: NodeModel): NodeDimensions => {
+  const config = getNodeConfig(node);
+  
+  if (!config) return NODE_DIMENSIONS.DEFAULT;
+  
+  if (isAiAgentNode(config)) return NODE_DIMENSIONS.AI_AGENT;
+  if (isStickyNote(config)) return NODE_DIMENSIONS.STICKY_NOTE;
+  
+  return NODE_DIMENSIONS.DEFAULT;
+};
+
+// Initialize node dimensions while preserving existing valid dimensions
+export const initializeNodeDimensions = (node: NodeModel) => {
+  const dimensions = getNodeDimensions(node);
+  const nodeConfig = getNodeConfig(node);
+  
+  if (!node.width || node.width === 0) node.width = dimensions.WIDTH;
+  if (!node.height || node.height === 0) node.height = dimensions.HEIGHT;
+  
+  if (nodeConfig && isStickyNote(nodeConfig) && dimensions.MIN_WIDTH && dimensions.MIN_HEIGHT) {
+    node.minWidth = dimensions.MIN_WIDTH;
+    node.minHeight = dimensions.MIN_HEIGHT;
+  }
+};
+
+// Validate node position
+export const hasValidPosition = (node: NodeModel): boolean => {
+  return Boolean(
+    node.offsetX && 
+    node.offsetX !== 0 && 
+    node.offsetY && 
+    node.offsetY !== 0
+  );
+};
+
+// Diagram state management utilities
+export const hasDiagramNodes = (diagram: DiagramComponent | null): boolean => {
+  return Boolean(diagram?.nodes?.length);
+};
+
+export const getNodesOfType = (diagram: DiagramComponent | null, type: string): NodeModel[] => {
+  if (!diagram?.nodes) return [];
+  return diagram.nodes.filter(node => getNodeConfig(node)?.nodeType === type);
+};
+
+export const isNodeSelected = (diagram: DiagramComponent | null, nodeId: string): boolean => {
+  return diagram?.selectedItems?.nodes?.some(node => node.id === nodeId) || false;
+};
+
 // Creates a new node model from a node template
 export const createNodeFromTemplate = (
   nodeTemplate: NodeTemplate,
@@ -132,13 +195,16 @@ export const createNodeFromTemplate = (
     settings: { general: {}, authentication: {}, advanced: {} },
   };
 
-  return {
+  const node: NodeModel = {
     id: nodeId,
     offsetX: position?.x,
     offsetY: position?.y,
     addInfo: { nodeConfig },
     ports: getPortsForNode(nodeTemplate.category)
   };
+
+  initializeNodeDimensions(node);
+  return node;
 };
 
 export const createPort = (
@@ -161,17 +227,6 @@ export const createPort = (
 });
 
 export const getPortsForNode = (type: NodeCategories): PortModel[] => {
-  const PORT_POSITIONS = {
-    LEFT: { x: -0.04, y: 0.5 },
-    AI_AGENT_LEFT: { x: -0.02, y: 0.5 },
-    RIGHT: { x: 1, y: 0.5 },
-    BOTTOM_LEFT: { x: 0.25, y: 1 },
-    BOTTOM_MIDDLE: { x: 0.5, y: 1 },
-    BOTTOM_RIGHT: { x: 0.75, y: 1 },
-    RIGHT_TOP: { x: 1, y: 0.3 },
-    RIGHT_BOTTOM: { x: 1, y: 0.7 },
-  };
-
   switch (type) {
     case "ai-agent":
       return [
