@@ -27,11 +27,11 @@ import {
 import { DiagramSettings, NodeConfig, NodePortDirection, NodeToolbarAction } from '../../types';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
 import { bringConnectorsToFront, convertMarkdownToHtml, getConnectorCornerRadius, getConnectorType, getFirstSelectedNode, getGridColor, getGridType, getSnapConstraints, getStickyNoteTemplate } from '../../helper/diagramUtils';
-import { isAiAgentNode, isIfOrSwitchCondition, isStickyNote } from '../../helper/nodeTypeUtils';
-import NodeTemplate from './NodeTemplate';
+import { getNodeConfig, getPortOffset, getPortSide, initializeNodeDimensions, prepareUserHandlePortData, updateNodeConstraints } from '../../helper/diagramNodeUtils';
+import { isStickyNote } from '../../helper/nodeTypeUtils';
 import { DIAGRAM_MENU, NODE_MENU } from '../../constants';
+import NodeTemplate from './NodeTemplate';
 import './DiagramEditor.css';
-import { getOutConnectDrawPorts, getPortOffset, getPortsForNode, getPortSide } from '../../helper/diagramNodeUtils';
 
 interface DiagramEditorProps {
   onAddNode?: () => void;
@@ -130,30 +130,25 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   };
 
   // Get default styles for nodes
-  const getNodeDefaults = (obj: NodeModel): NodeModel => {
-    if (!obj) return obj;
+  const getNodeDefaults = (node: NodeModel): NodeModel => {
+    if (!node) return node;
 
-    const addInfo = obj.addInfo as any;
-    const nodeConfig = addInfo?.nodeConfig as NodeConfig | undefined;
+    const nodeConfig = getNodeConfig(node);
     
     if (nodeConfig && typeof nodeConfig === "object") {
-      const nodeCategory = nodeConfig.category;
-      // Check if the ID contains specific node types
-      const isConditionNode = isIfOrSwitchCondition(nodeConfig);
-      const isAiAgent = isAiAgentNode(nodeConfig);
-      
-      updateNodeTemplates(nodeCategory, setUpStickyNote, obj);
-      
-      updateNodeSize(isAiAgent, obj, nodeCategory);
+      // Initialize node dimensions and constraints
+      initializeNodeDimensions(node);
+      updateNodeConstraints(node);
 
-      updateNodeConstraints(obj, nodeCategory);
+      // Set up templates and ports
+      updateNodeTemplates(setUpStickyNote, node);
+      prepareUserHandlePortData(node);
 
-      updateNodePosition(obj, diagramRef);
-
-      updateNodePorts(nodeCategory, obj, isAiAgent, isConditionNode);
+      // Position the node with stagger effect
+      updateNodePosition(node, diagramRef);
     }
 
-    return obj;
+    return node;
   };
 
   // Get default styles for connectors
@@ -824,7 +819,7 @@ export default DiagramEditor;
 
 // Generate Userhandles based on the `OutConnect` ports
 function generatePortBasedUserHandles(node: NodeModel): UserHandleModel[] {
-  const portHandlesInfo: Array<{ portId: string; direction: NodePortDirection }> = (node.addInfo as any)?.userHandlesFromPorts ?? [];
+  const portHandlesInfo: Array<{ portId: string; direction: NodePortDirection }> = (node.addInfo as any)?.userHandlesAtPorts ?? [];
   return portHandlesInfo.map(({ portId, direction }) => ({
     name: `add-node-from-port-${portId}`,
     content: `
@@ -842,32 +837,6 @@ function generatePortBasedUserHandles(node: NodeModel): UserHandleModel[] {
     size: 20,
     visible: true,
   }));
-}
-
-// Configure ports based on node type (skip for existing nodes that already have ports)
-function updateNodePorts(nodeType: string | undefined, obj: NodeModel, isAiAgent: boolean, isIfOrSwitchCondition: boolean) {
-  if (!nodeType || nodeType !== "sticky") {
-    // Only set ports if they don't already exist (for loaded nodes)
-    const shouldSetPorts = !obj.ports || obj.ports.length === 0;
-
-    if (shouldSetPorts) {
-      alert("Ports Set")
-      const nodeConfig = (obj.addInfo as any)?.nodeConfig as NodeConfig;
-      if (nodeConfig) {
-        obj.ports = getPortsForNode(nodeConfig.category || 'default');
-      }
-    }
-  }
-
-  // Add user handle metadata for connectable ports for later use
-  const connectablePorts = getOutConnectDrawPorts(obj);
-  if (connectablePorts.length > 0) {
-    if (!obj.addInfo) obj.addInfo = {};
-    (obj.addInfo as any).userHandlesFromPorts = connectablePorts.map(({ port, direction }) => ({
-      portId: port.id,
-      direction,
-    }));
-  }
 }
 
 // Set position for nodes, and apply the staggering effect to avoid overlapping
@@ -899,47 +868,16 @@ function updateNodePosition(obj: NodeModel, diagramRef: React.RefObject<DiagramC
   }
 }
 
-// Sets the constraints for nodes
-function updateNodeConstraints(obj: NodeModel, nodeType: string | undefined) {
-  const nodeConfig = (obj.addInfo as any)?.nodeConfig as NodeConfig;
-  
-  // Base constraints remain the same
-  let baseConstraints = NodeConstraints.Default &
-    ~NodeConstraints.Rotate &
-    ~NodeConstraints.InConnect &
-    ~NodeConstraints.OutConnect;
-
-  // For sticky note node, don't hide the thumbs (this enables resizing for sticky notes)
-  obj.constraints = nodeConfig && isStickyNote(nodeConfig)
-    ? baseConstraints
-    : (baseConstraints & ~NodeConstraints.Resize) | NodeConstraints.HideThumbs | NodeConstraints.ReadOnly;
-}
-
-// Set node size based on node type (preserve existing size for loaded nodes)
-function updateNodeSize(isAiAgent: boolean, obj: NodeModel, nodeType: string | undefined) {
-  const nodeConfig = (obj.addInfo as any)?.nodeConfig as NodeConfig;
-  
-  // Set default dimensions based on node type
-  const dimensions = {
-    width: isAiAgent ? 160 : nodeConfig && isStickyNote(nodeConfig) ? 200 : 80,
-    height: isAiAgent ? 80 : nodeConfig && isStickyNote(nodeConfig) ? 120 : 80
-  };
-
-  // Preserve existing dimensions if they exist and are valid
-  if (!obj.width || obj.width === 0) obj.width = dimensions.width;
-  if (!obj.height || obj.height === 0) obj.height = dimensions.height;
-}
-
 // Sets the node template for nodes
-function updateNodeTemplates(nodeType: string | undefined, setUpStickyNote: (stickyNode: NodeModel) => void, obj: NodeModel) {
-  const nodeConfig = (obj.addInfo as any)?.nodeConfig as NodeConfig;
+function updateNodeTemplates(setUpStickyNote: (stickyNode: NodeModel) => void, node: NodeModel) {
+  const nodeConfig = (node.addInfo as any)?.nodeConfig as NodeConfig;
   if (nodeConfig && isStickyNote(nodeConfig)) {
     // For sticky notes render annotation template
-    setUpStickyNote(obj);
+    setUpStickyNote(node);
   }
   else {
     // Set HTML template for all other nodes
-    obj.shape = {
+    node.shape = {
       type: "HTML",
     };
   }

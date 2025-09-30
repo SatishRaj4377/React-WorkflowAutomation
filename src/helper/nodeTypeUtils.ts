@@ -26,7 +26,17 @@ export const isIfOrSwitchCondition = (nodeConfig: NodeConfig): boolean =>
   (nodeConfig.nodeType === 'If Condition' || nodeConfig.nodeType === 'Switch Case');
 
 // Get the appropriate port rendering configuration for a node
-export const getNodePortConfiguration = (nodeConfig: NodeConfig) => {
+interface PortConfiguration {
+  leftPort?: boolean;
+  rightPort?: boolean;
+  rightTopPort?: boolean;
+  rightBottomPort?: boolean;
+  bottomLeftPort?: boolean;
+  bottomMiddlePort?: boolean;
+  bottomRightPort?: boolean;
+}
+
+export const getNodePortConfiguration = (nodeConfig: NodeConfig): PortConfiguration => {
   if (isTriggerNode(nodeConfig)) {
     return { rightPort: true };
   }

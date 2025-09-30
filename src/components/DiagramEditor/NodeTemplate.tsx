@@ -14,9 +14,10 @@ interface NodeTemplateProps {
 }
 
 const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo, onNodeToolbarAction }) => {
-  // Destructure nodeConfig directly from the addInfo prop
+  // Destructure and validate nodeConfig
   const { nodeConfig } = addInfo;
-  if (!nodeConfig) {
+  if (!nodeConfig || typeof nodeConfig !== 'object') {
+    console.warn(`Invalid node configuration for node ${id}`);
     return <div>Invalid Node</div>;
   }
 
@@ -52,13 +53,13 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo, onNodeToolbarA
               />
             )}
             {isAiAgent && (
-              <span className='ai-agent-name-bar'>{nodeConfig.displayName ? nodeConfig.displayName : ''}</span>
+              <span className='ai-agent-name-bar'>{nodeConfig.displayName || ''}</span>
             )}
         </div>
       </div>
-      {!isAiAgent &&(
+      {!isAiAgent && nodeConfig.displayName && (
         <div className="node-name-bar">
-          {nodeConfig.displayName ? nodeConfig.displayName : ''}
+          {nodeConfig.displayName}
         </div>
       )}
     </div>

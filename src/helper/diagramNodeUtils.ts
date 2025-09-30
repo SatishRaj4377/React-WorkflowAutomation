@@ -1,4 +1,4 @@
-import { NodeModel, ConnectorModel, PortModel, PointPortModel, Point, PortConstraints, PortVisibility, DiagramComponent } from '@syncfusion/ej2-react-diagrams';
+import { NodeModel, ConnectorModel, PortModel, PointPortModel, Point, PortConstraints, PortVisibility, DiagramComponent, NodeConstraints } from '@syncfusion/ej2-react-diagrams';
 import { NodeCategories, NodeConfig, NodeDimensions, NodePortDirection, NodeTemplate, PortSide } from '../types';
 import { isAiAgentNode, isStickyNote } from './nodeTypeUtils';
 import { NODE_DIMENSIONS, PORT_POSITIONS } from '../constants';
@@ -20,42 +20,44 @@ export const getPortOffset = (direction: NodePortDirection): number => {
   return offsetMap[direction] ?? 0.5;
 };
 
-// Returns ports with `OutConnect and Draw` constraints for a given node, along with their direction.
-export function getOutConnectDrawPorts(node: NodeModel): Array<{ port: PortModel; direction: NodePortDirection}> {
-  // Helper to infer direction from a port's offset
+// Store the port ID and direction info for dynamic userhandle rendering
+export function prepareUserHandlePortData(node: NodeModel): void {
+  // Infers the direction of a port based on its offset
   const inferDirection = (port: PortModel): NodePortDirection => {
     const pointPort = port as PointPortModel;
-    if (pointPort && pointPort.offset) {
-      // normal action nodes
-      if ((pointPort.offset as Point).x === 1 &&
-             (pointPort.offset as Point).y === 0.5) return 'right';
-      // agent node ports
-      if ((pointPort.offset as Point).x === 0.25 &&
-             (pointPort.offset as Point).y === 1) return 'bottom-left';
-      if ((pointPort.offset as Point).x === 0.5 &&
-             (pointPort.offset as Point).y === 1) return 'bottom-middle';
-      if ((pointPort.offset as Point).x === 0.75 &&
-             (pointPort.offset as Point).y === 1) return 'bottom-right';
-      // if condition node ports
-      if ((pointPort.offset as Point).x === 1 &&
-             (pointPort.offset as Point).y === 0.3) return 'right-top';
-      if ((pointPort.offset as Point).x === 1 &&
-             (pointPort.offset as Point).y === 0.7) return 'right-bottom';
-
+    if (pointPort?.offset) {
+      const { x, y } = pointPort.offset as Point;
+      if (x === 1 && y === 0.5) return 'right';
+      if (x === 0.25 && y === 1) return 'bottom-left';
+      if (x === 0.5 && y === 1) return 'bottom-middle';
+      if (x === 0.75 && y === 1) return 'bottom-right';
+      if (x === 1 && y === 0.3) return 'right-top';
+      if (x === 1 && y === 0.7) return 'right-bottom';
     }
-    return 'right'; // Default fallback
+    return 'right'; // Default fallback direction
   };
 
-  if (!node.ports) return [];
-  
-  return node.ports
+  if (!node.ports) return;
+
+  // Filter ports that support both OutConnect and Draw constraints
+  const connectablePorts = node.ports
     .filter(
       (p) =>
         p.constraints !== undefined &&
         (p.constraints & PortConstraints.OutConnect) !== 0 &&
         (p.constraints & PortConstraints.Draw) !== 0
     )
-    .map((port) => ({ port, direction: inferDirection(port) }));
+    // Map each port to its ID and inferred direction
+    .map((port) => ({
+      portId: port.id,
+      direction: inferDirection(port),
+    }));
+
+  if (connectablePorts.length > 0) {
+    if (!node.addInfo) node.addInfo = {};
+    // Store the port ID and direction info under userHandlesAtPorts
+    (node.addInfo as any).userHandlesAtPorts = connectablePorts;
+  }
 }
 
 // Retrieves a specific port from a given node by its ID.
@@ -67,6 +69,22 @@ export function getNodePortById(node: NodeModel | null | undefined, portId: stri
   
   // Find the port that matches the provided ID
   return node.ports.find((p: PortModel) => p.id === portId);
+}
+
+// Sets the constraints for nodes
+export function updateNodeConstraints(node: NodeModel) {
+  const nodeConfig = getNodeConfig(node);
+  
+  // Base constraints remain the same
+  let baseConstraints = NodeConstraints.Default &
+    ~NodeConstraints.Rotate &
+    ~NodeConstraints.InConnect &
+    ~NodeConstraints.OutConnect;
+
+  // For sticky note node, don't hide the thumbs (this enables resizing for sticky notes)
+  node.constraints = nodeConfig && isStickyNote(nodeConfig)
+    ? baseConstraints
+    : (baseConstraints & ~NodeConstraints.Resize) | NodeConstraints.HideThumbs | NodeConstraints.ReadOnly;
 }
 
 // Calculates the optimal position for a new node based on the source node and port.
@@ -176,6 +194,13 @@ export const getNodesOfType = (diagram: DiagramComponent | null, type: string): 
   return diagram.nodes.filter(node => getNodeConfig(node)?.nodeType === type);
 };
 
+// Check if a node is valid and has proper configuration
+export const isValidNode = (node: NodeModel | null | undefined): boolean => {
+  if (!node) return false;
+  const config = getNodeConfig(node);
+  return Boolean(config && config.id && config.category);
+};
+
 export const isNodeSelected = (diagram: DiagramComponent | null, nodeId: string): boolean => {
   return diagram?.selectedItems?.nodes?.some(node => node.id === nodeId) || false;
 };
@@ -255,6 +280,7 @@ export const getPortsForNode = (type: NodeCategories): PortModel[] => {
         createPort("right-port", PORT_POSITIONS.RIGHT, "Circle", 20, PortConstraints.OutConnect | PortConstraints.Draw),
       ];
   }
+
 };
 
 
