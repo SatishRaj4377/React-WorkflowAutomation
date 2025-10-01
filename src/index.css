@@ -124,7 +124,7 @@ body, .e-control, .e-card{
   --node-selector-outline: #93a9ff3d;
   --node-background: #0e141d;
   --node-selector-background: #002838ba;
-  --node-toolbar-btn-color: #939dcb71;
+  --node-toolbar-btn-color: #b1b7d283;
   --sticky-note-bg-color: #193d67;
   --sticky-note-stroke-color: #f1f5f9;
   --sticky-note-text-color: #f1f5f9;
@@ -164,6 +164,11 @@ body, .e-control, .e-card{
 [data-theme="dark"] body {
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
   color: var(--text-primary);
+}
+
+/* Ej2 Tooltip Text Styles */
+.e-tooltip-wrap .e-tip-content {
+  font-weight: 500;
 }
 
 /* Overriding EJ2 Buttons Styles */
