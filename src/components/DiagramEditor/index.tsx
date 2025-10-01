@@ -23,6 +23,7 @@ import {
   Snapping,
   DiagramConstraints,
   DiagramModel,
+  Connector,
 } from '@syncfusion/ej2-react-diagrams';
 import { DiagramSettings, NodeConfig, NodePortDirection, NodeToolbarAction } from '../../types';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
@@ -48,6 +49,8 @@ interface DiagramEditorProps {
 }
 
 let isStickyNoteEditing = false;
+const GRAY_COLOR = '#9193a2ff';
+const HOVER_COLOR = '#ea4335';
 
 const DiagramEditor: React.FC<DiagramEditorProps> = ({
   onAddNode,
@@ -86,9 +89,9 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       pathData:
         'M0.97,3.04 L12.78,3.04 L12.78,12.21 C12.78,12.64,12.59,13,12.2,13.3 C11.82,13.6,11.35,13.75,10.8,13.75 L2.95,13.75 C2.4,13.75,1.93,13.6,1.55,13.3 C1.16,13,0.97,12.64,0.97,12.21 Z M4.43,0 L9.32,0 L10.34,0.75 L13.75,0.75 L13.75,2.29 L0,2.29 L0,0.75 L3.41,0.75 Z',
       offset: 0.5,
-      backgroundColor: '#9193a2ff',
+      backgroundColor: GRAY_COLOR,
       pathColor: '#f8fafc',
-      borderColor: '#9193a2ff',
+      borderColor: GRAY_COLOR,
       disableNodes: true,
     },
   ];
@@ -157,13 +160,13 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     obj.type = getConnectorType(diagramSettings);
     obj.cornerRadius = getConnectorCornerRadius(diagramSettings)
     obj.style = {
-      strokeColor: '#9193a2ff',
+      strokeColor: GRAY_COLOR,
       strokeWidth: 2,
     };
     obj.targetDecorator = {
       style: {
-        fill: '#9193a2ff',
-        strokeColor: '#9193a2ff',
+        fill: GRAY_COLOR,
+        strokeColor: GRAY_COLOR,
       }
     };
     return obj;
@@ -234,6 +237,44 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     }
   };
 
+  const handleMouseEnter = (args: any) => {
+    const connector = args?.actualObject;
+    if (connector && connector instanceof Connector) {
+      connector.style = {
+        ...connector.style,
+        strokeColor: HOVER_COLOR,
+      };
+      connector.targetDecorator = {
+        ...connector.targetDecorator,
+        style: {
+          ...connector.targetDecorator?.style,
+          fill: HOVER_COLOR,
+          strokeColor: HOVER_COLOR,
+        },
+      };
+    }
+  };
+
+  const handleMouseLeave = (args: any) => {
+    const connector = args?.element;
+    if (connector && connector instanceof Connector) {
+      setTimeout(() => {
+        connector.style = {
+          ...connector.style,
+          strokeColor: GRAY_COLOR,
+        };
+        connector.targetDecorator = {
+          ...connector.targetDecorator,
+          style: {
+            ...connector.targetDecorator?.style,
+            fill: GRAY_COLOR,
+            strokeColor: GRAY_COLOR,
+          },
+        };
+      });
+    }
+  };
+
   // Handle diagram collection change
   const handleCollectionChange = (args: any) => {
     if (args.type === 'Addition' && args.element) {
@@ -264,7 +305,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     const isOutOfView = isNodeOutOfViewport(diagram, node);
     const isFirstNode = !hasFirstNodeAdded && diagram.nodes?.length === 1;
 
-    if (isOutOfView || isFirstNode) {
+    if (isOutOfView) {
       setTimeout(() => {
         diagram.fitToPage({
           mode: 'Page',
@@ -311,7 +352,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     if (!connector || typeof connector !== 'object') return;
     // Apply disconnected style early (before 'Completed' state)
     connector.style = {
-      strokeColor: '#9193a2ff',
+      strokeColor: GRAY_COLOR,
       strokeDashArray: '5 3',
       strokeWidth: 2,
     };
@@ -807,6 +848,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         scrollSettings={{scrollLimit: "Infinity"}}
         contextMenuSettings={contextMenuSettings}
         scrollChange={handleScrollChange}
+        mouseEnter={handleMouseEnter}
+        mouseLeave={handleMouseLeave}
         contextMenuClick={handleContextMenuClick}
         contextMenuOpen={handleContextMenuOpen}
         click={handleClick}
@@ -859,9 +902,9 @@ function generatePortBasedUserHandles(node: NodeModel): UserHandleModel[] {
     `,
     side: getPortSide(direction),
     offset: getPortOffset(direction),
-    backgroundColor: '#9193a2ff',
+    backgroundColor: GRAY_COLOR,
     pathColor: '#f8fafc',
-    borderColor: '#9193a2ff',
+    borderColor: GRAY_COLOR,
     disableConnectors: true,
     size: 20,
     visible: true,
