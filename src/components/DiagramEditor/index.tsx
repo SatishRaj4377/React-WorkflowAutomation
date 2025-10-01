@@ -26,7 +26,7 @@ import {
 } from '@syncfusion/ej2-react-diagrams';
 import { DiagramSettings, NodeConfig, NodePortDirection, NodeToolbarAction } from '../../types';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
-import { bringConnectorsToFront, convertMarkdownToHtml, getConnectorCornerRadius, getConnectorType, getFirstSelectedNode, getGridColor, getGridType, getNodeConfig, getPortOffset, getPortSide, getSnapConstraints, getStickyNoteTemplate, initializeNodeDimensions, isStickyNote, prepareUserHandlePortData, updateNodeConstraints } from '../../helper/utilities';
+import { bringConnectorsToFront, convertMarkdownToHtml, getConnectorCornerRadius, getConnectorType, getFirstSelectedNode, getGridColor, getGridType, getNodeConfig, getPortOffset, getPortSide, getSnapConstraints, getStickyNoteTemplate, initializeNodeDimensions, isNodeOutOfViewport, isStickyNote, prepareUserHandlePortData, updateNodeConstraints } from '../../helper/utilities';
 import { DIAGRAM_MENU, NODE_MENU } from '../../constants';
 import NodeTemplate from './NodeTemplate';
 import './DiagramEditor.css';
@@ -234,49 +234,69 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     }
   };
 
-  // on adding the connector, update the stroke dash and make it not able to disconnect
+  // Handle diagram collection change
   const handleCollectionChange = (args: any) => {
-    // If first node has been added initially, call onNodeAddedFirstTime
-    if (args.type === 'Addition' && args.element && args.element.addInfo && args.element.id) {
-      try {
-        const diagram = diagramRef.current;
-        if (diagram && typeof diagram.nodes !== 'undefined') {
-          const nodesLength = diagram.nodes.length;
-          if (!hasFirstNodeAdded && nodesLength === 1) {
-            setHasFirstNodeAdded(true);
-            if (onNodeAddedFirstTime) onNodeAddedFirstTime();
-          }
-        }
-      } catch {}
-    }
-    // Handle the connector drawing action 
-    if (args.type === 'Addition') {
-      const connector = args.element;
-      
-      // Check if connector has both source and target connections
-      if (connector && connector.sourceID && connector.targetID) {
-        // Update to solid style when connection is completed
-        setTimeout(() => {
-          connector.style = {
-            ...connector.style,
-            strokeDashArray: '', // Remove dotted pattern
-            opacity: 1
-          };
-          connector.constraints = (ConnectorConstraints.Default | ConnectorConstraints.ReadOnly) & 
-                    ~ConnectorConstraints.DragSourceEnd & 
-                    ~ConnectorConstraints.DragTargetEnd &
-                    ~ConnectorConstraints.Drag });
+    if (args.type === 'Addition' && args.element) {
+      const element = args.element;
+
+      // Handle node addition logic
+      if (!element.sourceID) {
+        handleNodeAddition(element);
       }
-    }
-    if (args.type === 'Addition') {
-      const connector = args.element;
-      if (connector && (connector.sourceID === '' || connector.targetID === '')) {
+
+      // Handle connector addition logic
+      if (element.sourceID && element.targetID) {
+        finalizeConnectorStyle(element);
+      } else if (element.sourceID === '' || element.targetID === '') {
+        // remove incomplete connector
         setTimeout(() => {
-          (diagramRef.current as any).remove(connector);
+          (diagramRef.current as any)?.remove(element);
         });
       }
     }
   };
+
+  // Handle node addition on the diagram canvas
+  const handleNodeAddition = (node: NodeModel) => {
+    const diagram = diagramRef.current;
+    if (!diagram) return;
+
+    const isOutOfView = isNodeOutOfViewport(diagram, node);
+    const isFirstNode = !hasFirstNodeAdded && diagram.nodes?.length === 1;
+
+    if (isOutOfView || isFirstNode) {
+      setTimeout(() => {
+        diagram.fitToPage({
+          mode: 'Page',
+          region: 'Content',
+          margin: { left: 50, top: 50, right: 50, bottom: 50 },
+        });
+      }, 100);
+    }
+
+    if (isFirstNode) {
+      setHasFirstNodeAdded(true);
+      if (onNodeAddedFirstTime) onNodeAddedFirstTime();
+    }
+  };
+
+  // Update the connector style on successfull connection
+  const finalizeConnectorStyle = (connector: any) => {
+    // Update to solid style when connection is completed
+    setTimeout(() => {
+      connector.style = {
+        ...connector.style,
+        strokeDashArray: '', // Remove dotted pattern
+        opacity: 1,
+      };
+      connector.constraints =
+        (ConnectorConstraints.Default | ConnectorConstraints.ReadOnly) &
+        ~ConnectorConstraints.DragSourceEnd &
+        ~ConnectorConstraints.DragTargetEnd &
+        ~ConnectorConstraints.Drag;
+    });
+  };
+
 
   const handleDiagramLoaded = ()=> {
     // Hide the initial plus button

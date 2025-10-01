@@ -295,7 +295,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
           group: 'sticky',
           strategy: 'grid',
           stepX: 220,
-          stepY: 30,
+          stepY: 220,
         });
         x = staggered.x;
         y = staggered.y;

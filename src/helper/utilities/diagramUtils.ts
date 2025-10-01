@@ -1,8 +1,6 @@
-import { ConnectorModel, DiagramComponent, NodeConstraints, NodeModel, Point, PointPortModel, PortConstraints, PortModel, PortVisibility, SnapConstraints } from "@syncfusion/ej2-react-diagrams";
-import { DiagramSettings, NodeCategories, NodeConfig, NodeDimensions, NodePortDirection, NodeTemplate, PortConfiguration, PortSide } from "../../types";
-import { NODE_DIMENSIONS, PORT_POSITIONS } from "../../constants";
-import html2canvas from "html2canvas";
-import { getNodeConfig, isAiAgentNode, isIfOrSwitchCondition, isStickyNote, isTriggerNode } from "./nodeUtils";
+import { DiagramComponent, NodeConstraints, NodeModel, SnapConstraints } from "@syncfusion/ej2-react-diagrams";
+import { DiagramSettings } from "../../types";
+import { getNodeConfig, isStickyNote } from "./nodeUtils";
 
 // Returns the first selected node in the diagram
 export function getFirstSelectedNode(diagram: DiagramComponent | null | undefined): NodeModel | undefined {
@@ -87,6 +85,65 @@ export const getConnectorType = (diagramSettings: DiagramSettings) => {
 export const getConnectorCornerRadius = (diagramSettings: DiagramSettings) => {
   if (diagramSettings?.connectorType === 'Orthogonal') return diagramSettings.connectorCornerRadius;
   return 0;
+};
+
+export interface ViewportCheckOptions {
+  margin?: number;
+}
+
+export const isNodeOutOfViewport = (
+  diagram: DiagramComponent | null | undefined,
+  node: NodeModel | null | undefined,
+): boolean => {
+  if (!diagram || !node) {
+    return true;
+  }
+
+  const scrollSettings = diagram.scrollSettings;
+  if (!scrollSettings) {
+    return true;
+  }
+
+  const zoom = scrollSettings.currentZoom || 1;
+  const hostElement = (diagram.element as HTMLElement) || null;
+  const viewportWidthInPixels = scrollSettings.viewPortWidth || hostElement?.clientWidth || 0;
+  const viewportHeightInPixels = scrollSettings.viewPortHeight || hostElement?.clientHeight || 0;
+
+  if (viewportWidthInPixels === 0 || viewportHeightInPixels === 0) {
+    return true;
+  }
+
+  const viewportWidth = viewportWidthInPixels / zoom;
+  const viewportHeight = viewportHeightInPixels / zoom;
+
+  const nodeModel = node;
+  const width = (nodeModel as any).actualSize?.width ?? nodeModel.width ?? 0;
+  const height = (nodeModel as any).actualSize?.height ?? nodeModel.height ?? 0;
+
+  if (width === 0 && height === 0) {
+    return true;
+  }
+
+  const offsetX = nodeModel.offsetX ?? 0;
+  const offsetY = nodeModel.offsetY ?? 0;
+
+  const nodeLeft = offsetX - width / 2;
+  const nodeRight = offsetX + width / 2;
+  const nodeTop = offsetY - height / 2;
+  const nodeBottom = offsetY + height / 2;
+
+  const viewLeft = scrollSettings.horizontalOffset || 0;
+  const viewTop = scrollSettings.verticalOffset || 0;
+  const viewRight = viewLeft + viewportWidth;
+  const viewBottom = viewTop + viewportHeight;
+
+  const isOutside =
+    nodeRight < viewLeft ||
+    nodeLeft > viewRight ||
+    nodeBottom < viewTop ||
+    nodeTop > viewBottom;
+
+  return isOutside;
 };
 
 export const bringConnectorsToFront = (diagram: DiagramComponent) => {
