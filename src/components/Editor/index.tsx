@@ -15,6 +15,7 @@ import { WorkflowExecutionService } from '../../services/WorkflowExecutionServic
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
 import { calculateNewNodePosition, createConnector, createNodeFromTemplate, generateOptimizedThumbnail, getDefaultDiagramSettings, getNodePortById } from '../../helper/utilities';
 import { resetExecutionStates } from '../../helper/workflowExecution';
+import { handleEditorKeyDown } from '../../helper/keyboardShortcuts';
 import './Editor.css';
 
 interface EditorProps {
@@ -479,22 +480,22 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isDirty]);
 
-  // Saved the workflow from keyboard shortcur (ctrl + s)
+  // Handle all keyboard shortcuts
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if ((event.ctrlKey || event.metaKey) && event.key === 's') {
-        event.preventDefault();
-        if (isDirty) {
-          handleSave();
-        } else {
-          showSuccessToast('No Changes', 'Workflow is already saved.');
-        }
-      }
+    const onKeyDown = (e: KeyboardEvent) => {
+      handleEditorKeyDown(
+        e,
+        handleToolbarAction,
+        isExecuting,
+        isDirty,
+        handleSave,
+        showSuccessToast
+      );
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleSave, isDirty]);
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isExecuting, isDirty, handleSave, handleToolbarAction]);
 
   return (
     <div className="editor-container" data-theme={theme}>
