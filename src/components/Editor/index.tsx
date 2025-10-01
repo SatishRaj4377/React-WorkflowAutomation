@@ -208,7 +208,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     switch (action) {
       case 'addNode':
         setNodeConfigPanelOpen(false);
-        setNodePaletteSidebarOpen(true);
+        setNodePaletteSidebarOpen(!nodePaletteSidebarOpen);
         break;
       case 'execute':
         handleExecuteWorkflow();
