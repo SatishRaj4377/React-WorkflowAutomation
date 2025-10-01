@@ -251,19 +251,23 @@ body, .e-control, .e-card{
 }
 
 /* Selection Color Update */
-::selection {
-  background: var(--accent-color);
-  color: var(--surface-color);
+/* Default selection styles */
+input.e-input::selection,
+textarea.e-input::selection,
+.e-input-group input.e-input::selection,
+.e-input-group.e-control-wrapper input.e-input::selection,
+.e-float-input input::selection,
+.e-float-input.e-control-wrapper input::selection,
+.e-input-group textarea.e-input::selection,
+.e-input-group.e-control-wrapper textarea.e-input::selection,
+.e-float-input textarea::selection,
+.e-float-input.e-control-wrapper textarea::selection,
+.e-float-input.e-small textarea::selection,
+.e-float-input textarea::selection {
+  background: var(--accent-color) !important;
+  color: var(--surface-color) !important;
 }
-::-moz-selection {
-  background: var(--primary-color);
-  color: var(--surface-color);
-}
-[data-theme="dark"] ::selection,
-[data-theme="dark"] ::-moz-selection {
-  background: var(--secondary-color);
-  color: var(--surface-color);
-}
+
 
 /* Chekbox Styling */
 .e-checkbox-wrapper .e-frame{
