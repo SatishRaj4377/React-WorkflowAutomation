@@ -314,13 +314,15 @@ body, .home-main, .scrollable {
 
 /* Enhance the look of keyboard keys */
 kbd {
+  display: inline-block;
   background-color: var(--border-color);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
   border-radius: 3px;
   box-shadow: inset 0 -1px 0 var(--box-shadow);
+  min-width: 20px;
   padding: 2px 4px;
-  font-size: 0.9em;
+  margin: .1rem;
+  text-align: center;
   font-weight: 900;
-  font-family: 'Courier New', Courier, monospace;
 }

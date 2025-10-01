@@ -148,7 +148,7 @@ const EditorHeader: React.FC<EditorHeaderProps> = ({
           <TooltipComponent
             content={
               enableSaveBtn
-                ? `<span>Save Workflow <kbd>Ctrl</kbd> + <kbd>S</kbd></span>`
+                ? `<span>Save Workflow <kbd>Ctrl</kbd> <kbd>S</kbd></span>`
                 : 'Workflow Saved'
             }
           >

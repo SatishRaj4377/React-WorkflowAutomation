@@ -110,8 +110,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
         // Set custom HTML tooltip content
         const shortcutMap: any = {
           'Pan': 'Pan <kbd>Spacebar</kbd>',
-          'Zoom In': 'Zoom In <kbd>Ctrl</kbd> + <kbd>+</kbd>',
-          'Zoom Out': 'Zoom Out <kbd>Ctrl</kbd> + <kbd>-</kbd>',
+          'Zoom In': 'Zoom In <kbd>Ctrl</kbd> <kbd>+</kbd>',
+          'Zoom Out': 'Zoom Out <kbd>Ctrl</kbd> <kbd>-</kbd>',
         };
         
         const content = shortcutMap[title];
