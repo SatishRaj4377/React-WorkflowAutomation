@@ -78,7 +78,7 @@
   border-bottom: 2px solid var(--primary-color);
 }
 
-.config-tabs .e-tab-header .e-toolbar-item .e-tab-text {
+.config-tabs .e-tab-header .e-toolbar-item.e-active .e-tab-text {
   color: var(--accent-color) !important; /*  Updates the tab header text color */
   font-weight: 500;
   font-size: 0.875rem;
@@ -353,7 +353,12 @@
   padding: .15rem .35rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: .8rem;
-  color: var(--text-primary);
+}
+.vp-key:hover{
+  background: var(--primary-color);
+}
+.vp-key:hover .vp-key-em{
+  color: var(--background-color);
 }
 .vp-key-em {
   color: var(--primary-color);

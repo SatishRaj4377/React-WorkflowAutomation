@@ -9,15 +9,16 @@ import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { DropDownListComponent } from '@syncfusion/ej2-react-dropdowns';
 import { CheckBoxComponent, ButtonComponent } from '@syncfusion/ej2-react-buttons';
 import { TooltipComponent } from '@syncfusion/ej2-react-popups';
-
 import { IconRegistry } from '../../assets/icons';
 import { ExecutionContext, NodeConfig, NodeType } from '../../types';
 import { getAvailableVariablesForNode, getNodeOutputAsVariableGroup } from '../../helper/dataUtils';
 import { Diagram } from '@syncfusion/ej2-diagrams';
-import './NodeConfigSidebar.css';
-import { VariableTextBox, OutputPreview } from './VariablePicker';
+import { VariableTextBox } from './VariablePicker';
 import { useMemo } from 'react';
 import { CopyableTextBox } from './CopyableTextBox';
+import { buildJsonFromVariables } from '../../helper/jsonVarUtils';
+import JsonVisualizer from './JsonVisualizer';
+import './NodeConfigSidebar.css';
 
 
 interface ConfigPanelProps {
@@ -410,12 +411,23 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
       );
     }
 
+    const outputJson = buildJsonFromVariables(nodeOutput.variables);
+
     return (
       <div className="config-tab-content">
-        <OutputPreview group={nodeOutput} />
+        <div
+          style={{
+            border: '1px solid var(--border-color)',
+            borderRadius: 8,
+            padding: '.5rem',
+            background: 'var(--surface-color)',
+          }}
+        >
+          <JsonVisualizer data={outputJson} collapsed={false} />
+        </div>
       </div>
     );
-  };
+  }
 
   const renderAuthenticationTab = () => {
     const auth = (selectedNode?.settings && selectedNode.settings.authentication) || {};

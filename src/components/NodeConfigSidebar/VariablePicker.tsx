@@ -1,165 +1,24 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
-import { Variable, VariableGroup, VariablesProvider } from '../../types';
+import { Variable, VariableGroup } from '../../types';
+import { ensurePortalRoot, findNativeInput, insertAtCaret } from '../../helper/domUtils';
+import { buildJsonFromVariables } from '../../helper/jsonVarUtils';
+import JsonVisualizer from './JsonVisualizer';
 
-/* =========================
- * Dummy Data Provider (simulate server)
- * ======================= */
-
-// This dummy provider is no longer the primary source of data
-// but we keep it for reference or fallback.
-export const getDummyVariables: VariablesProvider = async () => {
-  return []; 
-};
-
-/* =========================
- * OutputPreview (New Component)
- * Renders a single variable group, designed for the "Output" tab.
- * ======================= */
-
-interface OutputPreviewProps {
-  group: VariableGroup;
-}
-
-export const OutputPreview: React.FC<OutputPreviewProps> = ({ group }) => {
-  return (
-    <div className="vp-popup output-preview">
-      <div className="vp-body">
-        <div className="vp-group" key={group.nodeId}>
-          <div className="vp-group-title">
-            <span className="vp-node-type">{group.nodeType}</span>
-            <span className="vp-node">{group.nodeName}</span>
-          </div>
-          <ul className="vp-list">
-            {group.variables.map((v) => {
-              const lastSegment = v.key.split('.').slice(-1)[0];
-              return (
-                <li key={v.path} className="vp-item">
-                  <div className="vp-item-main">
-                    <code className="vp-key">
-                      <span className="vp-key-em">{lastSegment}</span>
-                      <span className="vp-key-dim">
-                        {v.key.includes('.') ? `  (${v.key})` : ''}
-                      </span>
-                    </code>
-                    <span className={`vp-type ${v.type || 'any'}`}>{v.type || 'any'}</span>
-                  </div>
-                  {v.preview && <div className="vp-preview">{v.preview}</div>}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-/** Insert `text` at the current caret/selection of an input or textarea. */
-function insertAtCaret(
-  el: HTMLInputElement | HTMLTextAreaElement,
-  text: string
-): { nextValue: string; nextCaret: number } {
-  const start = el.selectionStart ?? el.value.length;
-  const end = el.selectionEnd ?? el.value.length;
-  const nextValue = el.value.slice(0, start) + text + el.value.slice(end);
-  const nextCaret = start + text.length;
-  return { nextValue, nextCaret };
-}
-
-/** Find native input/textarea rendered by EJ2 TextBox inside a container */
-function findNativeInput(container: HTMLElement | null) {
-  if (!container) return null;
-  return container.querySelector('input.e-input, textarea.e-input') as
-    | HTMLInputElement
-    | HTMLTextAreaElement
-    | null;
-}
-
-/** Compute best-fit popup position near an anchor rect (to the right or below) */
-function computePopupPosition(
-  rect: DOMRect,
-  doc: Document,
-  offset = 8
-): { top: number; left: number } {
-  const vw = doc.documentElement.clientWidth;
-  const vh = doc.documentElement.clientHeight;
-
-  // Try right side first
-  let left = rect.right + offset + window.scrollX;
-  let top = rect.top + window.scrollY;
-
-  const approximateWidth = 320;
-  const approximateHeight = 280;
-
-  // If it overflows right edge, place below the input aligned left
-  if (left + approximateWidth > window.scrollX + vw) {
-    left = rect.left + window.scrollX;
-    top = rect.bottom + offset + window.scrollY;
-  }
-
-  // If it also overflows bottom, nudge upward
-  if (top + approximateHeight > window.scrollY + vh) {
-    top = Math.max(window.scrollY + vh - approximateHeight - offset, window.scrollY + 8);
-  }
-
-  return { top, left };
-}
-
-/** Basic outside-click hook */
-function useOutsideClick<T extends HTMLElement>(
-  refs: Array<React.RefObject<T | null>>,
-  onOutside: () => void,
-  when = true
-) {
-  useEffect(() => {
-    if (!when) return;
-    const handler = (e: MouseEvent) => {
-      const target = e.target as Node;
-      const inside = refs.some((r) => r.current && r.current.contains(target));
-      if (!inside) onOutside();
-    };
-    document.addEventListener('mousedown', handler, { capture: true });
-    return () => {
-      document.removeEventListener('mousedown', handler, { capture: true });
-    };
-  }, [when, onOutside, refs]);
-}
-
-
-/* =========================
- * VariablePickerPopup
- * ======================= */
-
+/* -----------------------------------------------------------------------------
+ * Variable Picker Popup
+ * -------------------------------------------------------------------------- */
 
 type PickerPopupProps = {
-  anchorEl: HTMLElement | null;
-  open: boolean;
-  onClose: () => void;
-  onPick: (variable: Variable) => void;
-  variableGroups: VariableGroup[];
-  loading: boolean;
-  zIndex?: number;
+  anchorEl: HTMLElement | null;     // anchor element for positioning
+  open: boolean;                    // visibility
+  onClose: () => void;              // close handler
+  onPick: (variable: Variable) => void; // called when a JSON key is picked
+  variableGroups: VariableGroup[];  // available groups
+  loading: boolean;                 // loading state
+  zIndex?: number;                  // stacking
 };
-
-const PORTAL_ROOT_ID = 'variable-picker-portal-root';
-
-function ensurePortalRoot(): HTMLElement {
-  let root = document.getElementById(PORTAL_ROOT_ID);
-  if (!root) {
-    root = document.createElement('div');
-    root.id = PORTAL_ROOT_ID;
-    document.body.appendChild(root);
-  }
-  return root;
-}
 
 export const VariablePickerPopup: React.FC<PickerPopupProps> = ({
   anchorEl,
@@ -171,18 +30,32 @@ export const VariablePickerPopup: React.FC<PickerPopupProps> = ({
   zIndex = 1000010,
 }) => {
   const popupRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 });
 
-  // Data fetching is now handled by the parent component.
-  // This component just displays the groups and loading state it's given.
+   const GAP = 8;
+   const [pos, setPos] = useState<{ top: number; left: number; maxHeight: number }>({
+     top: -9999,
+     left: -9999,
+     maxHeight: 320,
+   });
 
-  // Positioning & repositioning
+  // Calculate popup position relative to node config panel
   const updatePosition = useCallback(() => {
-    if (!anchorEl) return;
-    const rect = anchorEl.getBoundingClientRect();
-    setPos(computePopupPosition(rect, document, 8));
-  }, [anchorEl]);
+    const panel = document.querySelector('.custom-config-panel') as HTMLElement | null;
+    if (!panel) return;
+    const panelRect = panel.getBoundingClientRect();
+    const header = panel.querySelector('.config-panel-header') as HTMLElement | null;
+    const headerRect = header?.getBoundingClientRect() ?? panelRect;
+    // Top: just below the panel header + GAP
+    const top = Math.round(headerRect.bottom + GAP);
+    // Left: to the right side of the panel + GAP
+    const left = Math.round(panelRect.right + GAP);
+    // Height: viewport bottom minus GAP, leaving a GAP at the bottom too
+    const maxHeight = Math.max(180, Math.floor(window.innerHeight - top - GAP));
+    setPos({ top, left, maxHeight });
+  }, []);
 
+
+  // Reposition when opened / on scroll / on resize
   useEffect(() => {
     if (open) updatePosition();
   }, [open, updatePosition]);
@@ -199,72 +72,169 @@ export const VariablePickerPopup: React.FC<PickerPopupProps> = ({
     };
   }, [open, updatePosition]);
 
-  // Close when clicking away
+  // Close on outside click
   useOutsideClick([popupRef], onClose, open);
+  
+  // Close handler when clicking outside a set of refs
+  function useOutsideClick<T extends HTMLElement>(
+    refs: Array<React.RefObject<T | null>>,
+    onOutside: () => void,
+    when = true
+  ) {
+    useEffect(() => {
+      if (!when) return;
+      const handler = (e: MouseEvent) => {
+        const target = e.target as Node;
+        const inside = refs.some((r) => r.current && r.current.contains(target));
+        if (!inside) onOutside();
+      };
+      document.addEventListener('mousedown', handler, { capture: true });
+      return () =>
+        document.removeEventListener('mousedown', handler, { capture: true });
+    }, [when, onOutside, refs]);
+  }
 
-  const content = (
+
+  if (!open) return null;
+
+  return createPortal(
     <div
       ref={popupRef}
       className="vp-popup"
-      style={{ position: 'absolute', top: pos.top, left: pos.left, zIndex }}
-      // Prevent input blur while interacting with the popup
-      onMouseDown={(e) => e.preventDefault()}
+      style={{
+        position: 'fixed',
+        top: pos.top,
+        left: pos.left,
+        zIndex,
+        width: 360,
+        maxHeight: pos.maxHeight,
+        background: 'var(--surface-color)',
+        color: 'var(--text-primary)',
+        border: '1px solid var(--border-color)',
+        borderRadius: 10,
+        boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+        overflow: 'hidden',
+        userSelect: 'none',
+      }}
+      onMouseDown={(e) => e.preventDefault()} // keep focus in textbox
     >
-      <div className="vp-header">
-        <span className="vp-title">Insert variable</span>
-        <button className="vp-close" onClick={onClose} aria-label="Close">✕</button>
+      {/* Header */}
+      <div
+        className="vp-header"
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '.5rem .75rem',
+          borderBottom: '1px solid var(--border-color)',
+          background: 'var(--background-color)',
+        }}
+      >
+        <div className="vp-title" style={{ fontSize: '.85rem', fontWeight: 600 }}>
+          Insert variable
+        </div>
+        <button
+          className="vp-close"
+          onClick={onClose}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: 'var(--text-secondary)',
+            cursor: 'pointer',
+            fontSize: '1rem',
+          }}
+          aria-label="Close"
+        >
+          ✕
+        </button>
       </div>
 
-      <div className="vp-body">
-        {loading && <div className="vp-loading">Loading available variables…</div>}
-        {!loading && variableGroups.length === 0 && (
-          <div className="vp-empty">No variables available from previous steps.</div>
+      {/* Body */}
+      <div
+        className="vp-body"
+        style={{ maxHeight: Math.max(120, pos.maxHeight - 42), overflow: 'auto', padding: '.35rem .5rem .6rem' }}
+      >
+        {loading && (
+          <div className="vp-loading" style={{ padding: '.75rem', fontSize: '.85rem' }}>
+            Loading available variables…
+          </div>
         )}
+
+        {!loading && variableGroups.length === 0 && (
+          <div className="vp-empty" style={{ padding: '.75rem', fontSize: '.85rem' }}>
+            No variables available from previous steps.
+          </div>
+        )}
+
+        {/* Render only JsonVisualizer per group */}
         {!loading &&
           variableGroups.map((g) => (
-            <div className="vp-group" key={g.nodeId}>
-              <div className="vp-group-title">
-                <span className="vp-node-type">{g.nodeType}</span>
-                <span className="vp-node">{g.nodeName}</span>
+            <div key={g.nodeId} className="vp-group" style={{ paddingBottom: '.5rem' }}>
+              <div
+                className="vp-group-title"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '.5rem',
+                  padding: '.25rem .5rem',
+                  margin: '.25rem 0 .35rem',
+                  backgroundColor: 'var(--border-color)',
+                  color: 'var(--text-secondary)',
+                  fontSize: '.75rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '.03em',
+                  borderRadius: 6,
+                }}
+              >
+                <span
+                  className="vp-node-type"
+                  style={{
+                    background: 'var(--background-color)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: 999,
+                    padding: '0 .4rem',
+                    fontSize: '.7rem',
+                  }}
+                >
+                  {g.nodeType}
+                </span>
+                {g.nodeName}
               </div>
-              <ul className="vp-list">
-                {g.variables.map((v) => {
-                  const lastSegment = v.key.split('.').slice(-1)[0];
-                  return (
-                    <li
-                      key={v.path}
-                      className="vp-item"
-                      onClick={() => onPick(v)}
-                      role="button"
-                      tabIndex={0}
-                    >
-                      <div className="vp-item-main">
-                        <code className="vp-key">
-                          <span className="vp-key-em">{lastSegment}</span>
-                          <span className="vp-key-dim">
-                            {v.key.includes('.') ? `  (${v.key})` : ''}
-                          </span>
-                        </code>
-                        <span className={`vp-type ${v.type || 'any'}`}>{v.type || 'any'}</span>
-                      </div>
-                      {v.preview && <div className="vp-preview">{v.preview}</div>}
-                      <div className="vp-path">{"{{ "}{v.path}{" }}"}</div>
-                    </li>
-                  );
-                })}
-              </ul>
+
+              <div
+                style={{
+                  border: '1px solid var(--border-color)',
+                  borderRadius: 8,
+                  padding: '.35rem',
+                  background: 'var(--surface-color)',
+                }}
+              >
+                <JsonVisualizer
+                  data={buildJsonFromVariables(g.variables)}
+                  collapsed={false}
+                  onKeyClick={(path) => {
+                    // Use the same token format as VariableTextBox default
+                    const fakeVar = {
+                      key: path,
+                      path,
+                      type: 'any',
+                      preview: undefined,
+                    } as unknown as Variable;
+                    onPick(fakeVar); // delegate insertion to VariableTextBox
+                  }}
+                />
+              </div>
             </div>
           ))}
       </div>
-    </div>
+    </div>,
+    ensurePortalRoot()
   );
-
-  return open ? createPortal(content, ensurePortalRoot()) : null;
 };
 
-/* =========================
- * VariableTextBox 
- * ======================= */
+/* -----------------------------------------------------------------------------
+ * VariableTextBox (opens popup; inserts via caret on pick)
+ * -------------------------------------------------------------------------- */
 
 type VariableTextBoxProps = {
   value: string;
@@ -274,9 +244,8 @@ type VariableTextBoxProps = {
   cssClass?: string;
   variableGroups: VariableGroup[];
   variablesLoading: boolean;
-  /** Format how the token is inserted; default -> {{ path }} */
-  tokenFormatter?: (v: Variable) => string;
-  ej2Props?: Partial<React.ComponentProps<typeof TextBoxComponent>>;
+  tokenFormatter?: (v: Variable) => string; // default: {{ <path> }}
+  ej2Props?: Partial<TextBoxComponent>;
 };
 
 export const VariableTextBox: React.FC<VariableTextBoxProps> = ({
@@ -290,30 +259,29 @@ export const VariableTextBox: React.FC<VariableTextBoxProps> = ({
   tokenFormatter = (v) => `{{ ${v.path} }}`,
   ej2Props = {},
 }) => {
-  // Wrap to find the native input, because EJ2 wraps the element
+  // Wrapper helps locate the native EJ2 input
   const wrapperRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
 
-  // Show/hide popup
+  // Popup visibility
   const [open, setOpen] = useState(false);
 
-  // Acquire native input once rendered
+  // Acquire native input after mount / mode changes
   const captureInput = useCallback(() => {
     inputRef.current = findNativeInput(wrapperRef.current!);
   }, []);
-
   useEffect(() => {
     captureInput();
-  }, [captureInput, multiline]); // EJ2 swaps to <textarea> if multiline=true
+  }, [captureInput, multiline]);
 
-  // Keep a computed cssClass that marks tokens (for subtle styling)
+  // Subtle token class if value contains any {{ ... }}
   const computedCssClass = useMemo(() => {
-    const base = cssClass || '';
+    const base = cssClass ?? '';
     const tokenClass = /\{\{[^}]+\}\}/.test(value) ? ' has-variables' : '';
     return `${base}${tokenClass}`.trim();
   }, [cssClass, value]);
 
-  // Handle selection & insertion
+  // When a variable is picked from the popup
   const handlePick = useCallback(
     (v: Variable) => {
       const el = inputRef.current;
@@ -321,7 +289,8 @@ export const VariableTextBox: React.FC<VariableTextBoxProps> = ({
       const token = tokenFormatter(v);
       const { nextValue, nextCaret } = insertAtCaret(el, token);
       onChange(nextValue);
-      // Restore caret after onChange re-renders
+
+      // Restore focus & caret after React updates
       requestAnimationFrame(() => {
         const el2 = inputRef.current;
         if (el2) {
@@ -329,30 +298,31 @@ export const VariableTextBox: React.FC<VariableTextBoxProps> = ({
           try {
             el2.setSelectionRange(nextCaret, nextCaret);
           } catch {
-            // ignore (number/password etc.)
+            /* ignore non-text inputs */
           }
         }
       });
+
       setOpen(false);
     },
     [onChange, tokenFormatter]
   );
 
-  // Open the popup when focusing; close on Escape
+  // Open the popup when focusing into the textbox
   const onFocusIn = useCallback(() => setOpen(true), []);
 
   return (
-    <div className="variable-textbox-wrapper" ref={wrapperRef}>
+    <div ref={wrapperRef}>
       <TextBoxComponent
         value={value}
         placeholder={placeholder}
-        multiline={!!multiline}
-        cssClass={computedCssClass}
         change={(e: any) => onChange(e.value)}
         focus={onFocusIn}
+        multiline={multiline}
+        cssClass={computedCssClass}
         {...ej2Props}
       />
-      {/* Popup anchored to the native input element */}
+
       <VariablePickerPopup
         anchorEl={inputRef.current}
         open={open}

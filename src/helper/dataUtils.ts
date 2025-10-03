@@ -1,122 +1,122 @@
-
 import { Diagram } from '@syncfusion/ej2-diagrams';
-import { ExecutionContext, Variable, VariableGroup } from '../types';
-import { getNodeConfig } from './utilities';
+import { ExecutionContext, VariableGroup } from '../types';
+import { flattenJsonToVariables } from './jsonVarUtils';
 
-// Helper to recursively parse a JSON object and create a flat list of variables
-const parseObjectToVariables = (
-  obj: any,
-  keyPrefix = '',
-  pathPrefix = ''
-): Variable[] => {
-  if (obj === null || typeof obj !== 'object') {
-    return [];
-  }
+/** Try multiple common places where a project's ExecutionContext might store outputs */
+function pickNodeOutputFromContext(context: any, nodeId: string): any {
+  if (!context) return undefined;
+  // Common shapes we've seen across workflow engines
+  return (
+    context.outputs?.[nodeId] ??
+    context.results?.[nodeId] ??
+    context.nodeOutputs?.[nodeId] ??
+    context.nodes?.[nodeId]?.output ??
+    context[nodeId]?.output ??
+    context[nodeId] // last-resort: direct bucket
+  );
+}
 
-  return Object.keys(obj).reduce((acc: Variable[], key: string) => {
-    const value = obj[key];
-    const currentKey = keyPrefix ? `${keyPrefix}.${key}` : key;
-    const currentPath = pathPrefix ? `${pathPrefix}.${key}` : key;
+/** Derive node type/name from Diagram node (best-effort, with safe fallbacks) */
+function getNodeIdentity(diagram: Diagram, nodeId: string): { nodeType: string; nodeName: string } {
+  const nt: any =
+    (diagram as any).nameTable?.[nodeId] ??
+    ((diagram as any).nodes || []).find((n: any) => n.id === nodeId);
 
-    let type: Variable['type'] = undefined;
-    let preview: string | undefined = String(value);
+  const nodeType =
+    nt?.data?.nodeType ??
+    nt?.addInfo?.nodeType ??
+    nt?.annotations?.[0]?.content ??
+    'Node';
 
-    if (Array.isArray(value)) {
-      type = 'array';
-      preview = `[${value.length} items]`;
-    } else if (value === null) {
-      type = 'any'; // Changed from null to any to satisfy type constraints
-      preview = 'null';
-    } else if (typeof value === 'object') {
-      type = 'object';
-      preview = '{...}';
-    } else {
-      type = typeof value as 'string' | 'number' | 'boolean';
-    }
+  const nodeName =
+    nt?.data?.displayName ??
+    nt?.addInfo?.displayName ??
+    nt?.annotations?.[0]?.content ??
+    nt?.id ??
+    nodeId;
 
-    // Add the current key
-    acc.push({
-      key: currentKey,
-      path: currentPath,
-      preview: preview,
-      type: type,
-    });
+  return { nodeType, nodeName };
+}
 
-    // If it's a nested object, recurse
-    if (type === 'object') {
-      acc.push(...parseObjectToVariables(value, currentKey, currentPath));
-    }
-    
-    // If it's an array of objects, parse the first item as an example
-    if (type === 'array' && value.length > 0 && typeof value[0] === 'object') {
-      const arrayKey = `${currentKey}[n]`;
-      const arrayPath = `${currentPath}[n]`;
-      acc.push(...parseObjectToVariables(value[0], arrayKey, arrayPath));
-    }
-
-    return acc;
-  }, []);
-};
-
-/**
- * Gets the output of a single node and transforms it into a VariableGroup.
- * Used for the "Output" tab.
- */
-export const getNodeOutputAsVariableGroup = (
+/** Produce VariableGroup for a single node using raw output in context */
+export function getNodeOutputAsVariableGroup(
   nodeId: string,
   diagram: Diagram,
   context: ExecutionContext
-): VariableGroup | null => {
-  const node = diagram.getObject(nodeId);
-  const nodeConfig = node ? getNodeConfig(node) : null;
-  const outputData = context.results[nodeId];
+): VariableGroup | null {
+  const raw = pickNodeOutputFromContext(context, nodeId);
+  if (raw === undefined) return null; // no output yet for this node
+  const variables = flattenJsonToVariables(raw); // emits all leaves, incl. arrays
 
-  if (!nodeConfig || !outputData) {
-    return null;
-  }
-
-  const variables = parseObjectToVariables(outputData, '', nodeId);
-
+  const { nodeType, nodeName } = getNodeIdentity(diagram, nodeId);
   return {
-    nodeId: nodeId,
-    nodeName: nodeConfig.displayName,
-    nodeType: nodeConfig.nodeType,
-    variables: variables,
+    nodeId,
+    nodeType,
+    nodeName,
+    variables,
   };
-};
+}
 
-/**
- * Finds all predecessor nodes and returns their outputs as a list of VariableGroups.
- * Used to populate the Variable Picker for a given node.
- */
+/** Return all predecessor groups (BFS using EJ2 APIs with safe fallback) */
 export const getAvailableVariablesForNode = (
   nodeId: string,
   diagram: Diagram,
   context: ExecutionContext
 ): VariableGroup[] => {
+  if (!diagram) return [];
+
   const predecessors = new Set<string>();
   const queue: string[] = [nodeId];
-  
-  // BFS traversal to find all nodes that come before the current one
-  while(queue.length > 0) {
-    const currentNodeId = queue.shift()!;
-    (diagram.connectors || []).forEach(conn => {
-      if (conn.targetID === currentNodeId && conn.sourceID) {
-        if (!predecessors.has(conn.sourceID)) {
-          predecessors.add(conn.sourceID);
-          queue.push(conn.sourceID);
+
+  const getInEdges = typeof (diagram as any).getInEdges === 'function'
+    ? (id: string) => ((diagram as any).getInEdges(id) || []) as string[]
+    : (_: string) => [] as string[];
+
+  const getConnector = typeof (diagram as any).getConnectorObject === 'function'
+    ? (cid: string) => (diagram as any).getConnectorObject(cid)
+    : (_: string) => null;
+
+  const allConnectors: any[] = ((diagram as any).connectors || []) as any[];
+
+  while (queue.length) {
+    const current = queue.shift()!;
+
+    // Prefer EJ2 API
+    const inEdgeIds = getInEdges(current);
+    if (inEdgeIds.length) {
+      inEdgeIds.forEach((connId) => {
+        const conn = getConnector(connId);
+        const src = conn?.sourceID;
+        if (src && !predecessors.has(src)) {
+          predecessors.add(src);
+          queue.push(src);
+        }
+      });
+      continue;
+    }
+
+    // Fallback scan
+    for (const c of allConnectors) {
+      if (c?.targetID === current && c?.sourceID) {
+        const src = c.sourceID as string;
+        if (!predecessors.has(src)) {
+          predecessors.add(src);
+          queue.push(src);
         }
       }
-    })
+    }
   }
 
-  const variableGroups: VariableGroup[] = [];
-  predecessors.forEach(predecessorId => {
-    const group = getNodeOutputAsVariableGroup(predecessorId, diagram, context);
-    if (group) {
-      variableGroups.push(group);
-    }
+  const groups = Array.from(predecessors)
+    .map((pid) => getNodeOutputAsVariableGroup(pid, diagram, context))
+    .filter(Boolean) as VariableGroup[];
+
+  // Debug once; remove in production if noisy
+  console.debug('[getAvailableVariablesForNode]', {
+    nodeId,
+    predecessors: Array.from(predecessors),
+    groups: groups.map((g) => g.nodeId),
   });
 
-  return variableGroups;
+  return groups;
 };
