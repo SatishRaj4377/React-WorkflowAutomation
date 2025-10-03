@@ -1,6 +1,7 @@
 import { Diagram } from '@syncfusion/ej2-diagrams';
 import { ExecutionContext, VariableGroup } from '../types';
 import { flattenJsonToVariables } from './jsonVarUtils';
+import { getNodeConfig } from './utilities';
 
 /** Try multiple common places where a project's ExecutionContext might store outputs */
 function pickNodeOutputFromContext(context: any, nodeId: string): any {
@@ -17,22 +18,23 @@ function pickNodeOutputFromContext(context: any, nodeId: string): any {
 }
 
 /** Derive node type/name from Diagram node (best-effort, with safe fallbacks) */
-function getNodeIdentity(diagram: Diagram, nodeId: string): { nodeType: string; nodeName: string } {
-  const nt: any =
+function getNodeIdentity(
+  diagram: Diagram,
+  nodeId: string
+): { nodeType: string; nodeName: string } {
+  const node: any =
     (diagram as any).nameTable?.[nodeId] ??
     ((diagram as any).nodes || []).find((n: any) => n.id === nodeId);
 
+  const nodeConfig = getNodeConfig(node);
+  // Prefer explicit category/type fields first, then fall back to label text
   const nodeType =
-    nt?.data?.nodeType ??
-    nt?.addInfo?.nodeType ??
-    nt?.annotations?.[0]?.content ??
+    nodeConfig?.nodeType ??
     'Node';
 
+  // Prefer explicit displayName/name fields first, then fall back to label or id
   const nodeName =
-    nt?.data?.displayName ??
-    nt?.addInfo?.displayName ??
-    nt?.annotations?.[0]?.content ??
-    nt?.id ??
+    nodeConfig?.displayName ??
     nodeId;
 
   return { nodeType, nodeName };

@@ -18,8 +18,8 @@ const isPrimitive = (v: any) => v === null || (typeof v !== 'object' && typeof v
 function formatPreview(value: any): string {
   if (typeof value === 'string') {
     const trimmed = value.trim();
-    const q = JSON.stringify(trimmed);
-    return trimmed.length > 60 ? `${q.slice(0, 60)}…` : q;
+    return trimmed.length > 60 ? `${trimmed.slice(0, 60)}…` : trimmed;
+
   }
   if (typeof value === 'number' || typeof value === 'boolean') return String(value);
   if (value === null) return 'null';

@@ -200,30 +200,20 @@ export const VariablePickerPopup: React.FC<PickerPopupProps> = ({
                 </span>
                 {g.nodeName}
               </div>
-
-              <div
-                style={{
-                  border: '1px solid var(--border-color)',
-                  borderRadius: 8,
-                  padding: '.35rem',
-                  background: 'var(--surface-color)',
+              <JsonVisualizer
+                data={buildJsonFromVariables(g.variables)}
+                collapsed={false}
+                onKeyClick={(path) => {
+                  // Use the same token format as VariableTextBox default
+                  const fakeVar = {
+                    key: path,
+                    path,
+                    type: 'any',
+                    preview: undefined,
+                  } as unknown as Variable;
+                  onPick(fakeVar); // delegate insertion to VariableTextBox
                 }}
-              >
-                <JsonVisualizer
-                  data={buildJsonFromVariables(g.variables)}
-                  collapsed={false}
-                  onKeyClick={(path) => {
-                    // Use the same token format as VariableTextBox default
-                    const fakeVar = {
-                      key: path,
-                      path,
-                      type: 'any',
-                      preview: undefined,
-                    } as unknown as Variable;
-                    onPick(fakeVar); // delegate insertion to VariableTextBox
-                  }}
-                />
-              </div>
+              />
             </div>
           ))}
       </div>
