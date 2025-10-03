@@ -105,6 +105,11 @@
   font-size: 0.875rem;
 }
 
+.textbox-info {
+  margin-top: 5px;
+  color: var(--text-secondary);
+}
+
 .config-input,
 .config-textarea {
   width: 100%;

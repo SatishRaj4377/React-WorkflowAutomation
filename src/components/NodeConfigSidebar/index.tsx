@@ -14,6 +14,7 @@ import { IconRegistry } from '../../assets/icons';
 import { NodeConfig, NodeType } from '../../types';
 import './NodeConfigSidebar.css';
 import { VariableTextBox } from './VariablePicker';
+import { CopyableTextBox } from './CopyableTextBox';
 
 interface ConfigPanelProps {
   isOpen: boolean;
@@ -91,11 +92,10 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
         return (
           <>
             <div className="config-section">
-              <label className="config-label">Webhook URL</label>
-              <TextBoxComponent
+              <CopyableTextBox
                 value={settings.url ?? webhookUrl}
-                readOnly={true}
                 cssClass="config-input"
+                readonly={true}
               />
             </div>
           </>
