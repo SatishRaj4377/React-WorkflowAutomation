@@ -11,15 +11,21 @@ import { CheckBoxComponent, ButtonComponent } from '@syncfusion/ej2-react-button
 import { TooltipComponent } from '@syncfusion/ej2-react-popups';
 
 import { IconRegistry } from '../../assets/icons';
-import { NodeConfig, NodeType } from '../../types';
+import { ExecutionContext, NodeConfig, NodeType } from '../../types';
+import { getAvailableVariablesForNode, getNodeOutputAsVariableGroup } from '../../helper/dataUtils';
+import { Diagram } from '@syncfusion/ej2-diagrams';
 import './NodeConfigSidebar.css';
-import { VariableTextBox } from './VariablePicker';
+import { VariableTextBox, OutputPreview } from './VariablePicker';
+import { useMemo } from 'react';
 import { CopyableTextBox } from './CopyableTextBox';
+
 
 interface ConfigPanelProps {
   isOpen: boolean;
   onClose: () => void;
   selectedNode: NodeConfig | null;
+  diagram: Diagram | null;
+  executionContext: ExecutionContext;
   onDeleteNode: (nodeId: string) => void;
   onNodeConfigChange: (nodeId: string, config: NodeConfig) => void;
 }
@@ -45,6 +51,8 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   onClose,
   onDeleteNode,
   selectedNode,
+  diagram,
+  executionContext,
   onNodeConfigChange,
 }) => {
   // Hooks first — no conditional hooks to satisfy eslint rules-of-hooks
@@ -53,6 +61,18 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   // Resolve icon component only when node exists
   const nodeIconSrc =
     selectedNode?.icon ? (IconRegistry as any)[selectedNode.icon] : null;
+
+  // Get the available variables for the variable picker
+  const availableVariables = useMemo(() => {
+    if (!selectedNode || !diagram) return [];
+    return getAvailableVariablesForNode(selectedNode.id, diagram, executionContext);
+  }, [selectedNode, diagram, executionContext]);
+
+  //Get the output for the current node
+  const nodeOutput = useMemo(() => {
+    if (!selectedNode || !diagram) return null;
+    return getNodeOutputAsVariableGroup(selectedNode.id, diagram, executionContext);
+  }, [selectedNode, diagram, executionContext]);
 
   /** Safely update settings */
   const handleConfigChange = (
@@ -173,6 +193,8 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
                 value={settings.role ?? 'Assistant'}
                 onChange={(val) => handleConfigChange('role', val)}
                 cssClass="config-input"
+                variableGroups={availableVariables}
+                variablesLoading={false} // Loading is handled by the parent
               />
             </div>
             <div className="config-section">
@@ -183,6 +205,8 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
                 onChange={(val) => handleConfigChange('goal', val)}
                 cssClass="config-textarea"
                 multiline
+                variableGroups={availableVariables}
+                variablesLoading={false}
               />
             </div>
             <div className="config-section">
@@ -230,6 +254,8 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
                 placeholder="https://api.example.com/resource"
                 onChange={(val) => handleConfigChange('url', val)}
                 cssClass="config-input"
+                variableGroups={availableVariables}
+                variablesLoading={false}
               />
             </div>
 
@@ -264,6 +290,8 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
                 onChange={(val) => handleConfigChange('body', val)}
                 cssClass="config-textarea"
                 multiline
+                variableGroups={availableVariables}
+                variablesLoading={false}
               />
             </div>
           </>
@@ -302,6 +330,8 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
                 onChange={(val) => handleConfigChange('condition', val)}
                 cssClass="config-textarea"
                 multiline
+                variableGroups={availableVariables}
+                variablesLoading={false}
               />
             </div>
           </>
@@ -317,6 +347,8 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
                 placeholder="e.g., {{ $.data.status }}"
                 onChange={(val) => handleConfigChange('expression', val)}
                 cssClass="config-input"
+                variableGroups={availableVariables}
+                variablesLoading={false}
               />
             </div>
           </>
@@ -333,6 +365,8 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
                 onChange={(val) => handleConfigChange('predicate', val)}
                 cssClass="config-textarea"
                 multiline
+                variableGroups={availableVariables}
+                variablesLoading={false}
               />
             </div>
           </>
@@ -364,6 +398,25 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   };
 
   /** Authentication tab (only when required) */
+  const renderOutputTab = () => {
+    if (!nodeOutput) {
+      return (
+        <div className="config-tab-content">
+          <div className="config-section-empty">
+            <p>This node has not been executed yet or did not produce an output.</p>
+            <p>Run the workflow to see the output here.</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="config-tab-content">
+        <OutputPreview group={nodeOutput} />
+      </div>
+    );
+  };
+
   const renderAuthenticationTab = () => {
     const auth = (selectedNode?.settings && selectedNode.settings.authentication) || {};
     const typeVal = auth.type ?? '';
@@ -510,6 +563,9 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
             >
               <TabItemsDirective>
                 <TabItemDirective header={{ text: 'General' }} content={() => renderGeneralTab()} />
+                {nodeOutput && (
+                  <TabItemDirective header={{ text: 'Output' }} content={() => renderOutputTab()} />
+                )}
                 {requiresAuthTab && (
                   <TabItemDirective header={{ text: 'Authentication' }} content={() => renderAuthenticationTab()} />
                 )}

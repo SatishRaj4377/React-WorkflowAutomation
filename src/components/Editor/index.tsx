@@ -9,7 +9,7 @@ import NodePaletteSidebar from '../NodePaletteSidebar';
 import NodeConfigSidebar from '../NodeConfigSidebar';
 import { useTheme } from '../../contexts/ThemeContext';
 import ConfirmationDialog from '../ConfirmationDialog';
-import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosition, ToolbarAction } from '../../types';
+import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosition, ToolbarAction, ExecutionContext } from '../../types';
 import WorkflowProjectService from '../../services/WorkflowProjectService';
 import { WorkflowExecutionService } from '../../services/WorkflowExecutionService';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
@@ -33,6 +33,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<NodeConfig | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
+  const [executionContext, setExecutionContext] = useState<ExecutionContext>({ results: {}, variables: {} });
+
   const [projectName, setProjectName] = useState(project.name);
   const [diagramRef, setDiagramRef] = useState<any>(null);
   const [isPanActive, setIsPanActive] = useState(false);
@@ -251,7 +253,10 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     setIsExecuting(true);
     
     try {
-      await workflowExecutionRef.current.executeWorkflow();
+      const result = await workflowExecutionRef.current.executeWorkflow();
+      if (result) {
+        setExecutionContext(workflowExecutionRef.current.getExecutionContext());
+      }
     } catch (error) {
       showErrorToast('Execution Failed', error instanceof Error ? error.message : 'Unknown error occurred');
     } finally {
@@ -523,6 +528,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
           onDeleteNode={(nodeId) => diagramRef.remove(diagramRef.getNodeObject(nodeId))}
           selectedNode={selectedNode}
           onNodeConfigChange={handleNodeConfigChange}
+          diagram={diagramRef}
+          executionContext={executionContext}
         />
 
         {/* Sidebar for Node Palette */}

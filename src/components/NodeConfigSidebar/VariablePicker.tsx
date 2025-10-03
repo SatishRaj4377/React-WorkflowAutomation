@@ -13,50 +13,53 @@ import { Variable, VariableGroup, VariablesProvider } from '../../types';
  * Dummy Data Provider (simulate server)
  * ======================= */
 
-export const getDummyVariables: VariablesProvider = async (context) => {
-  // Simulate latency
-  await new Promise((r) => setTimeout(r, 120));
+// This dummy provider is no longer the primary source of data
+// but we keep it for reference or fallback.
+export const getDummyVariables: VariablesProvider = async () => {
+  return []; 
+};
 
-  // In real life, you’d call your Express API with the executionId / workflowId.
-  // Here we return a few realistic samples from Gmail, Google Sheets & Webhook.
-  const data: VariableGroup[] = [
-    {
-      nodeId: 'gmail_1',
-      nodeName: 'Gmail 1',
-      nodeType: 'Gmail',
-      variables: [
-        { key: 'from', path: 'gmail_1.from', preview: 'noreply@example.com', type: 'string' },
-        { key: 'to', path: 'gmail_1.to', preview: 'ops@example.com', type: 'string' },
-        { key: 'subject', path: 'gmail_1.subject', preview: 'Invoice #8421', type: 'string' },
-        { key: 'snippet', path: 'gmail_1.snippet', preview: 'Hi team, attached is...', type: 'string' },
-        { key: 'threadId', path: 'gmail_1.threadId', preview: '185e3b31c4', type: 'string' },
-      ],
-    },
-    {
-      nodeId: 'gsheets_1',
-      nodeName: 'Google Sheets 1',
-      nodeType: 'Google Sheets',
-      variables: [
-        { key: 'lastRow.Id', path: 'gsheets_1.lastRow.Id', preview: '42', type: 'number' },
-        { key: 'lastRow.Name', path: 'gsheets_1.lastRow.Name', preview: 'Jane Doe', type: 'string' },
-        { key: 'lastRow.Email', path: 'gsheets_1.lastRow.Email', preview: 'jane@example.com', type: 'string' },
-        { key: 'rowCount', path: 'gsheets_1.rowCount', preview: '128', type: 'number' },
-      ],
-    },
-    {
-      nodeId: 'webhook_1',
-      nodeName: 'Webhook 1',
-      nodeType: 'Webhook',
-      variables: [
-        { key: 'payload.user.name', path: 'webhook_1.payload.user.name', preview: 'Arjun', type: 'string' },
-        { key: 'payload.user.email', path: 'webhook_1.payload.user.email', preview: 'arjun@example.com', type: 'string' },
-        { key: 'payload.event', path: 'webhook_1.payload.event', preview: 'checkout.completed', type: 'string' },
-        { key: 'payload.items[0].amount', path: 'webhook_1.payload.items[0].amount', preview: '2499', type: 'number' },
-      ],
-    },
-  ];
+/* =========================
+ * OutputPreview (New Component)
+ * Renders a single variable group, designed for the "Output" tab.
+ * ======================= */
 
-  return data;
+interface OutputPreviewProps {
+  group: VariableGroup;
+}
+
+export const OutputPreview: React.FC<OutputPreviewProps> = ({ group }) => {
+  return (
+    <div className="vp-popup output-preview">
+      <div className="vp-body">
+        <div className="vp-group" key={group.nodeId}>
+          <div className="vp-group-title">
+            <span className="vp-node-type">{group.nodeType}</span>
+            <span className="vp-node">{group.nodeName}</span>
+          </div>
+          <ul className="vp-list">
+            {group.variables.map((v) => {
+              const lastSegment = v.key.split('.').slice(-1)[0];
+              return (
+                <li key={v.path} className="vp-item">
+                  <div className="vp-item-main">
+                    <code className="vp-key">
+                      <span className="vp-key-em">{lastSegment}</span>
+                      <span className="vp-key-dim">
+                        {v.key.includes('.') ? `  (${v.key})` : ''}
+                      </span>
+                    </code>
+                    <span className={`vp-type ${v.type || 'any'}`}>{v.type || 'any'}</span>
+                  </div>
+                  {v.preview && <div className="vp-preview">{v.preview}</div>}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 /** Insert `text` at the current caret/selection of an input or textarea. */
@@ -135,12 +138,14 @@ function useOutsideClick<T extends HTMLElement>(
  * VariablePickerPopup
  * ======================= */
 
+
 type PickerPopupProps = {
   anchorEl: HTMLElement | null;
   open: boolean;
   onClose: () => void;
   onPick: (variable: Variable) => void;
-  fetchVariables?: VariablesProvider; // defaults to getDummyVariables
+  variableGroups: VariableGroup[];
+  loading: boolean;
   zIndex?: number;
 };
 
@@ -161,27 +166,15 @@ export const VariablePickerPopup: React.FC<PickerPopupProps> = ({
   open,
   onClose,
   onPick,
-  fetchVariables = getDummyVariables,
+  variableGroups,
+  loading,
   zIndex = 1000010,
 }) => {
   const popupRef = useRef<HTMLDivElement>(null);
-  const [groups, setGroups] = useState<VariableGroup[]>([]);
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 });
-  const [loading, setLoading] = useState(false);
 
-  // Fetch variables on open
-  useEffect(() => {
-    let cancelled = false;
-    if (open) {
-      setLoading(true);
-      fetchVariables({ activeNodeId: null })
-        .then((g) => !cancelled && setGroups(g))
-        .finally(() => !cancelled && setLoading(false));
-    }
-    return () => {
-      cancelled = true;
-    };
-  }, [open, fetchVariables]);
+  // Data fetching is now handled by the parent component.
+  // This component just displays the groups and loading state it's given.
 
   // Positioning & repositioning
   const updatePosition = useCallback(() => {
@@ -223,12 +216,12 @@ export const VariablePickerPopup: React.FC<PickerPopupProps> = ({
       </div>
 
       <div className="vp-body">
-        {loading && <div className="vp-loading">Loading variables…</div>}
-        {!loading && groups.length === 0 && (
-          <div className="vp-empty">No variables available yet.</div>
+        {loading && <div className="vp-loading">Loading available variables…</div>}
+        {!loading && variableGroups.length === 0 && (
+          <div className="vp-empty">No variables available from previous steps.</div>
         )}
         {!loading &&
-          groups.map((g) => (
+          variableGroups.map((g) => (
             <div className="vp-group" key={g.nodeId}>
               <div className="vp-group-title">
                 <span className="vp-node-type">{g.nodeType}</span>
@@ -279,7 +272,8 @@ type VariableTextBoxProps = {
   placeholder?: string;
   multiline?: boolean;
   cssClass?: string;
-  fetchVariables?: VariablesProvider;
+  variableGroups: VariableGroup[];
+  variablesLoading: boolean;
   /** Format how the token is inserted; default -> {{ path }} */
   tokenFormatter?: (v: Variable) => string;
   ej2Props?: Partial<React.ComponentProps<typeof TextBoxComponent>>;
@@ -291,7 +285,8 @@ export const VariableTextBox: React.FC<VariableTextBoxProps> = ({
   placeholder,
   multiline,
   cssClass,
-  fetchVariables,
+  variableGroups,
+  variablesLoading,
   tokenFormatter = (v) => `{{ ${v.path} }}`,
   ej2Props = {},
 }) => {
@@ -363,7 +358,8 @@ export const VariableTextBox: React.FC<VariableTextBoxProps> = ({
         open={open}
         onClose={() => setOpen(false)}
         onPick={handlePick}
-        fetchVariables={fetchVariables}
+        variableGroups={variableGroups}
+        loading={variablesLoading}
       />
     </div>
   );
