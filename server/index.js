@@ -1,78 +1,112 @@
-// Import the Express library to create and manage the server
 const express = require('express');
-
-// Import the CORS library to allow requests from your frontend
 const cors = require('cors');
+const http = require('http'); // We need the http module to share a port
+const { WebSocketServer } = require('ws'); // Import the WebSocketServer
 
-// Create an instance of an Express application
+// --- Basic Setup ---
 const app = express();
-
-// Define the port number the server will run on. 
-// It's good practice to use an environment variable or a default.
 const PORT = 3001;
 
-// --- Middleware ---
-// Middleware are functions that run for every request.
-
-// Enable CORS for all routes, so your React app (on a different port) can make requests.
 app.use(cors());
-
-// Enable the Express app to parse JSON-formatted request bodies.
-// This is how you'll get data from your frontend.
 app.use(express.json());
 
+// Create an HTTP server from the Express app
+const server = http.createServer(app);
 
-// --- Routes ---
-// Routes define the API endpoints of your server.
+// Create a WebSocket server and attach it to the HTTP server
+const wss = new WebSocketServer({ server });
 
-// A simple test route to check if the server is working.
+// This will store our connected clients, mapping a workflow ID to a WebSocket connection
+const clients = new Map();
+
+// --- WebSocket Connection Logic ---
+wss.on('connection', (ws) => {
+  console.log('Frontend client connected via WebSocket.');
+
+  // This event handler is called when a message is received from the frontend
+  ws.on('message', (message) => {
+    try {
+      const data = JSON.parse(message);
+      // When the frontend starts a webhook workflow, it will send a 'register' event
+      if (data.event === 'register-webhook') {
+        const { workflowId } = data;
+        console.log(`Registering client for webhook ID: ${workflowId}`);
+        // Store the WebSocket connection with its unique workflow ID
+        clients.set(workflowId, ws);
+      }
+    } catch(e) {
+      console.error('Error parsing message from client:', e);
+    }
+  });
+
+  ws.on('close', () => {
+    console.log('Frontend client disconnected.');
+    // Clean up the clients map when a client disconnects
+    for (let [key, value] of clients.entries()) {
+      if (value === ws) {
+        clients.delete(key);
+        console.log(`Unregistered client for webhook ID: ${key}`);
+        break;
+      }
+    }
+  });
+
+  ws.on('error', (error) => {
+    console.error('WebSocket error:', error);
+  });
+});
+
+
+// --- Express Routes ---
 app.get('/', (req, res) => {
   res.send('Workflow Automation Server is running!');
 });
 
+app.post('/webhook/:nodeId', (req, res) => {
+  const { nodeId } = req.params; // Using nodeId now
+  console.log(`Webhook triggered for node ID: ${nodeId}`);
 
-// Endpoint to execute a single workflow node
-app.post('/execute-node', (req, res) => {
-  // Get the node's configuration from the request body
-  const { nodeConfig } = req.body;
+  // The map key is now the permanent node ID
+  const clientWs = clients.get(nodeId);
 
-  if (!nodeConfig) {
-    return res.status(400).json({ success: false, error: 'Node configuration is missing.' });
+  if (clientWs && clientWs.readyState === clientWs.OPEN) {
+    console.log('Notifying frontend via WebSocket...');
+    // *** CRITICAL CHANGE HERE: Send the nodeId back to the frontend ***
+    clientWs.send(JSON.stringify({
+      event: 'webhook-triggered',
+      nodeId: nodeId, // Tell the client WHICH node was triggered
+      data: req.body,
+    }));
+    res.status(200).json({ success: true, message: 'Webhook data successfully forwarded to workflow.' });
+  } else {
+    // ... rest of the function is the same
+    console.warn('No active client listening for this webhook ID.');
+    res.status(404).json({ success: false, error: 'No active workflow is listening for this webhook ID.' });
   }
+});
 
-  console.log(`Server received request to execute node: ${nodeConfig.displayName}`);
-
-  // --- THIS IS WHERE YOUR ACTUAL NODE LOGIC WILL GO ---
-  // For now, we'll just simulate a process that takes 1-2 seconds.
-  // We'll also simulate a 90% success rate, just like the old mock function.
-  
-  const processingTime = Math.random() * 1000 + 1000; // 1-2 seconds
-  setTimeout(() => {
-    const isSuccess = Math.random() > 0.1;
-
-    if (isSuccess) {
-      console.log(`Execution SUCCESS for node: ${nodeConfig.displayName}`);
-      res.json({
-        success: true,
-        data: {
-          message: `Successfully executed ${nodeConfig.displayName}`,
-          receivedAt: new Date().toISOString(),
-        },
-      });
-    } else {
-      console.log(`Execution FAILED for node: ${nodeConfig.displayName}`);
-      res.status(500).json({
-        success: false,
-        error: `Simulated server-side failure for ${nodeConfig.displayName}`,
-      });
+// The existing endpoint for all other nodes remains the same
+app.post('/execute-node', (req, res) => {
+    // ... (Your existing /execute-node logic) ...
+    const { nodeConfig } = req.body;
+    if (!nodeConfig) {
+      return res.status(400).json({ success: false, error: 'Node configuration is missing.' });
     }
-  }, processingTime);
+    console.log(`Server received request to execute node: ${nodeConfig.displayName}`);
+    const processingTime = Math.random() * 1000 + 1000;
+    setTimeout(() => {
+      const isSuccess = Math.random() > 0.1;
+      if (isSuccess) {
+        res.json({ success: true, data: { message: `Successfully executed ${nodeConfig.displayName}` } });
+      } else {
+        res.status(500).json({ success: false, error: `Simulated server-side failure for ${nodeConfig.displayName}` });
+      }
+    }, processingTime);
 });
 
 
-
 // --- Start the Server ---
-// This command starts the server and makes it listen for incoming requests on the specified port.
-app.listen(PORT, () => {
+// We start the combined HTTP and WebSocket server, not the Express app directly.
+server.listen(PORT, () => {
   console.log(`Server is listening on http://localhost:${PORT}`);
 });

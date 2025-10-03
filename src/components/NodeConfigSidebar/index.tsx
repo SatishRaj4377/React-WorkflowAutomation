@@ -87,26 +87,15 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   const renderNodeSpecificFields = (type: NodeType, settings: any) => {
     switch (type) {
       case 'Webhook':
+        const webhookUrl = `http://localhost:3001/webhook/${selectedNode?.id}`;
         return (
           <>
             <div className="config-section">
               <label className="config-label">Webhook URL</label>
               <TextBoxComponent
-                value={settings.url ?? ''}
-                placeholder="https://your-endpoint.example.com/webhook"
-                change={(e: any) => handleConfigChange('url', e.value)}
+                value={settings.url ?? webhookUrl}
+                readOnly={true}
                 cssClass="config-input"
-              />
-            </div>
-            <div className="config-section">
-              <label className="config-label">Method</label>
-              <DropDownListComponent
-                value={settings.method ?? ''}
-                dataSource={HTTP_METHODS}
-                placeholder="Select method"
-                change={(e: any) => handleConfigChange('method', e.value)}
-                popupHeight="240px"
-                zIndex={1000000}
               />
             </div>
           </>

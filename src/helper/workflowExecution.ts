@@ -184,3 +184,50 @@ export const mockExecuteNode = async (
     };
   }
 };
+
+
+/**
+ * Executes a node by sending its config to the backend server.
+ * @param node Node to execute
+ * @param context Execution context
+ */
+export const executeNodeOnServer = async (
+  node: NodeModel,
+  context: ExecutionContext
+): Promise<NodeExecutionResult> => {
+  const nodeConfig = (node.addInfo as any)?.nodeConfig as NodeConfig;
+
+  try {
+    const response = await fetch('http://localhost:3001/execute-node', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ nodeConfig, context }), // Send node config and current context
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      // If response status is not 2xx, throw an error
+      throw new Error(result.error || 'Server returned an error.');
+    }
+    
+    // Store result in execution context
+    if (node.id) {
+      context.results[node.id] = result.data;
+    }
+
+    return {
+      success: true,
+      data: result.data,
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'An unknown network error occurred.';
+    console.error(`Error executing ${nodeConfig?.displayName} on server:`, errorMessage);
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+};

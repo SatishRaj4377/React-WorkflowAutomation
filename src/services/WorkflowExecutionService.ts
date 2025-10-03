@@ -1,8 +1,9 @@
 import { DiagramComponent } from '@syncfusion/ej2-react-diagrams';
 import { NodeModel } from '@syncfusion/ej2-diagrams';
-import { ExecutionContext, NodeExecutionResult, WorkflowExecutionOptions, WorkflowExecutionStatus } from '../types';
-import { findTriggerNodes, findConnectedNodes, updateNodeStatus, resetExecutionStates, mockExecuteNode } from '../helper/workflowExecution';
+import { ExecutionContext, NodeConfig, NodeExecutionResult, WorkflowExecutionOptions, WorkflowExecutionStatus } from '../types';
+import { findTriggerNodes, findConnectedNodes, updateNodeStatus, resetExecutionStates, mockExecuteNode, executeNodeOnServer } from '../helper/workflowExecution';
 import { showErrorToast, showSuccessToast } from '../components/Toast';
+import { getNodeConfig } from '../helper/utilities';
 
 /**
  * Service for managing workflow execution
@@ -39,24 +40,19 @@ export class WorkflowExecutionService {
    */
   async executeWorkflow(): Promise<boolean> {
     try {
-      // Reset previous execution state and create new abort controller
       this.resetExecution();
       this.abortController = new AbortController();
+      this.executionStatus.isExecuting = true;
 
-      // Find trigger nodes
       const triggerNodes = findTriggerNodes(this.diagram);
       if (triggerNodes.length === 0) {
         showErrorToast('Execution Failed', 'No trigger nodes found in the workflow');
         return false;
       }
 
-      this.executionStatus.isExecuting = true;
-
-      // Execute each trigger node and its branches
       for (const triggerNode of triggerNodes) {
         const success = await this.executeBranch(triggerNode);
         if (!success && !this.options.enableDebug) {
-          // Stop on first error unless in debug mode
           return false;
         }
       }
@@ -130,39 +126,74 @@ export class WorkflowExecutionService {
   }
 
   /**
-   * Execute a node with retry logic
+   * Execute a node with retry logic. Handles Webhooks via WebSockets
+   * and all other nodes via HTTP requests.
    */
   private async executeNodeWithRetry(node: NodeModel): Promise<NodeExecutionResult> {
+    const nodeConfig = getNodeConfig(node);
+
+    if (nodeConfig?.nodeType === 'Webhook' && nodeConfig?.category === 'trigger') {
+      return new Promise((resolve, reject) => {
+        if (!node.id) {
+          return reject(new Error('Webhook node is missing an ID.'));
+        }
+
+        const ws = new WebSocket('ws://localhost:3001');
+        const abortHandler = () => {
+          ws.close();
+          reject(new Error('Execution cancelled by user.'));
+        };
+
+        this.abortController.signal.addEventListener('abort', abortHandler);
+
+        ws.onopen = () => {
+          console.log(`Execution: Registering webhook for node ${node.id}`);
+          ws.send(JSON.stringify({ event: 'register-webhook', workflowId: node.id }));
+        };
+
+        ws.onmessage = (event) => {
+          const message = JSON.parse(event.data);
+          if (message.event === 'webhook-triggered' && message.nodeId === node.id) {
+            this.abortController.signal.removeEventListener('abort', abortHandler);
+            ws.close();
+            if (node.id) {
+              this.executionContext.results[node.id] = message.data;
+            }
+            resolve({ success: true, data: message.data });
+          }
+        };
+
+        ws.onerror = (error) => {
+          this.abortController.signal.removeEventListener('abort', abortHandler);
+          reject(new Error('WebSocket connection failed.'));
+        };
+      });
+    }
+
+    // For all other nodes, execute them on the server
     let lastError: Error | undefined;
-    
     for (let attempt = 1; attempt <= this.options.retryCount!; attempt++) {
       try {
-        // Execute with timeout
         const result = await Promise.race([
-          mockExecuteNode(node, this.executionContext),
-          this.createTimeout()
+          executeNodeOnServer(node, this.executionContext),
+          this.createTimeout(),
         ]) as NodeExecutionResult;
 
         if (result.success) {
           return result;
         }
-        
         lastError = new Error(result.error);
       } catch (error) {
         lastError = error as Error;
       }
 
-      // Don't delay on last attempt
       if (attempt < this.options.retryCount!) {
-        await new Promise(resolve => 
-          setTimeout(resolve, this.options.retryDelay)
-        );
+        await new Promise(res => setTimeout(res, this.options.retryDelay));
       }
     }
-
     return {
       success: false,
-      error: lastError?.message || 'Execution failed after retries'
+      error: lastError?.message || 'Execution failed after all retries.',
     };
   }
 
