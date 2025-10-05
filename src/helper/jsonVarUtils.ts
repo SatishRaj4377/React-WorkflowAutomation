@@ -63,7 +63,7 @@ export function buildJsonFromVariables(variables: Variable[]): any {
       const isLast = i === segs.length - 1;
 
       if (isLast) {
-        const leafValue = v.preview ?? (v.type ? `(${v.type})` : null);
+        const leafValue = coerceLeafValue(v);
         if (typeof seg === 'number') {
           if (!Array.isArray(cur)) {
             // Convert object-like current to array-like in place
@@ -175,4 +175,39 @@ export function flattenJsonToVariables(
   }
 
   return out;
+}
+
+// Normalize type label
+function normType(t: any): string {
+  return typeof t === 'string' ? t.toLowerCase() : t;
+}
+
+// Coerce preview into the correct primitive based on v.type
+function coerceLeafValue(v: Variable): any {
+  const t = normType((v as any).type);
+  const p = (v as any).preview;
+
+  switch (t) {
+    case 'number': {
+      const n = typeof p === 'number' ? p : Number(p);
+      return Number.isFinite(n) ? n : null; // fall back if preview isn't numeric
+    }
+    case 'boolean': {
+      if (typeof p === 'boolean') return p;
+      if (typeof p === 'string') {
+        const s = p.trim().toLowerCase();
+        if (s === 'true') return true;
+        if (s === 'false') return false;
+      }
+      return null; // unknown boolean preview → null
+    }
+    case 'null':
+      return null;
+    case 'string':
+      return typeof p === 'string' ? p : String(p ?? '');
+    // For object/array/any we can't reconstruct full structure from a leaf;
+    // keep preview (string) or null. The container nodes show correct types/counts.
+    default:
+      return p ?? null;
+  }
 }

@@ -10,10 +10,20 @@ export interface JsonVisualizerProps {
 }
 
 /** Helpers */
-const INDENT = 14; // px
+const INDENT = 18;
+const EXPAND_LIMIT = 2;
 const isArray = (v: any) => Array.isArray(v);
 const isObject = (v: any) => v !== null && typeof v === 'object' && !Array.isArray(v);
 const isPrimitive = (v: any) => v === null || (typeof v !== 'object' && typeof v !== 'function');
+// Reserve the same space at the start of every row
+const CARET_SLOT_STYLE: React.CSSProperties = {
+  width: 16,
+  height: 16,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flex: '0 0 16px',
+};
 
 // Format short value previews
 function formatPreview(value: any): string {
@@ -65,7 +75,6 @@ const Caret: React.FC<{ open: boolean; onToggle: () => void; title?: string }> =
         justifyContent: 'center',
         width: 16,
         height: 16,
-        marginRight: 2,
         cursor: 'pointer',
         userSelect: 'none',
         transform: open ? 'rotate(0deg)' : 'rotate(-90deg)', // rotate when closed
@@ -101,29 +110,30 @@ const TypeBadge: React.FC<{ text: string }> = ({ text }) => (
   </span>
 );
 
-/** Row with indentation + hover (uses your .vp-item hover styling) */
 const Row: React.FC<{ depth: number; children: React.ReactNode }> = ({ depth, children }) => (
   <div
     className="vp-item"
     style={{
-      padding: '.35rem .5rem',
-      borderRadius: 8,
-      margin: '1px 0',
       display: 'flex',
       alignItems: 'center',
-      paddingLeft: '.5rem',
-      position: 'relative',
+      gap: 6,
+      width: '100%',
+      boxSizing: 'border-box',
+      // Base padding + depth-based indent. Do NOT include caret width here.
+      padding: '.32rem .5rem',
+      paddingInlineStart: `${depth * INDENT + 8}px`,
+      borderRadius: 8,
+      margin: '1px 0',
     }}
   >
-    <div aria-hidden style={{ width: depth * INDENT, flex: '0 0 auto' }} />
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>{children}</div>
+    {children}
   </div>
 );
 
 const ChildrenBlock: React.FC<{ depth: number; children: React.ReactNode }> = ({
-  depth,
   children,
-}) => <div style={{ marginLeft: (depth + 1) * INDENT + 8 }}>{children}</div>;
+}) => <div>{children}</div>;
+
 
 /** Single tree node */
 const TreeNode: React.FC<{
@@ -171,27 +181,65 @@ const TreeNode: React.FC<{
   if (!container) {
     return (
       <Row depth={depth}>
-        <span style={{ width: 16, height: 16, marginRight: 6 }} />
-        <KeyButton label={String(keyLabel)} onClick={clickKey} title={`${path} • Click to insert`} />
-        <span className="vp-preview" style={{ marginLeft: 6 }}>
+        {/* empty slot to align with caret-equipped rows */}
+        <span style={CARET_SLOT_STYLE} />
+        <KeyButton
+          label={String(keyLabel)}
+          onClick={clickKey}
+          title={`${path} • Click to insert`}
+        />
+        <span
+          className="vp-preview"
+          title={isPrimitive(value) ? String(value) : undefined}
+          style={{
+            marginLeft: 6,
+            flex: '1 1 auto',
+            minWidth: 0,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            color: 'var(--text-secondary)',
+            fontSize: '.8rem',
+          }}
+        >
           {preview}
         </span>
         <TypeBadge text={typeText} />
       </Row>
-    );
+    );  const count = isArray(value)
   }
 
   // Objects / Arrays
   return (
     <>
-      <Row depth={depth}>
+    <Row depth={depth}>
+      {/* caret inside fixed-width slot */}
+      <span style={CARET_SLOT_STYLE}>
         <Caret open={open} onToggle={toggle} title={open ? 'Collapse' : 'Expand'} />
-        <KeyButton label={String(keyLabel)} onClick={clickKey} title={`${path} • Click to insert`} />
-        <span className="vp-preview" style={{ marginLeft: 6 }}>
-          {preview}
-        </span>
-        <TypeBadge text={typeText} />
-      </Row>
+      </span>
+
+      <KeyButton
+        label={String(keyLabel)}
+        onClick={clickKey}
+        title={`${path} • Click to insert`}
+      />
+      <span
+        className="vp-preview"
+        style={{
+          marginLeft: 6,
+          flex: '1 1 auto',
+          minWidth: 0,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          color: 'var(--text-secondary)',
+          fontSize: '.8rem',
+        }}
+      >
+        {preview}
+      </span>
+      <TypeBadge text={typeText} />
+    </Row>
 
       {open && (
         <ChildrenBlock depth={depth}>
@@ -204,10 +252,10 @@ const TreeNode: React.FC<{
                   path={joinPath(path, idx)}
                   depth={depth + 1}
                   onKeyClick={onKeyClick}
-                  initialCollapsed={initialCollapsed}
+                  initialCollapsed={initialCollapsed || idx >= EXPAND_LIMIT}
                 />
               ))
-            : Object.keys(value as Record<string, any>).map((k) => (
+            : Object.keys(value as Record<string, any>).map((k, idx) => (
                 <TreeNode
                   key={k}
                   name={k}
@@ -215,7 +263,7 @@ const TreeNode: React.FC<{
                   path={joinPath(path, k)}
                   depth={depth + 1}
                   onKeyClick={onKeyClick}
-                  initialCollapsed={initialCollapsed}
+                  initialCollapsed={initialCollapsed || idx >= EXPAND_LIMIT}
                 />
               ))}
         </ChildrenBlock>
