@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
+import { IconRegistry } from '../../assets/icons';
 
 export interface JsonVisualizerProps {
   data: any;                          // JSON object or array
@@ -43,36 +44,38 @@ const Caret: React.FC<{ open: boolean; onToggle: () => void; title?: string }> =
   open,
   onToggle,
   title,
-}) => (
-  <span
-    role="button"
-    tabIndex={0}
-    aria-label={open ? 'Collapse' : 'Expand'}
-    title={title}
-    onClick={onToggle}
-    onKeyDown={(e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        onToggle();
-      }
-    }}
-    style={{
-      display: 'inline-flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      width: 16,
-      height: 16,
-      marginRight: 6,
-      cursor: 'pointer',
-      userSelect: 'none',
-      transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
-      transition: 'transform .12s ease',
-      color: 'var(--text-secondary, #666)',
-    }}
-  >
-    ▶
-  </span>
-);
+}) => {
+  const ChevronDown = IconRegistry['ChevronDown'];
+  return (
+    <span
+      role="button"
+      tabIndex={0}
+      aria-label={open ? 'Collapse' : 'Expand'}
+      title={title}
+      onClick={onToggle}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onToggle();
+        }
+      }}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 16,
+        height: 16,
+        marginRight: 2,
+        cursor: 'pointer',
+        userSelect: 'none',
+        transform: open ? 'rotate(0deg)' : 'rotate(-90deg)', // rotate when closed
+        transition: 'transform .12s ease',
+      }}
+    >
+      <ChevronDown className="svg-icon"/>
+    </span>
+  );
+};
 
 /** Key button (uses your .vp-key styling) */
 const KeyButton: React.FC<{ label: string; onClick?: () => void; title?: string }> = ({
@@ -233,7 +236,8 @@ const JsonVisualizer: React.FC<JsonVisualizerProps> = ({
     <div
       className={['jsonv', className].filter(Boolean).join(' ')}
       style={{
-        overflowX: 'auto'
+        overflowX: 'auto',
+        overflowY: 'hidden'
       }}
       aria-label="JSON visualizer"
     >

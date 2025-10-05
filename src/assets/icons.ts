@@ -26,6 +26,7 @@ import {ReactComponent as WorkflowLogo} from '../assets/images/svg-icons/workflo
 import {ReactComponent as WorkflowFolder} from '../assets/images/svg-icons/workflow-folder.svg';
 import {ReactComponent as WorkflowFolderSearch} from '../assets/images/svg-icons/workflow-folder-search.svg';
 import {ReactComponent as NodeSearch} from '../assets/images/svg-icons/node-search.svg';
+import {ReactComponent as ChevronDown} from '../assets/images/svg-icons/chevron-down.svg';
 
 export const IconRegistry: { [key: string]: string | React.ElementType } = {
   WorkflowLogo,
@@ -48,7 +49,8 @@ export const IconRegistry: { [key: string]: string | React.ElementType } = {
   TwilioIcon,
   WebhookIcon,
   ManualClickIcon,
-  NodeLoader
+  NodeLoader,
+  ChevronDown
 };
 
 export const templateImages = {
