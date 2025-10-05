@@ -419,7 +419,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           style={{
             border: '1px solid var(--border-color)',
             borderRadius: 8,
-            padding: '.5rem',
+            padding: '.4rem',
             background: 'var(--surface-color)',
           }}
         >

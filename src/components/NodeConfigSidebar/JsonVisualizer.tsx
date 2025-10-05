@@ -233,11 +233,7 @@ const JsonVisualizer: React.FC<JsonVisualizerProps> = ({
     <div
       className={['jsonv', className].filter(Boolean).join(' ')}
       style={{
-        fontFamily:
-          'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"',
-        fontSize: '13px',
-        lineHeight: 1.35,
-        color: 'var(--text-primary, inherit)',
+        overflowX: 'auto'
       }}
       aria-label="JSON visualizer"
     >

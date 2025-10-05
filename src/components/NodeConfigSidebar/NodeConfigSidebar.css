@@ -89,7 +89,7 @@
 }
 
 .config-tab-content {
-  padding: 1.5rem;
+  padding: .6rem;
 }
 
 /* Config Form Styling */
@@ -424,10 +424,6 @@
   
   .config-tabs .e-tab-header .e-toolbar-item .e-tab-text {
     font-size: 0.8rem;
-  }
-  
-  .config-tab-content {
-    padding: 1rem;
   }
 }
 
