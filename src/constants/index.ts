@@ -1,5 +1,6 @@
 import { ItemModel } from "@syncfusion/ej2-react-splitbuttons";
 import { templateImages } from "../assets/icons";
+import { NodeType } from "../types";
 
 export const NODE_MENU = ['editNode', 'delete'];
 export const DIAGRAM_MENU = ['addNode', 'addSticky', 'lockWorkflow', 'selectAll'];
@@ -102,3 +103,15 @@ BOTTOM_RIGHT: { x: 0.75, y: 1 },
 RIGHT_TOP: { x: 1, y: 0.3 },
 RIGHT_BOTTOM: { x: 1, y: 0.7 },
 };
+
+export const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
+export const TIMEZONES = ['UTC', 'Asia/Kolkata', 'America/New_York', 'Europe/London', 'Asia/Tokyo'];
+export const AUTH_NODE_TYPES: NodeType[] = [
+  'Gmail',
+  'Google Sheets',
+  'Google Calendar',
+  'Google Docs',
+  'Telegram',
+  'Twilio',
+  'Azure Chat Model',
+];

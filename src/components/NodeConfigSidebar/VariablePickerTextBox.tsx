@@ -2,8 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom';
 import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { Variable, VariableGroup } from '../../types';
-import { ensurePortalRoot, findNativeInput, insertAtCaret } from '../../helper/domUtils';
-import { buildJsonFromVariables } from '../../helper/jsonVarUtils';
+import { buildJsonFromVariables, ensurePortalRoot, findNativeInput, insertAtCaret } from '../../helper/variablePickerUtils';
 import JsonVisualizer from './JsonVisualizer';
 
 /* -----------------------------------------------------------------------------
@@ -212,14 +211,14 @@ export const VariablePickerPopup: React.FC<PickerPopupProps> = ({
                   data={buildJsonFromVariables(g.variables)}
                   collapsed={false}
                   onKeyClick={(path) => {
-                    // Use the same token format as VariableTextBox default
+                    // Use the same token format as VariablePickerTextBox default
                     const fakeVar = {
                       key: path,
                       path,
                       type: 'any',
                       preview: undefined,
                     } as unknown as Variable;
-                    onPick(fakeVar); // delegate insertion to VariableTextBox
+                    onPick(fakeVar); // delegate insertion to VariablePickerTextBox
                   }}
                 />
               </div>
@@ -232,10 +231,10 @@ export const VariablePickerPopup: React.FC<PickerPopupProps> = ({
 };
 
 /* -----------------------------------------------------------------------------
- * VariableTextBox (opens popup; inserts via caret on pick)
+ * VariablePickerTextBox (opens popup; inserts via caret on pick)
  * -------------------------------------------------------------------------- */
 
-type VariableTextBoxProps = {
+type VariablePickerTextBoxProps = {
   value: string;
   onChange: (next: string) => void;
   placeholder?: string;
@@ -247,7 +246,7 @@ type VariableTextBoxProps = {
   ej2Props?: Partial<TextBoxComponent>;
 };
 
-export const VariableTextBox: React.FC<VariableTextBoxProps> = ({
+export const VariablePickerTextBox: React.FC<VariablePickerTextBoxProps> = ({
   value,
   onChange,
   placeholder,

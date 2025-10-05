@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   SidebarComponent,
   TabComponent,
@@ -11,15 +11,15 @@ import { CheckBoxComponent, ButtonComponent } from '@syncfusion/ej2-react-button
 import { TooltipComponent } from '@syncfusion/ej2-react-popups';
 import { IconRegistry } from '../../assets/icons';
 import { ExecutionContext, NodeConfig, NodeType } from '../../types';
-import { getAvailableVariablesForNode, getNodeOutputAsVariableGroup } from '../../helper/dataUtils';
+import { getAvailableVariablesForNode, getNodeOutputAsVariableGroup } from '../../helper/variablePickerUtils';
 import { Diagram } from '@syncfusion/ej2-diagrams';
-import { VariableTextBox } from './VariablePicker';
+import { VariablePickerTextBox } from './VariablePickerTextBox';
 import { useMemo } from 'react';
 import { CopyableTextBox } from './CopyableTextBox';
-import { buildJsonFromVariables } from '../../helper/jsonVarUtils';
+import { buildJsonFromVariables } from '../../helper/variablePickerUtils';
 import JsonVisualizer from './JsonVisualizer';
+import { AUTH_NODE_TYPES, HTTP_METHODS, TIMEZONES } from '../../constants';
 import './NodeConfigSidebar.css';
-
 
 interface ConfigPanelProps {
   isOpen: boolean;
@@ -31,22 +31,6 @@ interface ConfigPanelProps {
   onNodeConfigChange: (nodeId: string, config: NodeConfig) => void;
 }
 
-/** Shared lists */
-const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
-const TIMEZONES = ['UTC', 'Asia/Kolkata', 'America/New_York', 'Europe/London', 'Asia/Tokyo'];
-
-/** Node types that require an Authentication tab */
-const AUTH_NODE_TYPES: NodeType[] = [
-  'Gmail',
-  'Google Sheets',
-  'Google Calendar',
-  'Google Docs',
-  'Telegram',
-  'Twilio',
-  'Azure Chat Model',
-];
-
-/** Component */
 const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   isOpen,
   onClose,
@@ -56,10 +40,8 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   executionContext,
   onNodeConfigChange,
 }) => {
-  // Hooks first — no conditional hooks to satisfy eslint rules-of-hooks
   const [activeTab, setActiveTab] = useState(0);
 
-  // Resolve icon component only when node exists
   const nodeIconSrc =
     selectedNode?.icon ? (IconRegistry as any)[selectedNode.icon] : null;
 
@@ -67,13 +49,13 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   const availableVariables = useMemo(() => {
     if (!selectedNode || !diagram) return [];
     return getAvailableVariablesForNode(selectedNode.id, diagram, executionContext);
-  }, [selectedNode, diagram, executionContext]);
+  }, [selectedNode?.id, diagram, executionContext]);
 
   //Get the output for the current node
   const nodeOutput = useMemo(() => {
     if (!selectedNode || !diagram) return null;
     return getNodeOutputAsVariableGroup(selectedNode.id, diagram, executionContext);
-  }, [selectedNode, diagram, executionContext]);
+  }, [selectedNode?.id, diagram, executionContext]);
 
   /** Safely update settings */
   const handleConfigChange = (
@@ -190,7 +172,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           <>
             <div className="config-section">
               <label className="config-label">Role</label>
-              <VariableTextBox
+              <VariablePickerTextBox
                 value={settings.role ?? 'Assistant'}
                 onChange={(val) => handleConfigChange('role', val)}
                 cssClass="config-input"
@@ -200,7 +182,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
             </div>
             <div className="config-section">
               <label className="config-label">Goal</label>
-              <VariableTextBox
+              <VariablePickerTextBox
                 value={settings.goal ?? ''}
                 placeholder="Define the agent's objective"
                 onChange={(val) => handleConfigChange('goal', val)}
@@ -250,7 +232,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           <>
             <div className="config-section">
               <label className="config-label">URL</label>
-              <VariableTextBox
+              <VariablePickerTextBox
                 value={settings.url ?? ''}
                 placeholder="https://api.example.com/resource"
                 onChange={(val) => handleConfigChange('url', val)}
@@ -285,7 +267,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
 
             <div className="config-section">
               <label className="config-label">Body</label>
-              <VariableTextBox
+              <VariablePickerTextBox
                 value={settings.body ?? ''}
                 placeholder='{"key":"value"}'
                 onChange={(val) => handleConfigChange('body', val)}
@@ -325,7 +307,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           <>
             <div className="config-section">
               <label className="config-label">Condition</label>
-              <VariableTextBox
+              <VariablePickerTextBox
                 value={settings.condition ?? ''}
                 placeholder="Use an expression or template variable"
                 onChange={(val) => handleConfigChange('condition', val)}
@@ -343,7 +325,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           <>
             <div className="config-section">
               <label className="config-label">Expression</label>
-              <VariableTextBox
+              <VariablePickerTextBox
                 value={settings.expression ?? ''}
                 placeholder="e.g., {{ $.data.status }}"
                 onChange={(val) => handleConfigChange('expression', val)}
@@ -360,7 +342,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           <>
             <div className="config-section">
               <label className="config-label">Predicate</label>
-              <VariableTextBox
+              <VariablePickerTextBox
                 value={settings.predicate ?? ''}
                 placeholder="e.g., item.amount > 1000"
                 onChange={(val) => handleConfigChange('predicate', val)}
@@ -379,7 +361,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   };
 
   /** General tab */
-  const renderGeneralTab = () => {
+  const renderGeneralTab = useCallback(() => {
     const settings = (selectedNode?.settings && selectedNode.settings.general) || {};
     return (
       <div className="config-tab-content">
@@ -396,10 +378,11 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
         {renderNodeSpecificFields(selectedNode!.nodeType, settings)}
       </div>
     );
-  };
+  }, [selectedNode, availableVariables]);
+
 
   /** Authentication tab (only when required) */
-  const renderOutputTab = () => {
+  const renderOutputTab = useCallback(() => {
     if (!nodeOutput) {
       return (
         <div className="config-tab-content">
@@ -427,9 +410,10 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
         </div>
       </div>
     );
-  }
+  }, [ nodeOutput ]);
 
-  const renderAuthenticationTab = () => {
+
+  const renderAuthenticationTab = useCallback(() => {
     const auth = (selectedNode?.settings && selectedNode.settings.authentication) || {};
     const typeVal = auth.type ?? '';
     return (
@@ -506,7 +490,8 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
         )}
       </div>
     );
-  };
+  }, [ selectedNode ]);
+
 
   const requiresAuthTab = !!selectedNode && AUTH_NODE_TYPES.includes(selectedNode.nodeType);
 
@@ -574,12 +559,12 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
               cssClass="config-tabs"
             >
               <TabItemsDirective>
-                <TabItemDirective header={{ text: 'General' }} content={() => renderGeneralTab()} />
+                <TabItemDirective header={{ text: 'General' }} content={renderGeneralTab} />
                 {nodeOutput && (
-                  <TabItemDirective header={{ text: 'Output' }} content={() => renderOutputTab()} />
+                  <TabItemDirective header={{ text: 'Output' }} content={renderOutputTab} />
                 )}
                 {requiresAuthTab && (
-                  <TabItemDirective header={{ text: 'Authentication' }} content={() => renderAuthenticationTab()} />
+                  <TabItemDirective header={{ text: 'Authentication' }} content={renderAuthenticationTab} />
                 )}
               </TabItemsDirective>
             </TabComponent>

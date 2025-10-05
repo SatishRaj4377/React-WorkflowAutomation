@@ -1,4 +1,130 @@
-import { Variable } from '../types';
+import { Diagram } from '@syncfusion/ej2-react-diagrams';
+import { ExecutionContext, Variable, VariableGroup } from '../types';
+import { getNodeConfig } from './utilities';
+
+// ------ VARIBALE PICKER DATA UTILS ------
+
+/** Try multiple common places where a project's ExecutionContext might store outputs */
+function pickNodeOutputFromContext(context: any, nodeId: string): any {
+  if (!context) return undefined;
+  // Common shapes we've seen across workflow engines
+  return (
+    context.outputs?.[nodeId] ??
+    context.results?.[nodeId] ??
+    context.nodeOutputs?.[nodeId] ??
+    context.nodes?.[nodeId]?.output ??
+    context[nodeId]?.output ??
+    context[nodeId] // last-resort: direct bucket
+  );
+}
+
+/** Derive node type/name from Diagram node (best-effort, with safe fallbacks) */
+function getNodeIdentity(
+  diagram: Diagram,
+  nodeId: string
+): { nodeType: string; nodeName: string } {
+  const node: any =
+    (diagram as any).nameTable?.[nodeId] ??
+    ((diagram as any).nodes || []).find((n: any) => n.id === nodeId);
+
+  const nodeConfig = getNodeConfig(node);
+  // Prefer explicit category/type fields first, then fall back to label text
+  const nodeType =
+    nodeConfig?.nodeType ??
+    'Node';
+
+  // Prefer explicit displayName/name fields first, then fall back to label or id
+  const nodeName =
+    nodeConfig?.displayName ??
+    nodeId;
+
+  return { nodeType, nodeName };
+}
+
+/** Produce VariableGroup for a single node using raw output in context */
+export function getNodeOutputAsVariableGroup(
+  nodeId: string,
+  diagram: Diagram,
+  context: ExecutionContext
+): VariableGroup | null {
+  const raw = pickNodeOutputFromContext(context, nodeId);
+  if (raw === undefined) return null; // no output yet for this node
+  const variables = flattenJsonToVariables(raw); // emits all leaves, incl. arrays
+
+  const { nodeType, nodeName } = getNodeIdentity(diagram, nodeId);
+  return {
+    nodeId,
+    nodeType,
+    nodeName,
+    variables,
+  };
+}
+
+/** Return all predecessor groups (BFS using EJ2 APIs with safe fallback) */
+export const getAvailableVariablesForNode = (
+  nodeId: string,
+  diagram: Diagram,
+  context: ExecutionContext
+): VariableGroup[] => {
+  if (!diagram) return [];
+
+  const predecessors = new Set<string>();
+  const queue: string[] = [nodeId];
+
+  const getInEdges = typeof (diagram as any).getInEdges === 'function'
+    ? (id: string) => ((diagram as any).getInEdges(id) || []) as string[]
+    : (_: string) => [] as string[];
+
+  const getConnector = typeof (diagram as any).getConnectorObject === 'function'
+    ? (cid: string) => (diagram as any).getConnectorObject(cid)
+    : (_: string) => null;
+
+  const allConnectors: any[] = ((diagram as any).connectors || []) as any[];
+
+  while (queue.length) {
+    const current = queue.shift()!;
+
+    // Prefer EJ2 API
+    const inEdgeIds = getInEdges(current);
+    if (inEdgeIds.length) {
+      inEdgeIds.forEach((connId) => {
+        const conn = getConnector(connId);
+        const src = conn?.sourceID;
+        if (src && !predecessors.has(src)) {
+          predecessors.add(src);
+          queue.push(src);
+        }
+      });
+      continue;
+    }
+
+    // Fallback scan
+    for (const c of allConnectors) {
+      if (c?.targetID === current && c?.sourceID) {
+        const src = c.sourceID as string;
+        if (!predecessors.has(src)) {
+          predecessors.add(src);
+          queue.push(src);
+        }
+      }
+    }
+  }
+
+  const groups = Array.from(predecessors)
+    .map((pid) => getNodeOutputAsVariableGroup(pid, diagram, context))
+    .filter(Boolean) as VariableGroup[];
+
+  // Debug once; remove in production if noisy
+  console.debug('[getAvailableVariablesForNode]', {
+    nodeId,
+    predecessors: Array.from(predecessors),
+    groups: groups.map((g) => g.nodeId),
+  });
+
+  return groups;
+};
+
+// ------ JSON VISUALIZER UTILS ------
 
 /** Convert bracket indices to dots, split, and coerce numeric segments */
 function normalizeToSegments(key: string): Array<string | number> {
@@ -210,4 +336,37 @@ function coerceLeafValue(v: Variable): any {
     default:
       return p ?? null;
   }
+}
+
+// ------ VARIABLE PICKER DOM UTIL ------
+
+// Insert text at caret for EJ2 input/textarea
+export function insertAtCaret(
+  el: HTMLInputElement | HTMLTextAreaElement,
+  text: string
+): { nextValue: string; nextCaret: number } {
+  const start = el.selectionStart ?? el.value.length;
+  const end = el.selectionEnd ?? el.value.length;
+  const nextValue = el.value.slice(0, start) + text + el.value.slice(end);
+  const nextCaret = start + text.length;
+  return { nextValue, nextCaret };
+}
+
+// Find the native EJ2 input/textarea inside the TextBox wrapper
+export function findNativeInput(container: HTMLElement | null) {
+  if (!container) return null;
+  return container.querySelector(
+    'input.e-input, textarea.e-input'
+  ) as HTMLInputElement | HTMLTextAreaElement | null;
+}
+
+// Ensure a portal root for the popup
+export function ensurePortalRoot(): HTMLElement {
+  let root = document.getElementById('variable-picker-portal-root');
+  if (!root) {
+    root = document.createElement('div');
+    root.id = 'variable-picker-portal-root';
+    document.body.appendChild(root);
+  }
+  return root;
 }
