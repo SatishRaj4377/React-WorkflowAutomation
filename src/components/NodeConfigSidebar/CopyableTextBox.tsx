@@ -59,12 +59,22 @@ export const CopyableTextBox: React.FC<CopyableTextBoxProps> = ({
   const onCopySuccess = () => {
     setCopied(true);
     const icon = iconRef.current;
+
     if (icon) {
-      // Show tick icon removing the copy icon
       icon.classList.remove('e-copy');
       icon.classList.add('e-check');
     }
+
+    // Reset icon and message after a delay (e.g., 2 seconds)
+    setTimeout(() => {
+      setCopied(false);
+      if (icon) {
+        icon.classList.remove('e-check');
+        icon.classList.add('e-copy');
+      }
+    }, 2000);
   };
+
 
   return (
     <div className="config-section">
