@@ -1,0 +1,91 @@
+.chat-popup-body {
+    height: 400px;
+}
+
+.chat-popup{
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    width: 360px;
+    background: var(--surface-color);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    user-select: none;
+}
+
+.chat-popup-title {
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.chat-popup-close {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.chat-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: .5rem .75rem;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--background-color);
+    cursor: move;
+}
+
+/* Hide the scrollbar */
+.chat-popup-body .e-aiassistview .e-views {
+    overflow: auto;
+}
+
+/* Hide the header */
+.chat-popup-body .e-aiassistview .e-view-header {
+    display: none;
+}
+
+.chat-popup-body .e-aiassistview .e-view-content {
+    height: 100%;
+}
+
+/* Stop Response btn styles */
+.chat-popup-body .e-aiassistview .e-stop-response {
+    border: 1px solid var(--border-color);
+}
+
+.chat-popup-body .e-aiassistview .e-stop-response {
+    background-color: var(--background-color);
+    color: var(--text-primary);
+    border-radius: 12px;
+    padding: .4rem 1rem;
+    font-size: 13px;
+}
+
+.chat-popup-body .e-aiassistview .e-stop-response .e-icons.e-assist-stop {
+    font-size: .9rem !important;
+}
+
+/* fix the overflow of textbox */
+.chat-popup-body .e-footer {
+    width: 90%;
+}
+
+/* Textbox focus styles */
+.chat-popup-body .e-footer:not(.e-footer-template).focused {
+    border: 1px solid var(--secondary-color);
+    box-shadow: 0 0 0 1px var(--primary-color);
+}
+
+.chat-popup-body .e-aiassistview .e-footer:not(.e-footer-template) .e-assist-send {
+    color: var(--primary-color);
+}
+
+.chat-popup-body .e-assist-textarea {
+    color: var(--text-primary) !important;
+}

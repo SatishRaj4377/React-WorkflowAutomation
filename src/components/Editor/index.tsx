@@ -16,6 +16,7 @@ import { calculateNewNodePosition, createConnector, createNodeFromTemplate, gene
 import { resetExecutionStates } from '../../helper/workflowExecution';
 import { handleEditorKeyDown } from '../../helper/keyboardShortcuts';
 import { WorkflowExecutionService } from '../../execution/WorkflowExecutionService';
+import { ChatPopup } from '../ChatPopup';
 import './Editor.css';
 
 interface EditorProps {
@@ -33,6 +34,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<NodeConfig | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
+  const [isChatOpen, setChatOpen] = useState(false);
   const [executionContext, setExecutionContext] = useState<ExecutionContext>({ results: {}, variables: {} });
 
   const [projectName, setProjectName] = useState(project.name);
@@ -542,6 +544,13 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
           onNodeConfigChange={handleNodeConfigChange}
           diagram={diagramRef}
           executionContext={executionContext}
+          onOpenChat={() => setChatOpen(true)}
+        />
+
+        {/* Chat Component - shown when the user clicks on the chat trigger node */}
+        <ChatPopup 
+          open={isChatOpen} 
+          onClose={() => setChatOpen(false)} 
         />
 
         {/* Sidebar for Node Palette */}

@@ -200,7 +200,9 @@ body, .e-control, .e-card{
 .e-btn.e-primary:focus {
   outline: none;
   box-shadow: none !important;
+  background: var(--primary-color);
 }
+
 .e-btn:active,
 .e-btn.e-primary:active {
   background: var(--secondary-color);
@@ -252,6 +254,9 @@ body, .e-control, .e-card{
 }
 .e-dropdown-popup ul .e-item:hover {
   color: var(--text-secondary) !important;
+}
+.e-dropdown-popup ul .e-item {
+  font-weight: 500;
 }
 
 /* Selection Color Update */

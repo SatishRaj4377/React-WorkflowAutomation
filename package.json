@@ -9,6 +9,7 @@
     "@syncfusion/ej2-react-diagrams": "*",
     "@syncfusion/ej2-react-dropdowns": "*",
     "@syncfusion/ej2-react-inputs": "*",
+    "@syncfusion/ej2-react-interactive-chat": "*",
     "@syncfusion/ej2-react-lists": "*",
     "@syncfusion/ej2-react-navigations": "*",
     "@syncfusion/ej2-react-notifications": "*",

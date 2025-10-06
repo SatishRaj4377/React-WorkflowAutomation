@@ -29,6 +29,7 @@ interface ConfigPanelProps {
   executionContext: ExecutionContext;
   onDeleteNode: (nodeId: string) => void;
   onNodeConfigChange: (nodeId: string, config: NodeConfig) => void;
+  onOpenChat: () => void;
 }
 
 const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
@@ -39,6 +40,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   diagram,
   executionContext,
   onNodeConfigChange,
+  onOpenChat,
 }) => {
   const [activeTab, setActiveTab] = useState(0);
 
@@ -163,7 +165,14 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
       case 'Chat':
         return (
           <>
-            {/* Implement AI Chat component */}
+            <div className="config-section">
+              <ButtonComponent
+                cssClass="e-primary"
+                onClick={onOpenChat}
+              >
+                Open Chat
+              </ButtonComponent>
+            </div>
           </>
         );
 
