@@ -4,6 +4,7 @@ import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { Variable, VariableGroup } from '../../types';
 import { buildJsonFromVariables, ensurePortalRoot, findNativeInput, insertAtCaret } from '../../helper/variablePickerUtils';
 import JsonVisualizer from './JsonVisualizer';
+import { Draggable } from '@syncfusion/ej2-base';
 
 /* -----------------------------------------------------------------------------
  * Variable Picker Popup
@@ -29,6 +30,7 @@ export const VariablePickerPopup: React.FC<PickerPopupProps> = ({
   zIndex = 1000010,
 }) => {
   const popupRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<Draggable | null>(null);
 
    const GAP = 8;
    const [pos, setPos] = useState<{ top: number; left: number; maxHeight: number }>({
@@ -70,6 +72,22 @@ export const VariablePickerPopup: React.FC<PickerPopupProps> = ({
       window.removeEventListener('resize', onResize);
     };
   }, [open, updatePosition]);
+
+  
+  // Make the variable picker popup draggable by header
+  useEffect(() => {
+    if (!open || !popupRef.current) return;
+    const el = popupRef.current;
+    dragRef.current = new Draggable(el, {
+      clone: false,
+      handle: '.vp-header', // drag only from header
+    });
+    return () => {
+      (dragRef.current as any)?.destroy?.();
+      dragRef.current = null;
+    };
+  }, [open]);
+
 
   // Close on outside click
   useOutsideClick([popupRef], onClose, open);
@@ -127,6 +145,7 @@ export const VariablePickerPopup: React.FC<PickerPopupProps> = ({
           padding: '.5rem .75rem',
           borderBottom: '1px solid var(--border-color)',
           background: 'var(--background-color)',
+          cursor: 'move'
         }}
       >
         <div className="vp-title" style={{ fontSize: '.85rem', fontWeight: 600 }}>
