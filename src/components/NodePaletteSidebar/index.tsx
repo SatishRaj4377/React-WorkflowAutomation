@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import {
   SidebarComponent,
   AccordionComponent,
@@ -8,10 +8,11 @@ import {
 import { ButtonComponent } from "@syncfusion/ej2-react-buttons";
 import { TextBoxComponent } from "@syncfusion/ej2-react-inputs";
 import { NodeTemplate, PaletteCategory } from "../../types";
+import { PortModel } from '@syncfusion/ej2-react-diagrams';
+import { getNodesByCategory } from "../../constants/nodeRegistry";
 import {IconRegistry} from "../../assets/icons";
 import "./NodePaletteSidebar.css";
 
-import { PortModel } from '@syncfusion/ej2-react-diagrams';
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
@@ -38,155 +39,56 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
       }
     });
   };
-  // Sample node templates
-  const nodeCategories: PaletteCategory[] = [
+
+  // Get node categories from registry
+  const nodeCategories: PaletteCategory[] = useMemo(() => ([
     {
       name: "Triggers",
       collapsed: false,
-      nodes: [
-        {
-          id: "webhook-trigger",
-          name: "Webhook",
-          iconId: "WebhookIcon",
-          category: "trigger",
-          nodeType: "Webhook",
-          description: "Receive HTTP requests from external services",
-        },
-        {
-          id: "schedule-trigger",
-          name: "Schedule",
-          iconId: "ScheduleIcon",
-          category: "trigger",
-          nodeType: "Schedule",
-          description: "Trigger workflow on a schedule",
-        },
-        {
-          id: "manual-trigger",
-          name: "Manual Click",
-          iconId: "ManualClickIcon",
-          category: "trigger",
-          nodeType: "Manual Click",
-          description: "When clicked, trigger the workflow",
-        },
-        {
-          id: "chat-trigger",
-          name: "Chat Trigger",
-          iconId: "ChatIcon",
-          category: "trigger",
-          nodeType: "Chat",
-          description: "Trigger workflow from chat messages",
-        },
-      ],
+      nodes: getNodesByCategory('trigger').map(node => ({
+        id: `${node.type.toLowerCase()}-trigger`,
+        name: node.label,
+        iconId: node.iconId,
+        category: node.category,
+        nodeType: node.type,
+        description: node.description
+      }))
     },
     {
       name: "Core",
       collapsed: true,
       nodes: [
-        {
-          id: "ai-agent",
-          name: "AI Agent",
-          iconId: "AiAgentIcon",
-          category: "ai-agent",
-          nodeType: "AI Agent",
-          description: "Use AI agents to process data",
-        },
-        {
-          id: "azure-chat",
-          name: "Azure Chat Model",
-          iconId: "AzureModelIcon",
-          category: "action",
-          nodeType: "Azure Chat Model",
-          description: "Use Azure OpenAI chat models",
-        },
-        {
-          id: "http-request",
-          name: "HTTP Request",
-          iconId: "HttpRequestIcon",
-          category: "action",
-          nodeType: "HTTP Request",
-          description: "Make HTTP requests to APIs",
-        },
-        {
-          id: "send-email",
-          name: "GMail",
-          iconId: "GmailIcon",
-          category: "action",
-          nodeType: "Gmail",
-          description: "Send email notifications",
-        },
-        {
-          id: "sheet",
-          name: "Google Sheets",
-          iconId: "GoogleSheetIcon",
-          category: "action",
-          nodeType: "Google Sheets",
-          description: "Store and Retrieve data from google sheets",
-        },
-        {
-          id: "telegram",
-          name: "Telegram",
-          iconId: "TelegramIcon",
-          category: "action",
-          nodeType: "Telegram",
-          description: "Send messages via Telegram",
-        },
-        {
-          id: "calendar",
-          name: "Google Calendar",
-          iconId: "GoogleCalendarIcon",
-          category: "action",
-          nodeType: "Google Calendar",
-          description: "Manage calendar events",
-        },
-        {
-          id: "docs",
-          name: "Google Docs",
-          iconId: "GoogleDocsIcon",
-          category: "action",
-          nodeType: "Google Docs",
-          description: "Google Docs integration",
-        },
-        {
-          id: "twilio",
-          name: "Twilio",
-          iconId: "TwilioIcon",
-          category: "action",
-          nodeType: "Twilio",
-          description: "Send SMS messages via Twilio",
-        },
-      ],
+        ...getNodesByCategory('ai-agent').map(node => ({
+          id: node.type.toLowerCase().replace(/\s+/g, '-'),
+          name: node.label,
+          iconId: node.iconId,
+          category: node.category,
+          nodeType: node.type,
+          description: node.description
+        })),
+        ...getNodesByCategory('action').map(node => ({
+          id: node.type.toLowerCase().replace(/\s+/g, '-'),
+          name: node.label,
+          iconId: node.iconId,
+          category: node.category,
+          nodeType: node.type,
+          description: node.description
+        }))
+      ]
     },
     {
       name: "Flow",
       collapsed: true,
-      nodes: [
-        {
-          id: "if-condition",
-          name: "If Condition",
-          iconId: "IfConditionIcon",
-          category: "condition",
-          nodeType: "If Condition",
-          description: "Evaluate conditions and branch logic",
-        },
-        {
-          id: "switch-case",
-          name: "Switch Case",
-          iconId: "SwitchConditionIcon",
-          category: "condition",
-          nodeType: "Switch Case",
-          description: "Switch between multiple cases based on conditions",
-        },
-        {
-          id: "filter",
-          name: "Filter",
-          iconId: "FilterIcon",
-          category: "condition",
-          nodeType: "Filter",
-          description: "Filter data based on criteria",
-        },
-      ],
+      nodes: getNodesByCategory('condition').map(node => ({
+        id: node.type.toLowerCase().replace(/\s+/g, '-'),
+        name: node.label,
+        iconId: node.iconId,
+        category: node.category,
+        nodeType: node.type,
+        description: node.description
+      }))
     }
-  ];
+  ]), []);
 
   const filteredCategories = nodeCategories
     .map((category) => ({

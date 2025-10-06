@@ -69,10 +69,12 @@
 .node-template-container.success .node-template {
   border: 1.7px solid var(--node-success-color);
   box-shadow: 0 0 0 1px var(--node-success-color);
+  background-color: var(--node-success-color-light);
 }
 .node-template-container.error .node-template {
   border: 1.7px solid var(--node-error-color);
   box-shadow: 0 0 0 1px var(--node-error-color);
+  background-color: var(--node-error-color-light);
 }
 /* Node action toolbar styles */
 .node-hover-toolbar {

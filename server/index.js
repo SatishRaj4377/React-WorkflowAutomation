@@ -85,23 +85,129 @@ app.post('/webhook/:nodeId', (req, res) => {
   }
 });
 
-// The existing endpoint for all other nodes remains the same
-app.post('/execute-node', (req, res) => {
-    // ... (Your existing /execute-node logic) ...
-    const { nodeConfig } = req.body;
-    if (!nodeConfig) {
-      return res.status(400).json({ success: false, error: 'Node configuration is missing.' });
-    }
-    console.log(`Server received request to execute node: ${nodeConfig.displayName}`);
-    const processingTime = Math.random() * 1000 + 1000;
+// Server-side node execution endpoints for specific integrations
+const mockNodeExecution = (nodeType, data) => {
+  return new Promise((resolve) => {
+    const processingTime = Math.random() * 1000 + 500;
     setTimeout(() => {
-      const isSuccess = Math.random() > 0.1;
-      if (isSuccess) {
-        res.json({ success: true, data: { message: `Successfully executed ${nodeConfig.displayName}` } });
+      const success = Math.random() > 0.1;
+      if (success) {
+        resolve({ 
+          success: true, 
+          data: {
+            ...data,
+            executedAt: new Date().toISOString(),
+            nodeType,
+            executionId: `exec-${Date.now()}`
+          }
+        });
       } else {
-        res.status(500).json({ success: false, error: `Simulated server-side failure for ${nodeConfig.displayName}` });
+        resolve({ 
+          success: false, 
+          error: `Failed to execute ${nodeType} node: Service temporarily unavailable`
+        });
       }
     }, processingTime);
+  });
+};
+
+// Gmail integration endpoint
+app.post('/execute-node/gmail', async (req, res) => {
+  const result = await mockNodeExecution('Gmail', {
+    messages: [
+      { 
+        id: '1', 
+        subject: 'Test Email', 
+        from: 'test@example.com', 
+        date: new Date(),
+        snippet: 'This is a test email message...',
+        hasAttachments: false,
+        labels: ['inbox', 'unread']
+      }
+    ],
+    totalMessages: 1,
+    mailbox: 'inbox'
+  });
+  res.json(result);
+});
+
+// Google Sheets integration endpoint
+app.post('/execute-node/gsheets', async (req, res) => {
+  const result = await mockNodeExecution('Google Sheets', {
+    values: [
+      ['Column 1', 'Column 2', 'Column 3'], 
+      ['Value 1', 'Value 2', 'Value 3'],
+      ['Value 4', 'Value 5', 'Value 6']
+    ],
+    sheetName: 'Sheet1',
+    totalRows: 3,
+    totalColumns: 3,
+    lastUpdated: new Date().toISOString()
+  });
+  res.json(result);
+});
+
+// Google Calendar integration endpoint
+app.post('/execute-node/gcalendar', async (req, res) => {
+  const result = await mockNodeExecution('Google Calendar', {
+    events: [
+      { 
+        id: '1',
+        summary: 'Team Meeting',
+        description: 'Weekly team sync',
+        location: 'Online - Google Meet',
+        start: { dateTime: new Date().toISOString() },
+        end: { dateTime: new Date(Date.now() + 3600000).toISOString() },
+        attendees: ['team@company.com'],
+        status: 'confirmed'
+      }
+    ],
+    calendar: 'primary',
+    timezone: 'UTC'
+  });
+  res.json(result);
+});
+
+// Google Docs integration endpoint
+app.post('/execute-node/gdocs', async (req, res) => {
+  const result = await mockNodeExecution('Google Docs', {
+    document: {
+      id: 'doc1',
+      title: 'Test Document',
+      content: 'This is a test document content',
+      lastModified: new Date().toISOString(),
+      permissions: ['view', 'edit']
+    }
+  });
+  res.json(result);
+});
+
+// Telegram integration endpoint
+app.post('/execute-node/telegram', async (req, res) => {
+  const result = await mockNodeExecution('Telegram', {
+    message: {
+      id: 'msg1',
+      text: 'Test message',
+      chat: { id: 123, type: 'private' },
+      date: new Date().toISOString(),
+      status: 'sent'
+    }
+  });
+  res.json(result);
+});
+
+// Twilio integration endpoint
+app.post('/execute-node/twilio', async (req, res) => {
+  const result = await mockNodeExecution('Twilio', {
+    message: {
+      sid: 'SM123',
+      body: 'Test SMS',
+      to: '+1234567890',
+      status: 'sent',
+      sent: new Date().toISOString()
+    }
+  });
+  res.json(result);
 });
 
 

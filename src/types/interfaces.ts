@@ -1,3 +1,4 @@
+import { NodeModel } from "@syncfusion/ej2-react-diagrams";
 import { ConnectorType, GridStyle, NodeCategories, NodeStatus, NodeType, PaletteCategoryLabels, SnappingSettings, ToastType } from "./types";
 
 export interface NodeConfig {
@@ -129,4 +130,26 @@ export interface WorkflowExecutionOptions {
   retryCount?: number;
   retryDelay?: number;
   enableDebug?: boolean;
+}
+
+export interface NodeExecutor {
+  executeNode(node: NodeModel, context: ExecutionContext): Promise<NodeExecutionResult>;
+  canExecute(node: NodeModel): boolean;
+}
+
+export interface NodeExecutorRegistry {
+  registerExecutor(nodeType: string, executor: NodeExecutor): void;
+  getExecutor(nodeType: string): NodeExecutor | undefined;
+}
+
+export interface NodeExecutionResult {
+  success: boolean;
+  data?: any;
+  error?: string;
+}
+
+export interface ServerNodeConfig {
+  nodeType: string;
+  category: string;
+  endpoint: string;
 }

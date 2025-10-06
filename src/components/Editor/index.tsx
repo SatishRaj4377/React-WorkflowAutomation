@@ -11,11 +11,11 @@ import { useTheme } from '../../contexts/ThemeContext';
 import ConfirmationDialog from '../ConfirmationDialog';
 import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosition, ToolbarAction, ExecutionContext } from '../../types';
 import WorkflowProjectService from '../../services/WorkflowProjectService';
-import { WorkflowExecutionService } from '../../services/WorkflowExecutionService';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
 import { calculateNewNodePosition, createConnector, createNodeFromTemplate, generateOptimizedThumbnail, getDefaultDiagramSettings, getNodePortById } from '../../helper/utilities';
 import { resetExecutionStates } from '../../helper/workflowExecution';
 import { handleEditorKeyDown } from '../../helper/keyboardShortcuts';
+import { WorkflowExecutionService } from '../../execution/WorkflowExecutionService';
 import './Editor.css';
 
 interface EditorProps {
@@ -357,12 +357,24 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   useEffect(() => {
     if (diagramRef) {
       workflowExecutionRef.current = new WorkflowExecutionService(diagramRef, {
-        enableDebug: false,
+        enableDebug: process.env.NODE_ENV === 'development',
         timeout: 30000,
         retryCount: 3,
         retryDelay: 1000
       });
+      
+      // Start listening for updates to execution context
+      workflowExecutionRef.current.onExecutionContextUpdate((context) => {
+        setExecutionContext(context);
+      });
     }
+
+    return () => {
+      // Cleanup on unmount
+      if (workflowExecutionRef.current) {
+        workflowExecutionRef.current.cleanup();
+      }
+    };
   }, [diagramRef]);
 
   useEffect(() => {
