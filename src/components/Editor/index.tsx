@@ -277,15 +277,15 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   };
   const handleAddStickyNote = (position?: StickyNotePosition) => {
     if (diagramRef) {
+      // if no position is provided, place the sticky note in the center of the diagram (bit left)
       if (
         !position ||
         typeof position !== 'object' ||
         typeof position.x !== 'number' ||
         typeof position.y !== 'number'
       ) {
-        // Position the sticky note to center of the diagram
         position = {
-          x: diagramRef.scrollSettings.viewPortWidth / 2,
+          x: diagramRef.scrollSettings.viewPortWidth / 3,
           y: diagramRef.scrollSettings.viewPortHeight / 2,
         };
       }
