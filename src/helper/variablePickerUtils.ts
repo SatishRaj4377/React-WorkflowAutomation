@@ -362,7 +362,7 @@ export function findNativeInput(container: HTMLElement | null) {
 
 // Ensure a portal root for the popup
 export function ensurePortalRoot(): HTMLElement {
-  let root = document.getElementById('variable-picker-portal-root');
+  let root = document.getElementById('popup-portal-root');
   if (!root) {
     root = document.createElement('div');
     root.id = 'popup-portal-root';
