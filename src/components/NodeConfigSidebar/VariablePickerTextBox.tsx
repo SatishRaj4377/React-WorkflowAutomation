@@ -81,6 +81,7 @@ export const VariablePickerPopup: React.FC<PickerPopupProps> = ({
     dragRef.current = new Draggable(el, {
       clone: false,
       handle: '.vp-header', // drag only from header
+      dragArea: '.editor-container'
     });
     return () => {
       (dragRef.current as any)?.destroy?.();

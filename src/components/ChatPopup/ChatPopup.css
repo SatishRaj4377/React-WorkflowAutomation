@@ -1,8 +1,13 @@
-.chat-popup{
+.chat-popup {
     position: absolute;
     top: 80px;
     right: 20px;
+    min-width: 200px;
+    min-height: 38px;
+    max-width: 50%;
+    max-height: 70%;
     width: 340px;
+    height: 340px;
     background: var(--surface-color);
     color: var(--text-primary);
     border: 1px solid var(--border-color);
@@ -10,6 +15,8 @@
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
     overflow: hidden;
     user-select: none;
+    z-index: 100000;
+    resize: both;
 }
 
 .chat-popup-title {
@@ -18,11 +25,14 @@
     color: var(--text-secondary);
 }
 
-.chat-popup-btn-group{
+.chat-popup-btn-group {
     display: flex;
     gap: .6rem;
 }
-.chat-popup-btn, .chat-popup-btn:hover {
+
+.chat-popup-btn,
+.chat-popup-btn:hover,
+.chat-popup-btn:focus {
     background: transparent;
     border: none;
     color: var(--text-secondary);
@@ -30,6 +40,7 @@
     box-shadow: none;
     padding: .1rem !important;
 }
+
 .chat-popup-btn .e-btn-icon {
     font-size: 1rem !important;
 }
@@ -45,7 +56,11 @@
 }
 
 .chat-popup-body {
-    height: 350px;
+    height: 90%;
+}
+
+.chat-popup-body .e-aiassistview {
+    border: none;
 }
 
 /* Hide the scrollbar */

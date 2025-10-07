@@ -17,6 +17,18 @@ export const ChatPopup: React.FC<ChatPopupProps> = ({
 }) => {
   const popupRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<Draggable | null>(null);
+  const [isMinimized, setIsMinimized] = useState(false);
+
+  const toggleMinimize = () => {
+    if (!popupRef.current) return;
+    if (popupRef.current.style.height === '0px'){
+      popupRef.current.style.height = '400px'; // Restore height
+      setIsMinimized(false);
+    } else {
+      popupRef.current.style.height = '0px'; // Minimize
+      setIsMinimized(true);
+    }
+  };
 
   // Make the chat popup draggable by header
   useEffect(() => {
@@ -25,6 +37,7 @@ export const ChatPopup: React.FC<ChatPopupProps> = ({
     dragRef.current = new Draggable(el, {
       clone: false,
       handle: '.chat-popup-header', // drag only from header
+      dragArea: '.editor-container'
     });
     return () => {
       (dragRef.current as any)?.destroy?.();
@@ -54,6 +67,12 @@ export const ChatPopup: React.FC<ChatPopupProps> = ({
             />
           <ButtonComponent
             className="chat-popup-btn"
+            title={isMinimized ? 'Maximize' : 'Minimize'}
+            iconCss={isMinimized ? 'e-icons e-expand' : 'e-icons e-collapse-2'}
+            onClick={toggleMinimize}
+          />
+          <ButtonComponent
+            className="chat-popup-btn"
             title='Close'
             iconCss='e-icons e-close'
             onClick={onClose}
@@ -64,7 +83,6 @@ export const ChatPopup: React.FC<ChatPopupProps> = ({
       {/* Body */}
       <div className="chat-popup-body">
         <AIAssistViewComponent promptPlaceholder='Type a message...'/>
-
       </div>
     </div>,
     ensurePortalRoot()
