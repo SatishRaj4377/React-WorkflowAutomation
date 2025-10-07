@@ -12,8 +12,8 @@ import ConfirmationDialog from '../ConfirmationDialog';
 import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosition, ToolbarAction, ExecutionContext } from '../../types';
 import WorkflowProjectService from '../../services/WorkflowProjectService';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
-import { calculateNewNodePosition, createConnector, createNodeFromTemplate, generateOptimizedThumbnail, getDefaultDiagramSettings, getNodePortById } from '../../helper/utilities';
-import { resetExecutionStates } from '../../helper/workflowExecution';
+import { calculateNewNodePosition, createConnector, createNodeFromTemplate, generateOptimizedThumbnail, getDefaultDiagramSettings, getNodeConfig, getNodePortById } from '../../helper/utilities';
+import { diagramHasChatTrigger, findTriggerNodes, resetExecutionStates } from '../../helper/workflowExecution';
 import { handleEditorKeyDown } from '../../helper/keyboardShortcuts';
 import { WorkflowExecutionService } from '../../execution/WorkflowExecutionService';
 import { ChatPopup } from '../ChatPopup';
@@ -28,6 +28,7 @@ interface EditorProps {
 const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, }) => {
   const { theme } = useTheme();
   const workflowExecutionRef = useRef<WorkflowExecutionService | null>(null);
+  const chatPendingMessageRef = useRef<{ text: string; at: string } | null>(null);
 
   const [nodePaletteSidebarOpen, setNodePaletteSidebarOpen] = useState(false);
   const [nodeConfigPanelOpen, setNodeConfigPanelOpen] = useState(false);
@@ -515,6 +516,67 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isExecuting, isDirty, handleSave, handleToolbarAction]);
+
+  // Auto-start the workflow on user prompt when a Chat trigger exists
+  useEffect(() => {
+    const handleChatPromptEvent = (e: Event) => {
+      const ce = e as CustomEvent<{ text?: string; at?: string }>;
+      const text = (ce.detail?.text || '').trim();
+      if (!text) return; // ignore empty after trim
+
+      const promptPayload = { text, at: ce.detail?.at || new Date().toISOString() };
+
+      // Send the prompt to the waiting Chat trigger (used once it's ready)
+      const dispatchPromptToWaitingChatTrigger = () => {
+        window.dispatchEvent(new CustomEvent('wf:chat:message', { detail: promptPayload }));
+      };
+
+      // If execution already running, just forward the message.
+      if (isExecuting) {
+        dispatchPromptToWaitingChatTrigger();
+        return;
+      }
+
+      // If a Chat trigger exists, start the workflow like clicking Execute
+      if (diagramHasChatTrigger(diagramRef) && workflowExecutionRef.current) {
+        // Cache the prompt until the Chat trigger announces it's ready
+        chatPendingMessageRef.current = promptPayload;
+
+        // Forward exactly once when the trigger signals it's listening
+        const onChatTriggerReadyOnce = () => {
+          const payload = chatPendingMessageRef.current;
+          chatPendingMessageRef.current = null;
+          if (payload) {
+            window.dispatchEvent(new CustomEvent('wf:chat:message', { detail: payload }));
+          }
+        };
+
+        window.addEventListener('wf:chat:ready', onChatTriggerReadyOnce as EventListener, { once: true });
+
+        // Ensure chat popup is visible
+        setChatOpen(true);
+
+        // Start the workflow similar to clicking Execute
+        handleExecuteWorkflow();
+      } else {
+        // No Chat trigger present; optionally forward (or ignore)
+        dispatchPromptToWaitingChatTrigger();
+      }
+    };
+
+    window.addEventListener('wf:chat:prompt', handleChatPromptEvent as EventListener);
+    return () => {
+      window.removeEventListener('wf:chat:prompt', handleChatPromptEvent as EventListener);
+    };
+  }, [isExecuting, diagramHasChatTrigger, handleExecuteWorkflow]);
+
+
+  // Open the chat popup when the engine (executor) requests it
+  useEffect(() => {
+    const handler = () => setChatOpen(true);
+    window.addEventListener('wf:chat:open', handler);
+    return () => window.removeEventListener('wf:chat:open', handler);
+  }, []);
 
   return (
     <div className="editor-container" data-theme={theme}>

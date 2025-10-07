@@ -30,6 +30,16 @@ export const ChatPopup: React.FC<ChatPopupProps> = ({
     }
   };
 
+  const handleUserInput = (args: any) => {
+    const text = (args?.prompt || '').trim();
+    if (text.length > 0 && typeof window !== 'undefined') {
+      // Let the Editor decide whether to auto-start the workflow.
+      window.dispatchEvent(new CustomEvent('wf:chat:prompt', {
+        detail: { text, at: new Date().toISOString() }
+      }));
+    }
+  }
+
   // Make the chat popup draggable by header
   useEffect(() => {
     if (!open || !popupRef.current) return;
@@ -53,12 +63,8 @@ export const ChatPopup: React.FC<ChatPopupProps> = ({
       className="chat-popup"
     >
       {/* Header */}
-      <div
-        className="chat-popup-header"
-      >
-        <div className="chat-popup-title">
-          Chat
-        </div>
+      <div className="chat-popup-header" >
+        <div className="chat-popup-title">Chat</div>
         <div className='chat-popup-btn-group'>
           <ButtonComponent
             className="chat-popup-btn"
@@ -82,7 +88,11 @@ export const ChatPopup: React.FC<ChatPopupProps> = ({
 
       {/* Body */}
       <div className="chat-popup-body">
-        <AIAssistViewComponent promptPlaceholder='Type a message...'/>
+        <AIAssistViewComponent
+          id="workflow-chat"
+          promptPlaceholder='Type a message...'
+          promptRequest={handleUserInput}
+        />
       </div>
     </div>,
     ensurePortalRoot()

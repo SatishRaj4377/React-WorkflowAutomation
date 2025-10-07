@@ -49,6 +49,9 @@ export class ClientSideNodeExecutor extends BaseNodeExecutor {
     await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
 
     switch (nodeConfig.nodeType) {
+      case 'Chat':
+        return this.executeChatTriggerNode(nodeConfig, context);
+
       case 'If Condition':
         return this.executeConditionNode(nodeConfig, context);
 
@@ -71,6 +74,53 @@ export class ClientSideNodeExecutor extends BaseNodeExecutor {
 
       default:
         return { success: false, error: `Unsupported node type: ${nodeConfig.nodeType}` };
+    }
+  }
+
+  private async executeChatTriggerNode(nodeConfig: NodeConfig, context: ExecutionContext): Promise<NodeExecutionResult> {
+    try {
+      
+     // 1) Attach the listener FIRST (so we don't miss the Editor's forwarded message)
+     const waitForMessage = () =>
+       new Promise<{ text: string; at: string }>((resolve, reject) => {
+         const handler = (e: Event) => {
+           const ce = e as CustomEvent<{ text?: string; at?: string }>;
+           const text = (ce.detail?.text || '').trim();
+           if (text.length > 0) {
+             cleanup();
+             resolve({ text, at: ce.detail?.at || new Date().toISOString() });
+           }
+         };
+         const cleanup = (err?: Error) => {
+           window.removeEventListener('wf:chat:message', handler as EventListener);
+           if (err) reject(err);
+         };
+         window.addEventListener('wf:chat:message', handler as EventListener, { once: true });
+       });
+
+     const pending = waitForMessage();
+
+     // 2) Open the popup (UX)
+     if (typeof window !== 'undefined') {
+       window.dispatchEvent(new CustomEvent('wf:chat:open', { detail: { reason: 'chat-trigger' } }));
+     }
+     // 3) Announce we are ready AFTER listener is attached
+     if (typeof window !== 'undefined') {
+       window.dispatchEvent(new CustomEvent('wf:chat:ready'));
+     }
+
+     const message = await pending;
+
+      return {
+        success: true,
+        data: {
+          triggered: true,
+          message,
+          triggeredAt: new Date().toISOString(),
+        }
+      };
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Chat trigger failed' };
     }
   }
 

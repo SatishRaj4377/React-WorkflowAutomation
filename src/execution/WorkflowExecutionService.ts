@@ -181,10 +181,14 @@ export class WorkflowExecutionService {
     }
 
     try {
-      const result = await Promise.race([
-        executor.executeNode(node, this.executionContext),
-        this.createTimeout()
-      ]);
+      // if a chat trigger then don't set timeout, as we will wait for the node to be triggered by a chat message
+      const isChatTrigger = nodeConfig.nodeType === 'Chat';
+      const result = isChatTrigger
+        ? await executor.executeNode(node, this.executionContext) 
+        : await Promise.race([
+            executor.executeNode(node, this.executionContext),
+            this.createTimeout()
+          ]);
 
       // After successful execution, notify context update
       if (result.success) {

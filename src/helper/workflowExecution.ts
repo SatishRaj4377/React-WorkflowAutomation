@@ -2,6 +2,7 @@ import { DiagramComponent } from '@syncfusion/ej2-react-diagrams';
 import { NodeModel } from '@syncfusion/ej2-diagrams';
 import { ExecutionContext, NodeConfig, NodeExecutionResult, NodeStatus } from '../types';
 import { IconRegistry } from '../assets/icons';
+import { getNodeConfig, isTriggerNode } from './utilities';
 
 /**
  * Find all trigger nodes in the workflow
@@ -10,8 +11,21 @@ import { IconRegistry } from '../assets/icons';
  */
 export const findTriggerNodes = (diagram: DiagramComponent): NodeModel[] => {
   return (diagram?.nodes || []).filter(node => {
-    const nodeConfig = (node.addInfo as any)?.nodeConfig as NodeConfig;
-    return nodeConfig?.category === 'trigger';
+    const nodeConfig = getNodeConfig(node);
+    if (nodeConfig)
+      return isTriggerNode(nodeConfig);
+  });
+};
+
+/**
+ * Checks if there is a trigger node in the workflow
+ */
+export const diagramHasChatTrigger = (diagram: DiagramComponent) => {
+  if (!diagram) return false;
+  const triggers = findTriggerNodes(diagram);
+  return triggers.some((node: any) => {
+    const nodeConfig = getNodeConfig(node);
+    return nodeConfig?.nodeType === 'Chat';
   });
 };
 
