@@ -25,7 +25,7 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
   'Schedule': {
     type: 'Schedule',
     category: 'trigger',
-    isServerExecuted: true,
+    isServerExecuted: false,
     label: 'Schedule',
     description: 'Trigger workflow on schedule',
     iconId: 'ScheduleIcon',
@@ -43,7 +43,7 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
   'Chat': {
     type: 'Chat',
     category: 'trigger',
-    isServerExecuted: true,
+    isServerExecuted: false,
     label: 'Chat Trigger',
     description: 'Trigger workflow from chat',
     iconId: 'ChatIcon',
