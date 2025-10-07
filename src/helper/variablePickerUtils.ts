@@ -365,7 +365,7 @@ export function ensurePortalRoot(): HTMLElement {
   let root = document.getElementById('variable-picker-portal-root');
   if (!root) {
     root = document.createElement('div');
-    root.id = 'variable-picker-portal-root';
+    root.id = 'popup-portal-root';
     document.body.appendChild(root);
   }
   return root;
