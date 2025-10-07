@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { SetStateAction, useCallback, useState } from 'react';
 import {
   SidebarComponent,
   TabComponent,
@@ -29,7 +29,8 @@ interface ConfigPanelProps {
   executionContext: ExecutionContext;
   onDeleteNode: (nodeId: string) => void;
   onNodeConfigChange: (nodeId: string, config: NodeConfig) => void;
-  onOpenChat: () => void;
+  isChatOpen: boolean;
+  setChatOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
@@ -40,12 +41,14 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   diagram,
   executionContext,
   onNodeConfigChange,
-  onOpenChat,
+  isChatOpen,
+  setChatOpen,
 }) => {
   const [activeTab, setActiveTab] = useState(0);
 
   const nodeIconSrc =
     selectedNode?.icon ? (IconRegistry as any)[selectedNode.icon] : null;
+  const MessageIcon = IconRegistry['Message'];
 
   // Get the available variables for the variable picker
   const availableVariables = useMemo(() => {
@@ -167,10 +170,13 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           <>
             <div className="config-section">
               <ButtonComponent
-                cssClass="e-primary"
-                onClick={onOpenChat}
+                onClick={() => setChatOpen(prev => !prev)}
+                className='show-chat-button'
               >
-                Open Chat
+                <MessageIcon className='msg-svg-icon'/>
+                <span className='show-chat-btn-text'>
+                  {isChatOpen ? 'Hide Chat' : ' Open Chat'}
+                </span>
               </ButtonComponent>
             </div>
           </>
@@ -387,7 +393,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
         {renderNodeSpecificFields(selectedNode!.nodeType, settings)}
       </div>
     );
-  }, [selectedNode, availableVariables]);
+  }, [selectedNode, availableVariables, isChatOpen]);
 
 
   /** Authentication tab (only when required) */

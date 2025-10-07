@@ -1,12 +1,8 @@
-.chat-popup-body {
-    height: 400px;
-}
-
 .chat-popup{
-    position: fixed;
+    position: absolute;
     top: 80px;
     right: 20px;
-    width: 360px;
+    width: 340px;
     background: var(--surface-color);
     color: var(--text-primary);
     border: 1px solid var(--border-color);
@@ -22,12 +18,20 @@
     color: var(--text-secondary);
 }
 
-.chat-popup-close {
+.chat-popup-btn-group{
+    display: flex;
+    gap: .6rem;
+}
+.chat-popup-btn, .chat-popup-btn:hover {
     background: transparent;
     border: none;
     color: var(--text-secondary);
     cursor: pointer;
-    font-size: 1rem;
+    box-shadow: none;
+    padding: .1rem !important;
+}
+.chat-popup-btn .e-btn-icon {
+    font-size: 1rem !important;
 }
 
 .chat-popup-header {
@@ -38,6 +42,10 @@
     border-bottom: 1px solid var(--border-color);
     background: var(--background-color);
     cursor: move;
+}
+
+.chat-popup-body {
+    height: 350px;
 }
 
 /* Hide the scrollbar */

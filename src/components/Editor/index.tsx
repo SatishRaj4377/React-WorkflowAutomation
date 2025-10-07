@@ -544,7 +544,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
           onNodeConfigChange={handleNodeConfigChange}
           diagram={diagramRef}
           executionContext={executionContext}
-          onOpenChat={() => setChatOpen(true)}
+          isChatOpen={isChatOpen}
+          setChatOpen={setChatOpen}
         />
 
         {/* Chat Component - shown when the user clicks on the chat trigger node */}

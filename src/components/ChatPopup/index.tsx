@@ -4,6 +4,7 @@ import { Draggable } from '@syncfusion/ej2-base';
 import { AIAssistViewComponent  } from '@syncfusion/ej2-react-interactive-chat';
 import { ensurePortalRoot } from '../../helper/variablePickerUtils';
 import './ChatPopup.css';
+import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
 
 type ChatPopupProps = {
   open: boolean;
@@ -45,12 +46,19 @@ export const ChatPopup: React.FC<ChatPopupProps> = ({
         <div className="chat-popup-title">
           Chat
         </div>
-        <button
-          className="chat-popup-close"
-          onClick={onClose}
-        >
-          ✕
-        </button>
+        <div className='chat-popup-btn-group'>
+          <ButtonComponent
+            className="chat-popup-btn"
+            title='Refresh'
+            iconCss='e-icons e-refresh'
+            />
+          <ButtonComponent
+            className="chat-popup-btn"
+            title='Close'
+            iconCss='e-icons e-close'
+            onClick={onClose}
+          />
+        </div>
       </div>
 
       {/* Body */}
