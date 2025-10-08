@@ -145,10 +145,10 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
         return (
           <>
             <div className="config-section">
-              <div className="config-row" style={{ justifyContent: 'space-between' }}>
+              <div className="config-row">
                 <label className="config-label">Cron Expression</label>
                 <TooltipComponent content="e.g., */5 * * * * for every 5 minutes">
-                  <span style={{ color: 'var(--text-secondary)', cursor: 'help' }} className='e-icons e-circle-info'></span>
+                  <span className='e-icons e-circle-info help-icon'></span>
                 </TooltipComponent>
               </div>
               <TextBoxComponent
@@ -243,24 +243,20 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           </>
         );
 
-      case 'Azure Chat Model':
+      case 'Azure Chat Model Tool':
         return (
           <>
             <div className="config-section">
-              <label className="config-label">Deployment</label>
+              <div className="config-row">
+                <label className="config-label">Model Name</label>
+                <TooltipComponent content="The name of the model(deployment) to use (e.g., gpt-4, gpt-35-turbo)">
+                  <span className='e-icons e-circle-info help-icon'></span>
+                </TooltipComponent>
+              </div>
               <TextBoxComponent
-                value={settings.deployment ?? ''}
-                placeholder="Deployment name"
-                change={(e: any) => handleConfigChange('deployment', e.value)}
-                cssClass="config-input"
-              />
-            </div>
-            <div className="config-section">
-              <label className="config-label">Temperature</label>
-              <TextBoxComponent
-                type="number"
-                value={settings.temperature ?? 1}
-                change={(e: any) => handleConfigChange('temperature', e.value)}
+                value={settings.azureModelName ?? ''}
+                placeholder="Enter your Azure  OpenAI Model Name"
+                change={(e: any) => handleConfigChange('azureModelName', e.value)}
                 cssClass="config-input"
               />
             </div>
@@ -421,7 +417,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   }, [selectedNode, availableVariables, isChatOpen]);
 
 
-  /** Authentication tab (only when required) */
+  /** Output tab (shows when a node is executed) */
   const renderOutputTab = useCallback(() => {
     if (!nodeOutput) {
       return (
@@ -453,84 +449,113 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   }, [ nodeOutput ]);
 
 
+  /** Authentication tab */
   const renderAuthenticationTab = useCallback(() => {
-    const auth = (selectedNode?.settings && selectedNode.settings.authentication) || {};
-    const typeVal = auth.type ?? '';
-    return (
-      <div className="config-tab-content">
-        <div className="config-section">
-          <label className="config-label">Authentication Type</label>
-          <DropDownListComponent
-            value={typeVal}
-            dataSource={['Basic Auth', 'Bearer Token', 'OAuth2']}
-            placeholder="Select authentication"
-            change={(e: any) => handleConfigChange('type', e.value, 'authentication')}
-            popupHeight="240px"
-            zIndex={1000000}
-          />
-        </div>
+    if (!selectedNode) return <div></div>;
 
-        {typeVal === 'Basic Auth' && (
-          <>
-            <div className="config-section">
-              <label className="config-label">Username</label>
-              <TextBoxComponent
-                value={auth.username ?? ''}
-                change={(e: any) => handleConfigChange('username', e.value, 'authentication')}
-                cssClass="config-input"
-              />
-            </div>
-            <div className="config-section">
-              <label className="config-label">Password</label>
-              <TextBoxComponent
-                type="password"
-                value={auth.password ?? ''}
-                change={(e: any) => handleConfigChange('password', e.value, 'authentication')}
-                cssClass="config-input"
-              />
-            </div>
-          </>
-        )}
+    const authSettings =(selectedNode.settings && selectedNode.settings.authentication) || {};
 
-        {typeVal === 'Bearer Token' && (
+    // Render node specific authentication fields
+    if (selectedNode.nodeType === 'Azure Chat Model Tool') {
+      return (
+        <div className="config-tab-content">
           <div className="config-section">
-            <label className="config-label">Bearer Token</label>
+            <label className="config-label">API Key</label>
             <TextBoxComponent
-              value={auth.token ?? ''}
-              change={(e: any) => handleConfigChange('token', e.value, 'authentication')}
+              value={authSettings.azureApiKey ?? ''}
+              type='password'
+              placeholder="Enter your Azure OpenAI API key"
+              change={(e: any) => handleConfigChange('azureApiKey', e.value)}
               cssClass="config-input"
+              />
+          </div>
+          <div className="config-section">
+            <label className="config-label">Endpoint</label>
+            <TextBoxComponent
+              value={authSettings.azureEndpoint ?? ''}
+              placeholder="Enter your Azure OpenAI API endpoint"
+              change={(e: any) => handleConfigChange('azureEndpoint', e.value)}
+              cssClass="config-input"
+              />
+          </div>
+        </div>
+      );
+    } else {
+      // For all other auth-required nodes (e.g., Gmail, Telegram)
+      const typeVal = authSettings.type ?? '';
+      return (
+        <div className="config-tab-content">
+          <div className="config-section">
+            <label className="config-label">Authentication Type</label>
+            <DropDownListComponent
+              value={typeVal}
+              dataSource={['Basic Auth', 'Bearer Token', 'OAuth2']}
+              placeholder="Select authentication"
+              change={(e: any) => handleConfigChange('type', e.value, 'authentication')}
+              popupHeight="240px"
+              zIndex={1000000}
             />
           </div>
-        )}
-
-        {typeVal === 'OAuth2' && (
-          <>
+          {typeVal === 'Basic Auth' && (
+            <>
+              <div className="config-section">
+                <label className="config-label">Username</label>
+                <TextBoxComponent
+                  value={authSettings.username ?? ''}
+                  change={(e: any) => handleConfigChange('username', e.value, 'authentication')}
+                  cssClass="config-input"
+                />
+              </div>
+              <div className="config-section">
+                <label className="config-label">Password</label>
+                <TextBoxComponent
+                  type="password"
+                  value={authSettings.password ?? ''}
+                  change={(e: any) => handleConfigChange('password', e.value, 'authentication')}
+                  cssClass="config-input"
+                />
+              </div>
+            </>
+          )}
+          {typeVal === 'Bearer Token' && (
             <div className="config-section">
-              <label className="config-label">Account</label>
-              <DropDownListComponent
-                value={auth.account ?? ''}
-                dataSource={['Connect new…']}
-                placeholder="Choose or connect account"
-                change={(e: any) => handleConfigChange('account', e.value, 'authentication')}
-                popupHeight="240px"
-                zIndex={1000000}
-              />
-            </div>
-            <div className="config-section">
-              <label className="config-label">Scopes</label>
+              <label className="config-label">Bearer Token</label>
               <TextBoxComponent
-                value={auth.scopes ?? ''}
-                placeholder="space-separated scopes"
-                change={(e: any) => handleConfigChange('scopes', e.value, 'authentication')}
-                cssClass="config-textarea"
-                multiline
+                value={authSettings.token ?? ''}
+                change={(e: any) => handleConfigChange('token', e.value, 'authentication')}
+                cssClass="config-input"
               />
             </div>
-          </>
-        )}
-      </div>
-    );
-  }, [ selectedNode ]);
+          )}
+          {typeVal === 'OAuth2' && (
+            <>
+              <div className="config-section">
+                <label className="config-label">Account</label>
+                <DropDownListComponent
+                  value={authSettings.account ?? ''}
+                  dataSource={['Connect new…']}
+                  placeholder="Choose or connect account"
+                  change={(e: any) => handleConfigChange('account', e.value, 'authentication')}
+                  popupHeight="240px"
+                  zIndex={1000000}
+                />
+              </div>
+              <div className="config-section">
+                <label className="config-label">Scopes</label>
+                <TextBoxComponent
+                  value={authSettings.scopes ?? ''}
+                  placeholder="space-separated scopes"
+                  change={(e: any) => handleConfigChange('scopes', e.value, 'authentication')}
+                  cssClass="config-textarea"
+                  multiline
+                />
+              </div>
+            </>
+          )}
+        </div>
+      );
+    }
+  }, [selectedNode]);
 
 
   const requiresAuthTab = !!selectedNode && AUTH_NODE_TYPES.includes(selectedNode.nodeType);

@@ -146,8 +146,8 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     description: 'Filter array items',
     iconId: 'FilterIcon',
   },
-  'Azure Chat Model': {
-    type: 'Azure Chat Model',
+  'Azure Chat Model Tool': {
+    type: 'Azure Chat Model Tool',
     category: 'tool',
     paletteCategory: 'Tools',
     isServerExecuted: true,
@@ -156,7 +156,7 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     iconId: 'AzureModelIcon',
   },
   'Gmail Tool': {
-    type: 'Gmail',
+    type: 'Gmail Tool',
     category: 'tool',
     paletteCategory: 'Tools',
     isServerExecuted: true,
@@ -165,7 +165,7 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     iconId: 'GmailIcon',
   },
   'Google Sheets Tool': {
-    type: 'Google Sheets',
+    type: 'Google Sheets Tool',
     category: 'tool',
     paletteCategory: 'Tools',
     isServerExecuted: true,
@@ -174,7 +174,7 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     iconId: 'GoogleSheetIcon',
   },
   'Google Calendar Tool': {
-    type: 'Google Calendar',
+    type: 'Google Calendar Tool',
     category: 'tool',
     paletteCategory: 'Tools',
     isServerExecuted: true,
@@ -183,7 +183,7 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     iconId: 'GoogleCalendarIcon',
   },
   'Google Docs Tool': {
-    type: 'Google Docs',
+    type: 'Google Docs Tool',
     category: 'tool',
     paletteCategory: 'Tools',
     isServerExecuted: true,

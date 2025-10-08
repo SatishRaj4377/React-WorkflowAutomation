@@ -200,7 +200,6 @@ body, .e-control, .e-card{
 .e-btn.e-primary:focus {
   outline: none;
   box-shadow: none !important;
-  background: var(--primary-color);
 }
 
 .e-btn:active,

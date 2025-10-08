@@ -114,5 +114,5 @@ export const AUTH_NODE_TYPES: NodeType[] = [
   'Google Docs',
   'Telegram',
   'Twilio',
-  'Azure Chat Model',
+  'Azure Chat Model Tool',
 ];
