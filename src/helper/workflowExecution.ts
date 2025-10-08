@@ -35,16 +35,35 @@ export const diagramHasChatTrigger = (diagram: DiagramComponent) => {
  * @param nodeId Current node ID
  * @returns Array of connected target nodes
  */
-export const findConnectedNodes = (diagram: DiagramComponent, nodeId: string): NodeModel[] => {
-  const connectors = diagram?.connectors || [];
-  const connectedNodeIds = connectors
-    .filter(conn => conn.sourceID === nodeId)
-    .map(conn => conn.targetID);
-    
-  return diagram?.nodes.filter(node => 
-    connectedNodeIds.includes(node.id as string)
-  ) || [];
-};
+export function findConnectedNodes(diagram: any, nodeId: string) {
+  const sourceNode = diagram.getObject(nodeId);
+  if (!sourceNode) return [];
+
+  const nodeCfg = getNodeConfig(sourceNode);
+  const type = (nodeCfg?.nodeType || '').toLowerCase();
+
+  // Pick main-flow ports for this node
+  let allowedSourcePorts: string[];
+  if (type === 'ai agent') {
+    // AI Agent main flow → right-port only; exclude bottom-* (tools)
+    allowedSourcePorts = ['right-port'];
+  } else if (type === 'if condition' || type === 'switch case') {
+    allowedSourcePorts = ['right-top-port', 'right-bottom-port'];
+  } else {
+    allowedSourcePorts = ['right-port'];
+  }
+
+  const targets = (diagram.connectors || [])
+    .filter((conn: any) => conn.sourceID === nodeId && allowedSourcePorts.includes(conn.sourcePortID))
+    .map((conn: any) => diagram.getObject(conn.targetID))
+    // never traverse into tool nodes
+    .filter((node: any) => {
+      const nodeConfig = getNodeConfig(node)
+      return nodeConfig?.category !== 'tool';
+    });
+
+  return targets;
+}
 
 /**
  * Update the visual state of a node during/after execution

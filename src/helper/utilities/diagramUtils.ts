@@ -156,3 +156,21 @@ export const bringConnectorsToFront = (diagram: DiagramComponent) => {
   // Clear selection to avoid UI side effects
   diagram.clearSelection();
 }
+
+/** Find node connected out of a specific source port */
+export const getConnectedTargetBySourcePort = (diagram: any, sourceId: string, sourcePortId: string): NodeModel | undefined => {
+  if (!diagram?.connectors) return undefined;
+  const conn = diagram.connectors.find((c: any) =>
+    c.sourceID === sourceId && c.sourcePortID === sourcePortId
+  );
+  return conn ? diagram.getObject(conn.targetID) : undefined;
+}
+
+/** Find node connected into a specific target port */
+export const getConnectedSourceByTargetPort = (diagram: any, targetId: string, targetPortId: string): NodeModel | undefined => {
+  if (!diagram?.connectors) return undefined;
+  const conn = diagram.connectors.find((c: any) =>
+    c.targetID === targetId && c.targetPortID === targetPortId
+  );
+  return conn ? diagram.getObject(conn.sourceID) : undefined;
+}

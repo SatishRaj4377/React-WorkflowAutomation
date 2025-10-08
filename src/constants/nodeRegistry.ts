@@ -150,7 +150,7 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     type: 'Azure Chat Model Tool',
     category: 'tool',
     paletteCategory: 'Tools',
-    isServerExecuted: true,
+    isServerExecuted: false,
     label: 'Azure Chat Model',
     description: 'Process with Azure chat model',
     iconId: 'AzureModelIcon',

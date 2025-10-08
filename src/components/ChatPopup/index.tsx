@@ -17,6 +17,8 @@ export const ChatPopup: React.FC<ChatPopupProps> = ({
 }) => {
   const popupRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<Draggable | null>(null);
+  const aiViewRef = useRef<any>(null);
+
   const [isMinimized, setIsMinimized] = useState(false);
 
   const toggleMinimize = () => {
@@ -55,6 +57,18 @@ export const ChatPopup: React.FC<ChatPopupProps> = ({
     };
   }, [open]);
 
+  // Update the response in the chat received from AI
+  useEffect(() => {
+    const onAssistantReply = (e: Event) => {
+      const ce = e as CustomEvent<{ text?: string }>;
+      const reply = (ce.detail?.text || '').trim();
+      if (!reply) return;
+      aiViewRef.current?.addPromptResponse?.(reply);
+    };
+    window.addEventListener('wf:chat:assistant-response', onAssistantReply as EventListener);
+    return () => window.removeEventListener('wf:chat:assistant-response', onAssistantReply as EventListener);
+  }, []);
+  
   if (!open) return null;
 
   return createPortal(
@@ -90,6 +104,7 @@ export const ChatPopup: React.FC<ChatPopupProps> = ({
       <div className="chat-popup-body">
         <AIAssistViewComponent
           id="workflow-chat"
+          ref={aiViewRef}
           promptPlaceholder='Type a message...'
           promptRequest={handleUserInput}
         />

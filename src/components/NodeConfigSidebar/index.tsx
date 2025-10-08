@@ -246,20 +246,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
       case 'Azure Chat Model Tool':
         return (
           <>
-            <div className="config-section">
-              <div className="config-row">
-                <label className="config-label">Model Name</label>
-                <TooltipComponent content="The name of the model(deployment) to use (e.g., gpt-4, gpt-35-turbo)">
-                  <span className='e-icons e-circle-info help-icon'></span>
-                </TooltipComponent>
-              </div>
-              <TextBoxComponent
-                value={settings.azureModelName ?? ''}
-                placeholder="Enter your Azure  OpenAI Model Name"
-                change={(e: any) => handleConfigChange('azureModelName', e.value)}
-                cssClass="config-input"
-              />
-            </div>
+
           </>
         );
 
@@ -453,7 +440,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   const renderAuthenticationTab = useCallback(() => {
     if (!selectedNode) return <div></div>;
 
-    const authSettings =(selectedNode.settings && selectedNode.settings.authentication) || {};
+    const authSettings =(selectedNode?.settings && selectedNode.settings.authentication) || {};
 
     // Render node specific authentication fields
     if (selectedNode.nodeType === 'Azure Chat Model Tool') {
@@ -464,8 +451,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
             <TextBoxComponent
               value={authSettings.azureApiKey ?? ''}
               type='password'
-              placeholder="Enter your Azure OpenAI API key"
-              change={(e: any) => handleConfigChange('azureApiKey', e.value)}
+              change={(e: any) => handleConfigChange('azureApiKey', e.value, 'authentication')}
               cssClass="config-input"
               />
           </div>
@@ -473,11 +459,23 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
             <label className="config-label">Endpoint</label>
             <TextBoxComponent
               value={authSettings.azureEndpoint ?? ''}
-              placeholder="Enter your Azure OpenAI API endpoint"
-              change={(e: any) => handleConfigChange('azureEndpoint', e.value)}
+              change={(e: any) => handleConfigChange('azureEndpoint', e.value, 'authentication')}
               cssClass="config-input"
               />
           </div>
+          <div className="config-section">
+              <div className="config-row">
+                <label className="config-label">Model (Deployment) Name</label>
+                <TooltipComponent content="The name of the model(deployment) to use (e.g., gpt-4, gpt-35-turbo)">
+                  <span className='e-icons e-circle-info help-icon'></span>
+                </TooltipComponent>
+              </div>
+              <TextBoxComponent
+                value={authSettings.azureDeploymentName ?? ''}
+                change={(e: any) => handleConfigChange('azureDeploymentName', e.value, 'authentication')}
+                cssClass="config-input"
+              />
+            </div>
         </div>
       );
     } else {

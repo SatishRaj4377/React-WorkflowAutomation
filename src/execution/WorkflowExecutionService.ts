@@ -92,6 +92,8 @@ export class WorkflowExecutionService {
     this.resetExecution();
     this.abortController = new AbortController();
     this.executionStatus.isExecuting = true;
+    // Allow client executors (AI Agent) to resolve connected nodes/port
+    (this.executionContext as any).diagram = this.diagram;
   }
 
   /**
