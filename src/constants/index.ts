@@ -94,6 +94,7 @@ export const NODE_DIMENSIONS = {
 };
 
 export const PORT_POSITIONS = {
+    TOP: { x: 0.5, y: 0 },
     LEFT: { x: -0.04, y: 0.5 }, // Slight left offset to improve connector link visibility
     AI_AGENT_LEFT: { x: -0.02, y: 0.5 }, // Slight left offset to improve connector link visibility
     RIGHT: { x: 1, y: 0.5 },

@@ -53,7 +53,10 @@
   position: relative;
 }
 .node-template.trigger-node {
-  border-radius: 26px 8px 8px 26px; /* different shape for trigger node */
+  border-radius: 30px 8px 8px 30px; /* different shape for trigger node */
+}
+.node-template.tool-node {
+  border-radius: 100%; /* different shape for tool node - circular shape */
 }
 .node-template-container.running .node-template {
   background-color: var(--box-shadow);
@@ -191,6 +194,16 @@
 }
 
 /* Port styles for different node types */
+.node-port-top {
+  position: absolute;
+  top: 0px;
+  width: 12px;
+  height: 12px;
+  background-color: var(--node-border-color);
+  transform: translateY(-50%) rotate(45deg);
+  z-index: 10;
+  border-radius: 2px;
+}
 .node-port-left {
   position: absolute;
   left: -7px;

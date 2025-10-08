@@ -1,5 +1,5 @@
 import { NodeModel } from "@syncfusion/ej2-react-diagrams";
-import { ConnectorType, GridStyle, NodeCategories, NodeStatus, NodeType, PaletteCategoryLabels, SnappingSettings, ToastType } from "./types";
+import { ConnectorType, GridStyle, NodeCategories, NodeStatus, NodeType, PaletteCategoryLabel, SnappingSettings, ToastType } from "./types";
 
 export interface NodeConfig {
   id: string;
@@ -41,7 +41,7 @@ export interface ProjectData {
 }
 
 export interface PaletteCategory {
-  name: PaletteCategoryLabels;
+  name: PaletteCategoryLabel;
   nodes: NodeTemplate[];
   collapsed: boolean;
 }
@@ -85,6 +85,7 @@ export interface StickyNotePosition {
 }
 
 export interface PortConfiguration {
+  topPort?: boolean;
   leftPort?: boolean;
   rightPort?: boolean;
   rightTopPort?: boolean;

@@ -23,9 +23,9 @@ export type NodeDimensions = {
 
 export type PortSide = 'Right' | 'Bottom';
 
-export type NodeCategories = 'trigger' | 'action' | 'sticky' | 'condition' | 'ai-agent';
+export type NodeCategories = 'trigger' | 'action' | 'sticky' | 'condition' | 'ai-agent' | 'tool';
 
-export type PaletteCategoryLabels = 'Triggers' | 'Core' | 'Flow';
+export type PaletteCategoryLabel = 'Triggers' | 'Core' | 'Flow' | 'Tools';
 
 export type GridStyle = 'lines' | 'dotted' | 'none';
 
@@ -40,10 +40,14 @@ export type NodeType =
   | 'Azure Chat Model'
   | 'HTTP Request'
   | 'Gmail'
+  | 'Gmail Tool'
   | 'Google Sheets'
+  | 'Google Sheets Tool'
   | 'Telegram'
   | 'Google Calendar'
+  | 'Google Calendar Tool'
   | 'Google Docs'
+  | 'Google Docs Tool'
   | 'Twilio'
   | 'If Condition'
   | 'Switch Case'

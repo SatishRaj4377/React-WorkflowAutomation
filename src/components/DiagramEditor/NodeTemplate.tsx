@@ -21,11 +21,12 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo, onNodeToolbarA
   const nodeIconSrc = nodeConfig.icon ? IconRegistry[nodeConfig.icon] : null;
   const portConfig = getNodePortConfiguration(nodeConfig);
   const isAiAgent = isAiAgentNode(nodeConfig);
+
+  const isRightPortOnly  = portConfig.rightPort && !portConfig.leftPort;
   
   return (
     <div className="node-template-container">
-      <div className={`node-template ${portConfig.rightPort && !portConfig.leftPort ? 'trigger-node' : ''}`} data-node-id={`${id}`} >
-        
+      <div className={`node-template ${isRightPortOnly ? 'trigger-node' : portConfig.topPort ? 'tool-node' : ''}`} data-node-id={`${id}`} >
         {/* Show Node actions toolbar on hover */}
         <div className="node-hover-toolbar">
           <ButtonComponent title='Edit' iconCss='e-icons e-edit' className="node-toolbar-btn" onClick={() => onNodeToolbarAction?.(id, 'edit')} />
@@ -33,6 +34,7 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo, onNodeToolbarA
         </div>
 
         {/* Port Rendering Logic based on configuration */}
+        {portConfig.topPort && <div className="node-port-top"></div>}
         {portConfig.leftPort && <div className="node-port-left"></div>}
         {portConfig.rightPort && <div className="node-port-right"></div>}
         {portConfig.rightTopPort && <div className="node-port-right-top"></div>}

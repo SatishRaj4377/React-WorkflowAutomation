@@ -1,6 +1,6 @@
 import { NodeModel, Point, PointPortModel, PortConstraints, PortModel, PortVisibility } from "@syncfusion/ej2-react-diagrams";
 import { NodeCategories, NodeConfig, NodePortDirection, PortConfiguration, PortSide } from "../../types";
-import { isAiAgentNode, isIfOrSwitchCondition, isTriggerNode } from "./nodeUtils";
+import { isAiAgentNode, isIfOrSwitchCondition, isToolNode, isTriggerNode } from "./nodeUtils";
 import { PORT_POSITIONS } from "../../constants";
 
 export const createPort = (
@@ -9,7 +9,6 @@ export const createPort = (
   shape: "Circle" | "Square" = "Circle",
   size: number = 20,
   constraints: PortConstraints,
-  tooltip?: string
 ): PointPortModel => ({
   id,
   offset,
@@ -19,7 +18,6 @@ export const createPort = (
   style: { fill: "transparent", strokeColor: "transparent" },
   visibility: PortVisibility.Visible,
   constraints,
-  ...(tooltip ? { tooltip: { content: tooltip } } : {}),
 });
 
 export const getPortsForNode = (type: NodeCategories): PortModel[] => {
@@ -28,9 +26,9 @@ export const getPortsForNode = (type: NodeCategories): PortModel[] => {
       return [
         createPort("left-port", PORT_POSITIONS.AI_AGENT_LEFT, "Circle", 20, PortConstraints.InConnect),
         createPort("right-port", PORT_POSITIONS.RIGHT, "Circle", 20, PortConstraints.OutConnect | PortConstraints.Draw),
-        createPort("bottom-left-port", PORT_POSITIONS.BOTTOM_LEFT, "Square", 14, PortConstraints.OutConnect | PortConstraints.Draw, "Chat Model"),
+        createPort("bottom-left-port", PORT_POSITIONS.BOTTOM_LEFT, "Square", 14, PortConstraints.OutConnect | PortConstraints.Draw),
         // createPort("bottom-middle-port", PORT_POSITIONS.BOTTOM_MIDDLE, "Square", 14, PortConstraints.OutConnect | PortConstraints.Draw, "Memory"),
-        createPort("bottom-right-port", PORT_POSITIONS.BOTTOM_RIGHT, "Square", 14, PortConstraints.OutConnect | PortConstraints.Draw, "Tools"),
+        createPort("bottom-right-port", PORT_POSITIONS.BOTTOM_RIGHT, "Square", 14, PortConstraints.OutConnect | PortConstraints.Draw),
       ];
 
     case "condition":
@@ -43,6 +41,11 @@ export const getPortsForNode = (type: NodeCategories): PortModel[] => {
     case "trigger":
       return [
         createPort("right-port", PORT_POSITIONS.RIGHT, "Circle", 20, PortConstraints.OutConnect | PortConstraints.Draw),
+      ];
+
+    case "tool":
+      return [
+        createPort("top-port", PORT_POSITIONS.TOP, "Circle", 20, PortConstraints.InConnect),
       ];
 
     default: // action node
@@ -147,6 +150,12 @@ export const getNodePortConfiguration = (nodeConfig: NodeConfig): PortConfigurat
       bottomMiddlePort: true,
       bottomRightPort: true
     };
+  }
+
+  if (isToolNode(nodeConfig)){
+    return {
+      topPort: true
+    }
   }
 
   // Default for action nodes

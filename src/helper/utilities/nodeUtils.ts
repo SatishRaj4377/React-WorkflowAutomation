@@ -159,3 +159,7 @@ export const isStickyNote = (nodeConfig: NodeConfig): boolean =>
 export const isIfOrSwitchCondition = (nodeConfig: NodeConfig): boolean =>
   isConditionNode(nodeConfig) &&
   (nodeConfig.nodeType === 'If Condition' || nodeConfig.nodeType === 'Switch Case');
+
+// Check if node is a tool type
+export const isToolNode = (nodeConfig: NodeConfig): boolean =>
+  nodeConfig?.category === 'tool';

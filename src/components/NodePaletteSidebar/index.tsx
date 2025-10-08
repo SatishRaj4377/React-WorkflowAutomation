@@ -9,7 +9,7 @@ import { ButtonComponent } from "@syncfusion/ej2-react-buttons";
 import { TextBoxComponent } from "@syncfusion/ej2-react-inputs";
 import { NodeTemplate, PaletteCategory } from "../../types";
 import { PortModel } from '@syncfusion/ej2-react-diagrams';
-import { getNodesByCategory } from "../../constants/nodeRegistry";
+import { getNodesByPaletteCategory } from "../../constants/nodeRegistry";
 import {IconRegistry} from "../../assets/icons";
 import "./NodePaletteSidebar.css";
 
@@ -45,7 +45,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
     {
       name: "Triggers",
       collapsed: false,
-      nodes: getNodesByCategory('trigger').map(node => ({
+      nodes: getNodesByPaletteCategory('Triggers').map(node => ({
         id: `${node.type.toLowerCase()}-trigger`,
         name: node.label,
         iconId: node.iconId,
@@ -58,15 +58,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
       name: "Core",
       collapsed: true,
       nodes: [
-        ...getNodesByCategory('ai-agent').map(node => ({
-          id: node.type.toLowerCase().replace(/\s+/g, '-'),
-          name: node.label,
-          iconId: node.iconId,
-          category: node.category,
-          nodeType: node.type,
-          description: node.description
-        })),
-        ...getNodesByCategory('action').map(node => ({
+        ...getNodesByPaletteCategory('Core').map(node => ({
           id: node.type.toLowerCase().replace(/\s+/g, '-'),
           name: node.label,
           iconId: node.iconId,
@@ -79,7 +71,19 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
     {
       name: "Flow",
       collapsed: true,
-      nodes: getNodesByCategory('condition').map(node => ({
+      nodes: getNodesByPaletteCategory('Flow').map(node => ({
+        id: node.type.toLowerCase().replace(/\s+/g, '-'),
+        name: node.label,
+        iconId: node.iconId,
+        category: node.category,
+        nodeType: node.type,
+        description: node.description
+      }))
+    },
+    {
+      name: "Tools",
+      collapsed: true,
+      nodes: getNodesByPaletteCategory('Tools').map(node => ({
         id: node.type.toLowerCase().replace(/\s+/g, '-'),
         name: node.label,
         iconId: node.iconId,
