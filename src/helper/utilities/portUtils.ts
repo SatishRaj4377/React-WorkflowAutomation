@@ -29,7 +29,7 @@ export const getPortsForNode = (type: NodeCategories): PortModel[] => {
         createPort("left-port", PORT_POSITIONS.AI_AGENT_LEFT, "Circle", 20, PortConstraints.InConnect),
         createPort("right-port", PORT_POSITIONS.RIGHT, "Circle", 20, PortConstraints.OutConnect | PortConstraints.Draw),
         createPort("bottom-left-port", PORT_POSITIONS.BOTTOM_LEFT, "Square", 14, PortConstraints.OutConnect | PortConstraints.Draw, "Chat Model"),
-        createPort("bottom-middle-port", PORT_POSITIONS.BOTTOM_MIDDLE, "Square", 14, PortConstraints.OutConnect | PortConstraints.Draw, "Memory"),
+        // createPort("bottom-middle-port", PORT_POSITIONS.BOTTOM_MIDDLE, "Square", 14, PortConstraints.OutConnect | PortConstraints.Draw, "Memory"),
         createPort("bottom-right-port", PORT_POSITIONS.BOTTOM_RIGHT, "Square", 14, PortConstraints.OutConnect | PortConstraints.Draw, "Tools"),
       ];
 
@@ -72,12 +72,12 @@ export const getPortSide = (direction: NodePortDirection): PortSide =>
 // Convert direction to offset
 export const getPortOffset = (direction: NodePortDirection): number => {
   const offsetMap: Record<NodePortDirection, number> = {
-    right: 0.5,
-    'right-top': 0.3,
-    'right-bottom': 0.7,
-    'bottom-left': 0.25,
-    'bottom-middle': 0.5,
-    'bottom-right': 0.75,
+    'right': PORT_POSITIONS.RIGHT.y,
+    'right-top': PORT_POSITIONS.RIGHT_TOP.y,
+    'right-bottom': PORT_POSITIONS.RIGHT_BOTTOM.y,
+    'bottom-left': PORT_POSITIONS.BOTTOM_LEFT.x,
+    'bottom-middle': PORT_POSITIONS.BOTTOM_MIDDLE.x,
+    'bottom-right': PORT_POSITIONS.BOTTOM_RIGHT.x,
   };
   return offsetMap[direction] ?? 0.5;
 };
@@ -89,12 +89,19 @@ export function prepareUserHandlePortData(node: NodeModel): void {
     const pointPort = port as PointPortModel;
     if (pointPort?.offset) {
       const { x, y } = pointPort.offset as Point;
-      if (x === 1 && y === 0.5) return 'right';
-      if (x === 0.25 && y === 1) return 'bottom-left';
-      if (x === 0.5 && y === 1) return 'bottom-middle';
-      if (x === 0.75 && y === 1) return 'bottom-right';
-      if (x === 1 && y === 0.3) return 'right-top';
-      if (x === 1 && y === 0.7) return 'right-bottom';
+
+      if (x === PORT_POSITIONS.RIGHT.x && y === PORT_POSITIONS.RIGHT.y) 
+        return 'right';
+      if (x === PORT_POSITIONS.BOTTOM_LEFT.x && y === PORT_POSITIONS.BOTTOM_LEFT.y) 
+        return 'bottom-left';
+      if (x === PORT_POSITIONS.BOTTOM_MIDDLE.x && y === PORT_POSITIONS.BOTTOM_MIDDLE.y) 
+        return 'bottom-middle';
+      if (x === PORT_POSITIONS.BOTTOM_RIGHT.x && y === PORT_POSITIONS.BOTTOM_RIGHT.y) 
+        return 'bottom-right';
+      if (x === PORT_POSITIONS.RIGHT_TOP.x && y === PORT_POSITIONS.RIGHT_TOP.y) 
+        return 'right-top';
+      if (x === PORT_POSITIONS.RIGHT_BOTTOM.x && y === PORT_POSITIONS.RIGHT_BOTTOM.y) 
+        return 'right-bottom';
     }
     return 'right'; // Default fallback direction
   };

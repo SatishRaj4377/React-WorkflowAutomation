@@ -37,9 +37,9 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo, onNodeToolbarA
         {portConfig.rightPort && <div className="node-port-right"></div>}
         {portConfig.rightTopPort && <div className="node-port-right-top"></div>}
         {portConfig.rightBottomPort && <div className="node-port-right-bottom"></div>}
-        {portConfig.bottomLeftPort && <div className="node-port-bottom-left"></div>}
-        {portConfig.bottomMiddlePort && <div className="node-port-bottom-middle"></div>}
-        {portConfig.bottomRightPort && <div className="node-port-bottom-right"></div>}
+        {portConfig.bottomLeftPort && <div className="node-port-bottom-left"><span className='node-port-label left'>AI Model</span></div>}
+        {/* {portConfig.bottomMiddlePort && <div className="node-port-bottom-middle"></div>} */}
+        {portConfig.bottomRightPort && <div className="node-port-bottom-right"><span className='node-port-label right'>Tool</span></div>}
         
         {/* Icon and Name Rendering... */}
         <div className="node-img-content" style={isAiAgent ? { gap: '1.2rem' } : {}}>
@@ -50,7 +50,7 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo, onNodeToolbarA
               />
             )}
             {isAiAgent && (
-              <span className='ai-agent-name-bar'>{nodeConfig.displayName || ''}</span>
+              <span className='ai-agent-name-bar' title={nodeConfig.displayName}>{nodeConfig.displayName || ''}</span>
             )}
         </div>
       </div>

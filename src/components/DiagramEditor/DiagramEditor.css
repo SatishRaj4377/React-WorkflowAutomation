@@ -242,20 +242,28 @@
   bottom: -7px;
   width: 12px;
   height: 12px;
-  transform: rotate(45deg) !important;
+  transform: translateX(-50%) rotate(45deg) !important;
   background-color: var(--node-border-color);
-  transform: translateX(-50%);
   z-index: 10;
   border-radius: 0%;
 }
 .node-port-bottom-left {
-  left: 21%;
+  left: 58%;
 }
 .node-port-bottom-middle {
   left: 47%;
 }
 .node-port-bottom-right {
-  left: 72%;
+  left: 86%;
+}
+.node-port-label {
+  position: absolute;
+  right: -43px;
+  transform: translate(-50%, -100%) rotate(-45deg);
+  color: var(--scrollbar-thumb);
+  font-size: .6rem;
+  font-weight: 500;
+  width: 60px;
 }
 
 /* Diagram Container Styles */

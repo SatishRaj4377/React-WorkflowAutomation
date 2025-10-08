@@ -94,14 +94,14 @@ export const NODE_DIMENSIONS = {
 };
 
 export const PORT_POSITIONS = {
-LEFT: { x: -0.04, y: 0.5 }, // Slight left offset to improve connector link visibility
-AI_AGENT_LEFT: { x: -0.02, y: 0.5 }, // Slight left offset to improve connector link visibility
-RIGHT: { x: 1, y: 0.5 },
-BOTTOM_LEFT: { x: 0.25, y: 1 },
-BOTTOM_MIDDLE: { x: 0.5, y: 1 },
-BOTTOM_RIGHT: { x: 0.75, y: 1 },
-RIGHT_TOP: { x: 1, y: 0.3 },
-RIGHT_BOTTOM: { x: 1, y: 0.7 },
+    LEFT: { x: -0.04, y: 0.5 }, // Slight left offset to improve connector link visibility
+    AI_AGENT_LEFT: { x: -0.02, y: 0.5 }, // Slight left offset to improve connector link visibility
+    RIGHT: { x: 1, y: 0.5 },
+    RIGHT_TOP: { x: 1, y: 0.3 },
+    RIGHT_BOTTOM: { x: 1, y: 0.7 },
+    BOTTOM_LEFT: { x: 0.58, y: 1 },
+    BOTTOM_MIDDLE: { x: 0.5, y: 1 },
+    BOTTOM_RIGHT: { x: 0.85, y: 1 },
 };
 
 export const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
