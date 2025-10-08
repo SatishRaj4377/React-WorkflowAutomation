@@ -1,4 +1,4 @@
-import React, { SetStateAction, useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   SidebarComponent,
   TabComponent,
@@ -45,22 +45,54 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   setChatOpen,
 }) => {
   const [activeTab, setActiveTab] = useState(0);
+  const [availableVariables, setAvailableVariables] = useState<any[]>([]);
+  const [nodeOutput, setNodeOutput] = useState<any>(null);
+  const [variablesLoading, setVariablesLoading] = useState(true);
 
-  const nodeIconSrc =
-    selectedNode?.icon ? (IconRegistry as any)[selectedNode.icon] : null;
+  const nodeIconSrc = selectedNode?.icon ? IconRegistry[selectedNode.icon] : null;
   const MessageIcon = IconRegistry['Message'];
 
-  // Get the available variables for the variable picker
-  const availableVariables = useMemo(() => {
-    if (!selectedNode || !diagram) return [];
-    return getAvailableVariablesForNode(selectedNode.id, diagram, executionContext);
+  // Fetch available variables and node output whenever the selected node or diagram changes.
+  useEffect(() => {
+    // Define an async function to fetch both available variables and node output
+    const fetchData = async () => {
+      // If there's no selected node or diagram, reset the state and stop loading
+      if (!selectedNode || !diagram) {
+        setAvailableVariables([]);
+        setNodeOutput(null);
+        setVariablesLoading(false);
+        return;
+      }
+
+      // Start loading
+      setVariablesLoading(true);
+
+      // Fetch available variables for the selected node
+      const vars = await getAvailableVariablesForNode(
+        selectedNode.id,
+        diagram,
+        executionContext
+      );
+
+      // Get the output of the selected node
+      const output = getNodeOutputAsVariableGroup(
+        selectedNode.id,
+        diagram,
+        executionContext
+      );
+
+      // Update state with fetched data
+      setAvailableVariables(vars);
+      setNodeOutput(output);
+
+      // Stop loading
+      setVariablesLoading(false);
+    };
+
+    // Call the async function
+    fetchData();
   }, [selectedNode?.id, diagram, executionContext]);
 
-  //Get the output for the current node
-  const nodeOutput = useMemo(() => {
-    if (!selectedNode || !diagram) return null;
-    return getNodeOutputAsVariableGroup(selectedNode.id, diagram, executionContext);
-  }, [selectedNode?.id, diagram, executionContext]);
 
   /** Safely update settings */
   const handleConfigChange = (
@@ -186,33 +218,26 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
         return (
           <>
             <div className="config-section">
-              <label className="config-label">Role</label>
+              <label className="config-label">Prompt</label>
               <VariablePickerTextBox
-                value={settings.role ?? 'Assistant'}
-                onChange={(val) => handleConfigChange('role', val)}
+                value={settings.prompt ?? ''}
+                onChange={(val) => handleConfigChange('prompt', val)}
                 cssClass="config-input"
+                placeholder='Eg: Hello, how can you help me?'
                 variableGroups={availableVariables}
-                variablesLoading={false} // Loading is handled by the parent
+                variablesLoading={variablesLoading}
               />
             </div>
             <div className="config-section">
-              <label className="config-label">Goal</label>
+              <label className="config-label">System Message</label>
               <VariablePickerTextBox
-                value={settings.goal ?? ''}
+                value={settings.systemMessage ?? ''}
                 placeholder="Define the agent's objective"
-                onChange={(val) => handleConfigChange('goal', val)}
+                onChange={(val) => handleConfigChange('systemMessage', val)}
                 cssClass="config-textarea"
                 multiline
                 variableGroups={availableVariables}
-                variablesLoading={false}
-              />
-            </div>
-            <div className="config-section">
-              <label className="config-label">Allow Tools</label>
-              <CheckBoxComponent
-                checked={!!settings.allowTools}
-                change={(e: any) => handleConfigChange('allowTools', !!e.checked)}
-                cssClass="config-checkbox"
+                variablesLoading={variablesLoading}
               />
             </div>
           </>
@@ -253,7 +278,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
                 onChange={(val) => handleConfigChange('url', val)}
                 cssClass="config-input"
                 variableGroups={availableVariables}
-                variablesLoading={false}
+                variablesLoading={variablesLoading}
               />
             </div>
 
@@ -289,7 +314,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
                 cssClass="config-textarea"
                 multiline
                 variableGroups={availableVariables}
-                variablesLoading={false}
+                variablesLoading={variablesLoading}
               />
             </div>
           </>
@@ -329,7 +354,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
                 cssClass="config-textarea"
                 multiline
                 variableGroups={availableVariables}
-                variablesLoading={false}
+                variablesLoading={variablesLoading}
               />
             </div>
           </>
@@ -346,7 +371,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
                 onChange={(val) => handleConfigChange('expression', val)}
                 cssClass="config-input"
                 variableGroups={availableVariables}
-                variablesLoading={false}
+                variablesLoading={variablesLoading}
               />
             </div>
           </>
@@ -364,7 +389,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
                 cssClass="config-textarea"
                 multiline
                 variableGroups={availableVariables}
-                variablesLoading={false}
+                variablesLoading={variablesLoading}
               />
             </div>
           </>
