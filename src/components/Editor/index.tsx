@@ -120,6 +120,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       if (node) {
         node.addInfo = { nodeConfig: config };
         diagramRef.refresh(); // refresh the diagram to update the changes
+        diagramRef.fitToPage();
         setIsDirty(true); // Mark as dirty when node config changes
       }
     }
