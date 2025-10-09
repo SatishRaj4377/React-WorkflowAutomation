@@ -155,6 +155,15 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     description: 'Process with Azure chat model',
     iconId: 'AzureModelIcon',
   },
+    'HTTP Request Tool': {
+    type: 'HTTP Request Tool',
+    category: 'tool',
+    paletteCategory: 'Tools',
+    isServerExecuted: false,
+    label: 'HTTP Request',
+    description: 'Make HTTP request',
+    iconId: 'HttpRequestIcon',
+  },
   'Gmail Tool': {
     type: 'Gmail Tool',
     category: 'tool',

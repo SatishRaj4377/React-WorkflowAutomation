@@ -52,6 +52,7 @@ export type NodeType =
   | 'Google Sheets Tool'
   | 'Google Calendar Tool'
   | 'Google Docs Tool'
+  | 'HTTP Request Tool'
 ;
 
 export type Variable = {
