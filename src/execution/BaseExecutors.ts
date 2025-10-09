@@ -5,6 +5,7 @@ import { showErrorToast } from '../components/Toast';
 import { updateNodeStatus } from '../helper/workflowExecution';
 import { generateResponse } from '../services/AzureChatService';
 import { getConnectedSourceByTargetPort, getConnectedTargetBySourcePort } from '../helper/utilities';
+import { evaluateExpression, resolveTemplate } from '../helper/expression';
 
 export abstract class BaseNodeExecutor implements NodeExecutor {
   abstract executeNode(node: NodeModel, context: ExecutionContext): Promise<NodeExecutionResult>;
@@ -147,7 +148,7 @@ export class ClientSideNodeExecutor extends BaseNodeExecutor {
     }
 
     // Resolve template tokens like {{ ... }} using execution context
-    const finalPrompt = this.resolveTemplateString(promptTemplate, context).trim();
+    const finalPrompt = resolveTemplate(promptTemplate, { context }).trim()
     if (!finalPrompt) {
       const msg = 'AI Agent: Resolved prompt is empty. Check your expression/variables.';
       showErrorToast('Empty Prompt', msg);
@@ -187,11 +188,13 @@ export class ClientSideNodeExecutor extends BaseNodeExecutor {
     // For now, no-op. Later: fetch/read data; include in prompt or enable tool actions.
 
     // 5) Curate final message (system + user + future tools context)
-    const systemMessage = (nodeConfig.settings?.general?.systemMessage || 'Assistant').toString();
+    const systemMessageRaw = (nodeConfig.settings?.general?.systemMessage || 'Assistant').toString();
+    const finalSystemMessage = resolveTemplate(systemMessageRaw, { context }).trim();
     const composedPrompt =
-      `System: ${systemMessage}\n\n` +
+      `System: ${finalSystemMessage}\n\n` +
       `User: ${finalPrompt}\n\n` +
-      (toolNode ? `# Tools: [placeholder for ${((toolNode.addInfo as any)?.nodeConfig?.displayName || 'Tool')}]` : '');
+      (toolNode ? `# Tools: [placeholder for ${(((toolNode.addInfo as any)?.nodeConfig?.displayName) ?? 'Tool')}]` : '');
+
 
     // 6) Mark Azure node running visually while we call the API
     try {
@@ -232,35 +235,20 @@ export class ClientSideNodeExecutor extends BaseNodeExecutor {
     }
   }
 
-  /** Replace {{ ... }} tokens by evaluating the expression against ExecutionContext */
-  private resolveTemplateString(template: string, context: ExecutionContext): string {
-    return template.replace(/\{\{\s*([^}]+)\s*\}\}/g, (_m, expr) => {
-      try {
-        // Same pattern you used for Switch/Filter: evaluate with "context"
-        const fn = new Function('context', `return (${expr})`);
-        const val = fn(context);
-        return (val ?? '').toString();
-      } catch {
-        return ''; // if an expression fails, treat as empty
-      }
-    });
-  }
-
   private async executeConditionNode(nodeConfig: NodeConfig, context: ExecutionContext): Promise<NodeExecutionResult> {
     try {
-      // For now, mock the condition evaluation
-      const mockResult = Math.random() > 0.5;
+      const raw = nodeConfig.settings?.general?.condition ?? '';
+      const prepared = resolveTemplate(raw, { context }).trim();
+      if (!prepared) return { success: false, error: 'No condition specified' };
+
+      const result = !!new Function('context', 'evaluateExpression', `"use strict"; return ( ${prepared} );`)(context, evaluateExpression);
+
       return {
         success: true,
         data: {
-          condition: mockResult,
+          condition: result,
           evaluatedAt: new Date().toISOString(),
-          description: `Condition evaluated to ${mockResult}`,
-          mockData: {
-            input: context.variables,
-            condition: "value > 10", // Mock condition
-            result: mockResult
-          }
+          description: `Condition evaluated to ${result}`,
         }
       };
     } catch (error) {
@@ -271,28 +259,41 @@ export class ClientSideNodeExecutor extends BaseNodeExecutor {
   private async executeSwitchNode(nodeConfig: NodeConfig, context: ExecutionContext): Promise<NodeExecutionResult> {
     try {
       const expression = nodeConfig.settings?.general?.expression;
-      if (!expression) {
-        return { success: false, error: 'No switch expression specified' };
-      }
+      if (!expression) return { success: false, error: 'No switch expression specified' };
 
-      const expressionFn = new Function('context', `return ${expression}`);
-      const result = expressionFn(context);
-      return { success: true, data: { value: result } };
+      const prepared = resolveTemplate(expression, { context }).trim();
+      const value = evaluateExpression(prepared, { context });
+      return { success: true, data: { value } };
     } catch (error) {
       return { success: false, error: `Switch evaluation failed: ${error}` };
     }
   }
 
+
   private async executeFilterNode(nodeConfig: NodeConfig, context: ExecutionContext): Promise<NodeExecutionResult> {
     try {
-      const condition = nodeConfig.settings?.general?.filterCondition;
-      if (!condition) {
-        return { success: false, error: 'No filter condition specified' };
-      }
+      const conditionRaw =
+        nodeConfig.settings?.general?.predicate ??
+        nodeConfig.settings?.general?.filterCondition;
+      if (!conditionRaw) return { success: false, error: 'No filter predicate specified' };
 
-      const filterFn = new Function('item', 'context', `return ${condition}`);
-      const input = nodeConfig.settings?.general?.input || [];
-      const filtered: any[] = (input as any[]).filter((item: any) => filterFn(item, context));
+      const predicateStr = resolveTemplate(conditionRaw, { context }).trim();
+
+      // item-aware evaluation: expression may refer to "item" and/or $.tokens
+      const fn = new Function(
+        'item', 'context', 'evaluateExpression',
+        `"use strict"; return ( ${predicateStr} );`
+      );
+
+      const input = nodeConfig.settings?.general?.input ?? [];
+      const filtered: any[] = (input as any[]).filter((item: any) => {
+        try {
+          const res = fn(item, context, evaluateExpression);
+          return !!res;
+        } catch {
+          return false;
+        }
+      });
 
       return { success: true, data: { filtered } };
     } catch (error) {
