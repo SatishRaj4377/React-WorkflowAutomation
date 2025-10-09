@@ -27,7 +27,7 @@ import {
 } from '@syncfusion/ej2-react-diagrams';
 import { DiagramSettings, NodeConfig, NodePortDirection, NodeToolbarAction } from '../../types';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
-import { bringConnectorsToFront, convertMarkdownToHtml, getConnectorCornerRadius, getConnectorType, getFirstSelectedNode, getGridColor, getGridType, getNodeConfig, getPortOffset, getPortSide, getSnapConstraints, getStickyNoteTemplate, initializeNodeDimensions, isNodeOutOfViewport, isStickyNote, prepareUserHandlePortData, updateNodeConstraints } from '../../helper/utilities';
+import { bringConnectorsToFront, convertMarkdownToHtml, getConnectorCornerRadius, getConnectorType, getFirstSelectedNode, getGridColor, getGridType, getNodeConfig, getPortOffset, getPortSide, getSnapConstraints, getStickyNoteTemplate, initializeNodeDimensions, isConnectorBetweenAgentAndTool, isNodeOutOfViewport, isStickyNote, prepareUserHandlePortData, updateNodeConstraints } from '../../helper/utilities';
 import { DIAGRAM_MENU, NODE_MENU } from '../../constants';
 import NodeTemplate from './NodeTemplate';
 import './DiagramEditor.css';
@@ -286,7 +286,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       }
 
       // Handle connector addition logic
-      if (element.sourceID && element.targetID) {
+      // Only finalize (update to solid) if fully connected and NOT between agent and tool
+      if (element.sourceID && element.targetID && !isConnectorBetweenAgentAndTool(element, diagramRef.current)) {
         finalizeConnectorStyle(element);
       } else if (element.sourceID === '' || element.targetID === '') {
         // remove incomplete connector
