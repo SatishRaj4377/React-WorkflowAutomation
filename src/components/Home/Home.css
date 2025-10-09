@@ -197,8 +197,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--box-shadow2);
+  background: var(--list-selected-hover-bg);
   border-radius: 16px 16px 0 0;
+}
+.quick-access-card:hover .template-image {
+  background: var(--gradient-accent);
 }
 .template-image img {
   width: 100%;
@@ -563,6 +566,9 @@
   overflow: hidden;
   position: relative;
   border-radius: 16px 16px 0 0;
+}
+.project-card:hover .project-thumbnail {
+  background: var(--gradient-accent);
 }
 .project-thumbnail img {
   width: 100%;
