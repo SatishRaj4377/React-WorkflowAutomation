@@ -1,6 +1,6 @@
 import { ItemModel } from "@syncfusion/ej2-react-splitbuttons";
 import { templateImages } from "../assets/icons";
-import { NodeType } from "../types";
+import { NodeType, TemplateProjectConfig } from "../types";
 
 export const NODE_MENU = ['editNode', 'delete'];
 export const DIAGRAM_MENU = ['addNode', 'addSticky', 'lockWorkflow', 'selectAll'];
@@ -39,34 +39,36 @@ export const SIDEBAR_ITEMS = [
     { text: "Documentation", id: "docs", icon: "e-icons e-file-document" }
 ];
 
-export const TEMPLATE_CARDS = [
+export const TEMPLATE_PROJECTS: TemplateProjectConfig[] = [
     {
-        id: 'email-automation',
-        title: 'Email Automation',
-        description: 'Template for email-based workflows',
-        image: templateImages.EmailAutomationImage,
-        category: 'Communication'
+        id: 'hr-policy-assistant',
+        title: 'Real-Time HR Policy Assistant via Chat',
+        description: 'Template for real-time HR policy assistant via chat.',
+        image: templateImages.HRPolicyAssistantImage,
     },
     {
-        id: 'api-integration',
-        title: 'API Integration',
-        description: 'Connect and integrate with external APIs',
-        image: templateImages.ApiIntegrationImage,
-        category: 'Integration'
+        id: 'component-usecase-generator',
+        title: 'Use Case Generator for Product Strategy',
+        description: 'Template for generating use cases for product strategy',
+        image: templateImages.UseCaseGeneratorImage,
     },
     {
-        id: 'data-processing',
-        title: 'Data Processing',
-        description: 'Process and transform data workflows',
-        image: templateImages.DataProcessingImage,
-        category: 'Data'
+        id: 'daily-worklog-tracker',
+        title: 'Daily Worklog Tracker & Reminder',
+        description: 'Template for tracking daily worklogs and sending reminders.',
+        image: templateImages.WorklogTrackerImage,
     },
     {
-        id: 'notification-system',
-        title: 'Notification System',
-        description: 'Automated notification workflows',
-        image: templateImages.NotificationSystemImage,
-        category: 'Communication'
+        id: 'user-form-submission-priority',
+        title: 'Form Submission → Priority Triage Email',
+        description: 'Template for sending priority emails based on form submissions.',
+        image: templateImages.FormSubmissionPriorityImage,
+    },
+    {
+        id: 'auto-notify-github-issues',
+        title: 'Auto-Notify Team on New GitHub Issues',
+        description: 'Template for notify the team on new GitHub issues created.',
+        image: templateImages.GithubTemplateImage,
     }
 ];
 

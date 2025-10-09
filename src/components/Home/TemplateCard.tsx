@@ -1,21 +1,20 @@
 import React from 'react';
+import { ProjectData, TemplateProjectConfig } from '../../types';
 
 interface TemplateCardProps {
-  id: string;
-  title: string;
-  description: string;
-  image?: string;
+  template: TemplateProjectConfig;
+  onOpenTemplate: (project: TemplateProjectConfig) => void;
 }
 
-const TemplateCard: React.FC<TemplateCardProps> = ({ id, title, description, image }) => {
+const TemplateCard: React.FC<TemplateCardProps> = ({ template, onOpenTemplate }) => {
   return (
-    <div key={id} className="e-card modern-card quick-access-card template-card">
+    <div key={template.id} className="e-card modern-card quick-access-card template-card" onClick={() => onOpenTemplate(template)}>
       <div className="e-card-image template-image">
-        {image && <img src={image} alt={title} />}
+        {template.image && <img src={template.image} alt={template.title} />}
       </div>
       <div className="e-card-content">
-        <h3>{title}</h3>
-        <p>{description}</p>
+        <h3>{template.title}</h3>
+        <p>{template.description}</p>
       </div>
     </div>
   );

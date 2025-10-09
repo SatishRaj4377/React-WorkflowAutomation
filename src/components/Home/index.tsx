@@ -13,9 +13,10 @@ import ProjectCard from './ProjectCard';
 import RecentProjectItem from './RecentProjectItem';
 import ProjectListItem from './ProjectListItem';
 import EmptyState from './EmptyState';
-import { ProjectData } from '../../types';
+import { ProjectData, TemplateProjectConfig } from '../../types';
+import { MENU_ITEMS, SIDEBAR_ITEMS, SORT_OPTIONS, TEMPLATE_PROJECTS } from '../../constants';
+import { TEMPLATE_PROJECT_DATA } from '../../data/template.data';
 import './Home.css';
-import { MENU_ITEMS, SIDEBAR_ITEMS, SORT_OPTIONS, TEMPLATE_CARDS } from '../../constants';
 
 interface HomeProps {
   projects: ProjectData[];
@@ -24,6 +25,7 @@ interface HomeProps {
   onDeleteProject: (projectId: string) => void;
   onMultipleDeleteProjects: (projectIds: string[]) => void;
   onBookmarkToggle?: (projectId: string) => void;
+  onSaveProject: (project: ProjectData) => void;
   bookmarkedProjects?: string[];
 }
 
@@ -34,6 +36,7 @@ const Home: React.FC<HomeProps> = ({
   onDeleteProject,
   onMultipleDeleteProjects,
   onBookmarkToggle,
+  onSaveProject,
   bookmarkedProjects = []
 }) => {
   const searchRef = useRef<TextBoxComponent>(null);
@@ -144,6 +147,17 @@ const Home: React.FC<HomeProps> = ({
       WorkflowProjectService.exportMultipleProjects(toExport);
     }
   };
+  
+  const handleOpenTemplateProject = (templateProject: TemplateProjectConfig) => {
+    const project = TEMPLATE_PROJECT_DATA[templateProject.id];
+    if (!project) {
+      console.warn(`No project found for template "${templateProject.id}"`);
+      return;
+    }
+    onSaveProject(project)
+    onOpenProject(project);
+  };
+
 
   const isBookmarked = useCallback((projectId: string) => bookmarkedProjects.includes(projectId), [bookmarkedProjects]);
 
@@ -275,13 +289,12 @@ const Home: React.FC<HomeProps> = ({
               <section className="quick-access-section animate-fade-in-up">
                 <h2 className="section-title">Quick Start</h2>
                 <div className="quick-access-grid">
-                  {TEMPLATE_CARDS.map((template) => (
+                  {/* Show only three tempaltes inthe quick access section */}
+                  {TEMPLATE_PROJECTS.slice(0, 3).map((template) => (
                     <TemplateCard
                       key={template.id}
-                      id={template.id}
-                      title={template.title}
-                      description={template.description}
-                      image={template.image}
+                      template={template}
+                      onOpenTemplate={handleOpenTemplateProject}
                     />
                   ))}
                 </div>
@@ -482,14 +495,12 @@ const Home: React.FC<HomeProps> = ({
             <section className="animate-fade-in-up">
               <h2 className="section-title">Templates</h2>
               <div className="quick-access-grid">
-                {TEMPLATE_CARDS.map((template) => (
-                  <TemplateCard
-                    key={template.id}
-                    id={template.id}
-                    title={template.title}
-                    description={template.description}
-                    image={template.image}
-                  />
+                {TEMPLATE_PROJECTS.map((template) => (
+                    <TemplateCard
+                      key={template.id}
+                      template={template}
+                      onOpenTemplate={handleOpenTemplateProject}
+                    />
                 ))}
               </div>
             </section>

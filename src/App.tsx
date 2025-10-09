@@ -110,6 +110,7 @@ const HomeRoute: React.FC = () => {
     handleDeleteProject,
     handleMultipleDeleteProjects,
     handleBookmarkToggle,
+    handleSaveProject
   } = useAppOutlet();
 
   return (
@@ -121,6 +122,7 @@ const HomeRoute: React.FC = () => {
       onDeleteProject={handleDeleteProject}
       onMultipleDeleteProjects={handleMultipleDeleteProjects}
       onBookmarkToggle={handleBookmarkToggle}
+      onSaveProject={handleSaveProject}
     />
   );
 };

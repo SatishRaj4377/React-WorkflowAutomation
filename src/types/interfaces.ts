@@ -30,6 +30,13 @@ export interface WorkflowData {
   diagramString: string;
 }
 
+export interface TemplateProjectConfig {
+  id: string;
+  title: string;
+  description: string;
+  image?: string;
+}
+
 export interface ProjectData {
   id: string;
   name: string;

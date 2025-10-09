@@ -21,6 +21,11 @@ import DataProcessingImage from '../assets/images/template-images/data-processin
 import DefaultImageImage from '../assets/images/template-images/default-image.jpg';
 import EmailAutomationImage from '../assets/images/template-images/email-automation.jpg';
 import NotificationSystemImage from '../assets/images/template-images/notification-system.jpg';
+import GithubTemplateImage from '../assets/images/template-images/auto-notify-github-issues.png';
+import UseCaseGeneratorImage from '../assets/images/template-images/component-usecase-generator.png';
+import WorklogTrackerImage from '../assets/images/template-images/daily-worklog-tracker.png';
+import FormSubmissionPriorityImage from '../assets/images/template-images/user-form-submission-priority.png';
+import HRPolicyAssistantImage from '../assets/images/template-images/hr-policy-assistant.png';
 
 import {ReactComponent as WorkflowLogo} from '../assets/images/svg-icons/workflow-logo.svg';
 import {ReactComponent as WorkflowFolder} from '../assets/images/svg-icons/workflow-folder.svg';
@@ -61,4 +66,9 @@ export const templateImages = {
   DefaultImageImage,
   EmailAutomationImage,
   NotificationSystemImage,
+  HRPolicyAssistantImage,
+  GithubTemplateImage,
+  UseCaseGeneratorImage,
+  WorklogTrackerImage,
+  FormSubmissionPriorityImage,
 };
