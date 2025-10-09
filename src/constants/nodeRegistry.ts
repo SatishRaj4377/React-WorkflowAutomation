@@ -65,6 +65,15 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     description: 'Make HTTP request',
     iconId: 'HttpRequestIcon',
   },
+  'EmailJS': {
+    type: 'EmailJS',
+    category: 'action',
+    paletteCategory: 'Core',
+    isServerExecuted: false,
+    label: 'EmailJS',
+    description: 'EmailJS integration',
+    iconId: 'EmailJSIcon',
+  },
   'Gmail': {
     type: 'Gmail',
     category: 'action',
@@ -155,7 +164,7 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     description: 'Process with Azure chat model',
     iconId: 'AzureModelIcon',
   },
-    'HTTP Request Tool': {
+  'HTTP Request Tool': {
     type: 'HTTP Request Tool',
     category: 'tool',
     paletteCategory: 'Tools',
@@ -163,6 +172,15 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     label: 'HTTP Request',
     description: 'Make HTTP request',
     iconId: 'HttpRequestIcon',
+  },
+  'EmailJS Tool': {
+    type: 'EmailJS Tool',
+    category: 'tool',
+    paletteCategory: 'Tools',
+    isServerExecuted: false,
+    label: 'EmailJS',
+    description: 'Make EmailJS Integration',
+    iconId: 'EmailJSIcon',
   },
   'Gmail Tool': {
     type: 'Gmail Tool',
