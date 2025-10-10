@@ -51,6 +51,8 @@ interface DiagramEditorProps {
 let isStickyNoteEditing = false;
 const GRAY_COLOR = '#9193a2ff';
 const HOVER_COLOR = '#ea4335';
+const CONNECTOR_STROKEDASH_ARR = "5 3"
+const NODE_STROKEDASH_ARR = "10 4"
 
 const DiagramEditor: React.FC<DiagramEditorProps> = ({
   onAddNode,
@@ -161,7 +163,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     obj.cornerRadius = getConnectorCornerRadius(diagramSettings)
     obj.style = {
       strokeColor: GRAY_COLOR,
-      strokeDashArray: !isConnectorBetweenAgentAndTool(obj, diagramRef.current) ? '' : '10 4',
+      strokeDashArray: !isConnectorBetweenAgentAndTool(obj, diagramRef.current) ? '' : CONNECTOR_STROKEDASH_ARR,
       strokeWidth: 2,
     };
     obj.targetDecorator = {
@@ -355,7 +357,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     // Apply disconnected style early (before 'Completed' state)
     connector.style = {
       strokeColor: GRAY_COLOR,
-      strokeDashArray: '5 3',
+      strokeDashArray: CONNECTOR_STROKEDASH_ARR,
       strokeWidth: 2,
     };
     if (args.state === 'Completed') {
@@ -653,7 +655,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       fill: "var(--sticky-note-bg-color)",
       strokeColor: "var(--sticky-note-stroke-color)",
       strokeWidth: 2,
-      strokeDashArray: '10 4',
+      strokeDashArray: NODE_STROKEDASH_ARR,
       opacity: .7
     }
     
