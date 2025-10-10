@@ -161,6 +161,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     obj.cornerRadius = getConnectorCornerRadius(diagramSettings)
     obj.style = {
       strokeColor: GRAY_COLOR,
+      strokeDashArray: !isConnectorBetweenAgentAndTool(obj, diagramRef.current) ? '' : '10 4',
       strokeWidth: 2,
     };
     obj.targetDecorator = {
