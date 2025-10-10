@@ -19,6 +19,7 @@ import { buildJsonFromVariables } from '../../helper/variablePickerUtils';
 import JsonVisualizer from './JsonVisualizer';
 import { AUTH_NODE_TYPES, HTTP_METHODS, TIMEZONES } from '../../constants';
 import './NodeConfigSidebar.css';
+import GoogleAuthPanel from './GoogleAuthPanel';
 
 interface ConfigPanelProps {
   isOpen: boolean;
@@ -379,7 +380,64 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
         );
       }
 
-      case 'Gmail':
+      case 'Gmail': {
+        return (
+          <>
+            <div className="config-section">
+              <label className="config-label">Action</label>
+              <DropDownListComponent
+                value={settings.action ?? 'Send'}
+                dataSource={['Send']} // keep minimal; matches current requirement
+                placeholder="Select action"
+                change={(e: any) => handleConfigChange('action', e.value)}
+                popupHeight="240px"
+                zIndex={1000000}
+              />
+            </div>
+
+            { (settings.action ?? 'Send') === 'Send' && (
+              <>
+                <div className="config-section">
+                  <label className="config-label">To</label>
+                  <VariablePickerTextBox
+                    value={settings.to ?? ''}
+                    placeholder="recipient@example.com"
+                    onChange={(val) => handleConfigChange('to', val)}
+                    cssClass="config-input"
+                    variableGroups={availableVariables}
+                    variablesLoading={variablesLoading}
+                  />
+                </div>
+
+                <div className="config-section">
+                  <label className="config-label">Subject</label>
+                  <VariablePickerTextBox
+                    value={settings.subject ?? ''}
+                    placeholder="Subject"
+                    onChange={(val) => handleConfigChange('subject', val)}
+                    cssClass="config-input"
+                    variableGroups={availableVariables}
+                    variablesLoading={variablesLoading}
+                  />
+                </div>
+
+                <div className="config-section">
+                  <label className="config-label">Message</label>
+                  <VariablePickerTextBox
+                    value={settings.message ?? ''}
+                    placeholder="Body text"
+                    onChange={(val) => handleConfigChange('message', val)}
+                    cssClass="config-textarea"
+                    multiline
+                    variableGroups={availableVariables}
+                    variablesLoading={variablesLoading}
+                  />
+                </div>
+              </>
+            )}
+          </>
+        );
+      }
       case 'Google Sheets':
       case 'Google Calendar':
       case 'Google Docs':
@@ -616,6 +674,21 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
             </div>
           );
 
+        case 'Gmail': {
+          // Ensure 'Gmail' is included in AUTH_NODE_TYPES so this tab appears.
+          // Show only the Google-rendered button (no custom fields).
+          const GOOGLE_WEB_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || ''; // or your config source
+          return (
+            <div className="config-tab-content">
+              <GoogleAuthPanel
+                clientId={GOOGLE_WEB_CLIENT_ID}
+                onConnected={(email) => handleConfigChange('googleAccountEmail', email, 'authentication')}
+              />
+              {/* Nothing else in auth tab per requirement */}
+            </div>
+          );
+        }
+
         default:
           // For all other auth-required nodes (e.g., Gmail, Telegram)
           const typeVal = authSettings.type ?? '';
@@ -761,11 +834,11 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
             >
               <TabItemsDirective>
                 <TabItemDirective header={{ text: 'General' }} content={renderGeneralTab} />
-                {nodeOutput && (
-                  <TabItemDirective header={{ text: 'Output' }} content={renderOutputTab} />
-                )}
                 {requiresAuthTab && (
                   <TabItemDirective header={{ text: 'Authentication' }} content={renderAuthenticationTab} />
+                )}
+                {nodeOutput && (
+                  <TabItemDirective header={{ text: 'Output' }} content={renderOutputTab} />
                 )}
               </TabItemsDirective>
             </TabComponent>
