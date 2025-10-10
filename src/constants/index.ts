@@ -117,4 +117,6 @@ export const AUTH_NODE_TYPES: NodeType[] = [
   'Telegram',
   'Twilio',
   'Azure Chat Model Tool',
+  'EmailJS',
+  'EmailJS Tool',
 ];

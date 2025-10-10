@@ -6,6 +6,7 @@ import { updateNodeStatus } from '../helper/workflowExecution';
 import { generateResponse } from '../services/AzureChatService';
 import { getConnectedSourceByTargetPort, getConnectedTargetBySourcePort } from '../helper/utilities';
 import { evaluateExpression, resolveTemplate } from '../helper/expression';
+import emailjs from '@emailjs/browser';
 
 export abstract class BaseNodeExecutor implements NodeExecutor {
   abstract executeNode(node: NodeModel, context: ExecutionContext): Promise<NodeExecutionResult>;
@@ -56,18 +57,6 @@ export class ClientSideNodeExecutor extends BaseNodeExecutor {
       case 'Chat':
         return this.executeChatTriggerNode(nodeConfig, context);
 
-      case 'AI Agent':
-        return this.executeAiAgentNode(node, nodeConfig, context);
-
-      case 'If Condition':
-        return this.executeConditionNode(nodeConfig, context);
-
-      case 'Switch Case':
-        return this.executeSwitchNode(nodeConfig, context);
-
-      case 'Filter':
-        return this.executeFilterNode(nodeConfig, context);
-
       case 'Manual Click':
         // Handle manual trigger node
         return {
@@ -78,6 +67,22 @@ export class ClientSideNodeExecutor extends BaseNodeExecutor {
             inputContext: context.variables
           }
         };
+        
+      case 'AI Agent':
+        return this.executeAiAgentNode(node, nodeConfig, context);
+
+      case 'EmailJS':
+        return this.executeEmailJsNode(nodeConfig, context);
+
+      case 'If Condition':
+        return this.executeConditionNode(nodeConfig, context);
+
+      case 'Switch Case':
+        return this.executeSwitchNode(nodeConfig, context);
+
+      case 'Filter':
+        return this.executeFilterNode(nodeConfig, context);
+
 
       default:
         return { success: false, error: `Unsupported node type: ${nodeConfig.nodeType}` };
@@ -234,6 +239,89 @@ export class ClientSideNodeExecutor extends BaseNodeExecutor {
       return { success: false, error: msg };
     }
   }
+    
+  private async executeEmailJsNode(
+    nodeConfig: NodeConfig,
+    context: ExecutionContext
+  ): Promise<NodeExecutionResult> {
+    try {
+      // 1) Read minimal required config
+      const auth = nodeConfig.settings?.authentication ?? {};
+      const gen  = nodeConfig.settings?.general ?? {};
+
+      const publicKey  = (auth.publicKey ?? '').trim();
+      const serviceId  = (auth.serviceId ?? '').trim();
+      const templateId = (auth.templateId ?? '').trim();
+
+      // 2) Validate required fields (toast + cancel)
+      const missing: string[] = [];
+      if (!publicKey)  missing.push('Public Key');
+      if (!serviceId)  missing.push('Service ID');
+      if (!templateId) missing.push('Template ID');
+
+      if (missing.length) {
+        const msg = `Please provide: ${missing.join(', ')}.`;
+        showErrorToast('EmailJS: Missing required fields', msg);
+        return { success: false, error: msg };
+      }
+
+      // 3) Collect and resolve template variables
+      const kvs = Array.isArray(gen.emailjsVars) ? gen.emailjsVars : [];
+      // Filter out rows without a key, but count how many we dropped to warn once.
+      const cleaned = kvs.filter((r: any) => (r?.key ?? '').toString().trim().length > 0);
+      const dropped = kvs.length - cleaned.length;
+      if (dropped > 0) {
+        // soft warning; do not fail execution
+        showErrorToast('EmailJS: Ignoring empty variable names',
+          `Ignored ${dropped} variable row(s) with empty key.`);
+      }
+
+      // Resolve every value through your templating system so expressions work:
+      // VariablePickerTextBox typically stores strings with {{ ... }} expressions.
+      const templateParams: Record<string, any> = {};
+      for (const row of cleaned) {
+        const k = row.key.toString().trim();
+        const raw = (row.value ?? '').toString();
+        const resolved = resolveTemplate(raw, { context }); // expands {{ ... }} using current run context
+        // Keep the raw empty string as valid; users may intentionally set ""
+        templateParams[k] = resolved;
+      }
+
+      // 4) Enforce EmailJS dynamic vars payload limit (~50 KB, exclude attachments)
+      const approxBytes = new Blob([JSON.stringify(templateParams)]).size;
+      if (approxBytes > 50_000) {
+        const msg = `Template variables exceed 50 KB (current ~${approxBytes} bytes). Reduce payload size.`;
+        showErrorToast('EmailJS: Payload too large', msg);
+        return { success: false, error: msg };
+      }
+
+      // 5) Send the email via EmailJS SDK.
+      // Passing { publicKey } here is supported; EmailJS also allows global init with the same key.
+      // Note: EmailJS rate-limits to ~1 request/second. Consider sequencing if users chain sends. [2](https://syncfusion-my.sharepoint.com/personal/satishraj_raju_syncfusion_com/Documents/Microsoft%20Copilot%20Chat%20Files/BaseExecutors.txt)
+      const response = await emailjs.send(
+        serviceId,
+        templateId,
+        templateParams,
+        { publicKey } // ensures we don't depend on a prior global init
+      );
+
+      // 6) Return success payload (also stored to context by base class)
+      return {
+        success: true,
+        data: {
+          status: response?.status,     // e.g., 200
+          text: response?.text,         // e.g., "OK"
+          templateParams
+        }
+      };
+    } catch (err: any) {
+      // 7) Surface a clean error to the user
+      const message = (err?.text || err?.message || `${err}`)?.toString();
+      showErrorToast('EmailJS Send Failed', message);
+      return { success: false, error: message };
+    }
+  }
+
 
   private async executeConditionNode(nodeConfig: NodeConfig, context: ExecutionContext): Promise<NodeExecutionResult> {
     try {

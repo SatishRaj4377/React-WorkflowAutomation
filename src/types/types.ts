@@ -77,3 +77,5 @@ export type VariablesProvider = (context?: {
 
 // Node Status for workflow execution
 export type NodeStatus = 'idle' | 'running' | 'success' | 'error';
+
+export type EmailJSVariableType = Array<{ key: string; value: string }>;

@@ -7,14 +7,13 @@ import {
 } from '@syncfusion/ej2-react-navigations';
 import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { DropDownListComponent } from '@syncfusion/ej2-react-dropdowns';
-import { CheckBoxComponent, ButtonComponent } from '@syncfusion/ej2-react-buttons';
+import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
 import { TooltipComponent } from '@syncfusion/ej2-react-popups';
 import { IconRegistry } from '../../assets/icons';
-import { ExecutionContext, NodeConfig, NodeType } from '../../types';
+import { EmailJSVariableType, ExecutionContext, NodeConfig, NodeType } from '../../types';
 import { getAvailableVariablesForNode, getNodeOutputAsVariableGroup } from '../../helper/variablePickerUtils';
 import { Diagram } from '@syncfusion/ej2-diagrams';
 import { VariablePickerTextBox } from './VariablePickerTextBox';
-import { useMemo } from 'react';
 import { CopyableTextBox } from './CopyableTextBox';
 import { buildJsonFromVariables } from '../../helper/variablePickerUtils';
 import JsonVisualizer from './JsonVisualizer';
@@ -303,6 +302,83 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           </>
         );
 
+      case 'EmailJS': 
+      case 'EmailJS Tool': {
+        const keyValues = (settings.emailjsVars ?? [{ key: '', value: '' }]) as EmailJSVariableType;
+
+        const addVariable = () => {
+          handleConfigChange('emailjsVars', [...keyValues, { key: '', value: '' }]);
+        };
+        const updateVariable = (i: number, field: 'key' | 'value', val: string) => {
+          const next = keyValues.slice();
+          next[i] = { ...next[i], [field]: val };
+          handleConfigChange('emailjsVars', next);
+        };
+        const removeVariable = (i: number) => {
+          const next = keyValues.filter((_, idx) => idx !== i);
+          handleConfigChange('emailjsVars', next);
+        };
+
+        return (
+          <>
+            <div className="config-section">
+              <div className="config-row" style={{ alignItems: 'center', gap: 8 }}>
+                <label className="config-label">Template Variables</label>
+                <TooltipComponent
+                  content={
+                    'Add key–value pairs where the key exactly matches your EmailJS template placeholder (e.g., {{name}}, {{user_email}}). ' +
+                    'See EmailJS docs for more info.'
+                  }
+                >
+                  <span className="e-icons e-circle-info help-icon"></span>
+                </TooltipComponent>
+              </div>
+
+              {keyValues.map((row, i) => (
+                <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 14 }}>
+                  {/* Variable name (must match {{...}} in EmailJS template) */}
+                  <TextBoxComponent
+                    value={row.key}
+                    width={'50%'}
+                    placeholder="Variable Name"
+                    change={(e: any) => updateVariable(i, 'key', e.value)}
+                    cssClass="config-input"
+                  />
+
+                  {/* Variable value */}
+                  <VariablePickerTextBox
+                    value={row.value ?? ''}
+                    placeholder="Value"
+                    onChange={(val) => updateVariable(i, 'value', val)}
+                    cssClass="config-input"
+                    variableGroups={availableVariables}
+                    variablesLoading={variablesLoading}
+                  />
+
+                  {/* Remove row */}
+                  <ButtonComponent 
+                    cssClass="flat-btn e-flat"
+                    iconCss="e-icons e-trash"
+                    onClick={() => removeVariable(i)}
+                    title="Remove variable"
+                  />
+                </div>
+              ))}
+
+              <ButtonComponent className="add-field-btn" iconCss="e-icons e-plus" onClick={addVariable}>
+                Add Variable
+              </ButtonComponent>
+
+              <div className="textbox-info">
+                <br></br>
+                <b>Tip:</b> Variable names must match the placeholders defined in your EmailJS template (e.g., <code>{`{{name}}`}</code>).  
+                You can map values from previous nodes using the picker.
+              </div>
+            </div>
+          </>
+        );
+      }
+
       case 'Gmail':
       case 'Google Sheets':
       case 'Google Calendar':
@@ -442,116 +518,178 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
 
     const authSettings =(selectedNode?.settings && selectedNode.settings.authentication) || {};
 
-    // Render node specific authentication fields
-    if (selectedNode.nodeType === 'Azure Chat Model Tool') {
-      return (
-        <div className="config-tab-content">
-          <div className="config-section">
-            <label className="config-label">API Key</label>
-            <TextBoxComponent
-              value={authSettings.azureApiKey ?? ''}
-              type='password'
-              change={(e: any) => handleConfigChange('azureApiKey', e.value, 'authentication')}
-              cssClass="config-input"
-              />
-          </div>
-          <div className="config-section">
-            <label className="config-label">Endpoint</label>
-            <TextBoxComponent
-              value={authSettings.azureEndpoint ?? ''}
-              change={(e: any) => handleConfigChange('azureEndpoint', e.value, 'authentication')}
-              cssClass="config-input"
-              />
-          </div>
-          <div className="config-section">
-              <div className="config-row">
-                <label className="config-label">Model (Deployment) Name</label>
-                <TooltipComponent content="The name of the model(deployment) to use (e.g., gpt-4, gpt-35-turbo)">
-                  <span className='e-icons e-circle-info help-icon'></span>
-                </TooltipComponent>
-              </div>
-              <TextBoxComponent
-                value={authSettings.azureDeploymentName ?? ''}
-                change={(e: any) => handleConfigChange('azureDeploymentName', e.value, 'authentication')}
-                cssClass="config-input"
-              />
-            </div>
-        </div>
-      );
-    } else {
-      // For all other auth-required nodes (e.g., Gmail, Telegram)
-      const typeVal = authSettings.type ?? '';
-      return (
-        <div className="config-tab-content">
-          <div className="config-section">
-            <label className="config-label">Authentication Type</label>
-            <DropDownListComponent
-              value={typeVal}
-              dataSource={['Basic Auth', 'Bearer Token', 'OAuth2']}
-              placeholder="Select authentication"
-              change={(e: any) => handleConfigChange('type', e.value, 'authentication')}
-              popupHeight="240px"
-              zIndex={1000000}
-            />
-          </div>
-          {typeVal === 'Basic Auth' && (
-            <>
+    // Render Azure Chat Model node specific authentication fields
+    switch (selectedNode.nodeType) {
+        case 'Azure Chat Model Tool':
+          return (
+            <div className="config-tab-content">
               <div className="config-section">
-                <label className="config-label">Username</label>
+                <label className="config-label">API Key</label>
                 <TextBoxComponent
-                  value={authSettings.username ?? ''}
-                  change={(e: any) => handleConfigChange('username', e.value, 'authentication')}
+                  value={authSettings.azureApiKey ?? ''}
+                  type='password'
+                  change={(e: any) => handleConfigChange('azureApiKey', e.value, 'authentication')}
+                  cssClass="config-input"
+                  />
+              </div>
+              <div className="config-section">
+                <label className="config-label">Endpoint</label>
+                <TextBoxComponent
+                  value={authSettings.azureEndpoint ?? ''}
+                  change={(e: any) => handleConfigChange('azureEndpoint', e.value, 'authentication')}
+                  cssClass="config-input"
+                  />
+              </div>
+              <div className="config-section">
+                  <div className="config-row">
+                    <label className="config-label">Model (Deployment) Name</label>
+                    <TooltipComponent content="The name of the model(deployment) to use (e.g., gpt-4, gpt-35-turbo)">
+                      <span className='e-icons e-circle-info help-icon'></span>
+                    </TooltipComponent>
+                  </div>
+                  <TextBoxComponent
+                    value={authSettings.azureDeploymentName ?? ''}
+                    change={(e: any) => handleConfigChange('azureDeploymentName', e.value, 'authentication')}
+                    cssClass="config-input"
+                  />
+                </div>
+            </div>
+          );
+        
+        case 'EmailJS':
+        case 'EmailJS Tool':
+          return (
+            <div className="config-tab-content">
+              {/* Public Key */}
+              <div className="config-section">
+                <div className="config-row">
+                  <label className="config-label">Public Key</label>
+                  <TooltipComponent
+                    content={'EmailJS Public Key (Account → Integration).'}
+                  >
+                    <span className="e-icons e-circle-info help-icon"></span>
+                  </TooltipComponent>
+                </div>
+                <TextBoxComponent
+                  value={authSettings.publicKey ?? ''}
+                  placeholder="e.g., xxxxxxxxPUBLICxxxxxxxx"
+                  change={(e: any) => handleConfigChange('publicKey', e.value, 'authentication')}
                   cssClass="config-input"
                 />
               </div>
+
+              {/* Service ID */}
               <div className="config-section">
-                <label className="config-label">Password</label>
+                <div className="config-row">
+                  <label className="config-label">Service ID</label>
+                  <TooltipComponent
+                    content={'EmailJS Service ID (from Services).'}
+                  >
+                    <span className="e-icons e-circle-info help-icon"></span>
+                  </TooltipComponent>
+                </div>
                 <TextBoxComponent
-                  type="password"
-                  value={authSettings.password ?? ''}
-                  change={(e: any) => handleConfigChange('password', e.value, 'authentication')}
+                  value={authSettings.serviceId ?? ''}
+                  placeholder="e.g., service_abc123"
+                  change={(e: any) => handleConfigChange('serviceId', e.value, 'authentication')}
                   cssClass="config-input"
                 />
               </div>
-            </>
-          )}
-          {typeVal === 'Bearer Token' && (
-            <div className="config-section">
-              <label className="config-label">Bearer Token</label>
-              <TextBoxComponent
-                value={authSettings.token ?? ''}
-                change={(e: any) => handleConfigChange('token', e.value, 'authentication')}
-                cssClass="config-input"
-              />
-            </div>
-          )}
-          {typeVal === 'OAuth2' && (
-            <>
+
+              {/* Template ID */}
               <div className="config-section">
-                <label className="config-label">Account</label>
+                <div className="config-row">
+                  <label className="config-label">Template ID</label>
+                  <TooltipComponent
+                    content={'EmailJS Template ID (from Templates).'}
+                  >
+                    <span className="e-icons e-circle-info help-icon"></span>
+                  </TooltipComponent>
+                </div>
+                <TextBoxComponent
+                  value={authSettings.templateId ?? ''}
+                  placeholder="e.g., template_xyz789"
+                  change={(e: any) => handleConfigChange('templateId', e.value, 'authentication')}
+                  cssClass="config-input"
+                />
+              </div>
+            </div>
+          );
+
+        default:
+          // For all other auth-required nodes (e.g., Gmail, Telegram)
+          const typeVal = authSettings.type ?? '';
+          return (
+            <div className="config-tab-content">
+              <div className="config-section">
+                <label className="config-label">Authentication Type</label>
                 <DropDownListComponent
-                  value={authSettings.account ?? ''}
-                  dataSource={['Connect new…']}
-                  placeholder="Choose or connect account"
-                  change={(e: any) => handleConfigChange('account', e.value, 'authentication')}
+                  value={typeVal}
+                  dataSource={['Basic Auth', 'Bearer Token', 'OAuth2']}
+                  placeholder="Select authentication"
+                  change={(e: any) => handleConfigChange('type', e.value, 'authentication')}
                   popupHeight="240px"
                   zIndex={1000000}
                 />
               </div>
-              <div className="config-section">
-                <label className="config-label">Scopes</label>
-                <TextBoxComponent
-                  value={authSettings.scopes ?? ''}
-                  placeholder="space-separated scopes"
-                  change={(e: any) => handleConfigChange('scopes', e.value, 'authentication')}
-                  cssClass="config-textarea"
-                  multiline
-                />
-              </div>
-            </>
-          )}
-        </div>
-      );
+              {typeVal === 'Basic Auth' && (
+                <>
+                  <div className="config-section">
+                    <label className="config-label">Username</label>
+                    <TextBoxComponent
+                      value={authSettings.username ?? ''}
+                      change={(e: any) => handleConfigChange('username', e.value, 'authentication')}
+                      cssClass="config-input"
+                    />
+                  </div>
+                  <div className="config-section">
+                    <label className="config-label">Password</label>
+                    <TextBoxComponent
+                      type="password"
+                      value={authSettings.password ?? ''}
+                      change={(e: any) => handleConfigChange('password', e.value, 'authentication')}
+                      cssClass="config-input"
+                    />
+                  </div>
+                </>
+              )}
+              {typeVal === 'Bearer Token' && (
+                <div className="config-section">
+                  <label className="config-label">Bearer Token</label>
+                  <TextBoxComponent
+                    value={authSettings.token ?? ''}
+                    change={(e: any) => handleConfigChange('token', e.value, 'authentication')}
+                    cssClass="config-input"
+                  />
+                </div>
+              )}
+              {typeVal === 'OAuth2' && (
+                <>
+                  <div className="config-section">
+                    <label className="config-label">Account</label>
+                    <DropDownListComponent
+                      value={authSettings.account ?? ''}
+                      dataSource={['Connect new…']}
+                      placeholder="Choose or connect account"
+                      change={(e: any) => handleConfigChange('account', e.value, 'authentication')}
+                      popupHeight="240px"
+                      zIndex={1000000}
+                    />
+                  </div>
+                  <div className="config-section">
+                    <label className="config-label">Scopes</label>
+                    <TextBoxComponent
+                      value={authSettings.scopes ?? ''}
+                      placeholder="space-separated scopes"
+                      change={(e: any) => handleConfigChange('scopes', e.value, 'authentication')}
+                      cssClass="config-textarea"
+                      multiline
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+          );
     }
   }, [selectedNode]);
 
