@@ -159,11 +159,12 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     if (!obj || typeof obj !== 'object') {
       return obj;
     }
+    const isConnectedToAIAgentAndTool = isConnectorBetweenAgentAndTool(obj, diagramRef.current);
     obj.type = getConnectorType(diagramSettings);
     obj.cornerRadius = getConnectorCornerRadius(diagramSettings)
     obj.style = {
       strokeColor: GRAY_COLOR,
-      strokeDashArray: !isConnectorBetweenAgentAndTool(obj, diagramRef.current) ? '' : CONNECTOR_STROKEDASH_ARR,
+      strokeDashArray: !isConnectedToAIAgentAndTool ? '' : CONNECTOR_STROKEDASH_ARR,
       strokeWidth: 2,
     };
     obj.targetDecorator = {
@@ -289,8 +290,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       }
 
       // Handle connector addition logic
-      // Only finalize (update to solid) if fully connected and NOT between agent and tool
-      if (element.sourceID && element.targetID && !isConnectorBetweenAgentAndTool(element, diagramRef.current)) {
+      if (element.sourceID && element.targetID) {
         finalizeConnectorStyle(element);
       } else if (element.sourceID === '' || element.targetID === '') {
         // remove incomplete connector
@@ -327,19 +327,34 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
   // Update the connector style on successfull connection
   const finalizeConnectorStyle = (connector: any) => {
-    // Update to solid style when connection is completed
-    setTimeout(() => {
-      connector.style = {
-        ...connector.style,
-        strokeDashArray: '', // Remove dotted pattern
-        opacity: 1,
+    // Only finalize (update to solid) if fully connected and NOT between agent and tool
+    const isBetweenAIAgentAndTool = isConnectorBetweenAgentAndTool(connector, diagramRef.current)
+    if (!isBetweenAIAgentAndTool){
+      // Update to solid style when connection is completed and NOT between agent and tool
+      setTimeout(() => {
+        connector.style = {
+          ...connector.style,
+          strokeDashArray: '', // Remove dotted pattern
+          opacity: 1,
+        };
+        connector.constraints =
+          (ConnectorConstraints.Default | ConnectorConstraints.ReadOnly) &
+          ~ConnectorConstraints.DragSourceEnd &
+          ~ConnectorConstraints.DragTargetEnd &
+          ~ConnectorConstraints.Drag;
+      });
+    }else{
+      // update the target deocrator shap to none if between agent and tool
+      connector.targetDecorator = {
+        shape: 'None',
+        ...connector.targetDecorator,
+        style: {
+          ...connector.targetDecorator?.style,
+          fill: GRAY_COLOR,
+          strokeColor: GRAY_COLOR,
+        },
       };
-      connector.constraints =
-        (ConnectorConstraints.Default | ConnectorConstraints.ReadOnly) &
-        ~ConnectorConstraints.DragSourceEnd &
-        ~ConnectorConstraints.DragTargetEnd &
-        ~ConnectorConstraints.Drag;
-    });
+    }
   };
 
 
