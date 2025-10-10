@@ -7,7 +7,7 @@ import { generateResponse } from '../services/AzureChatService';
 import { getConnectedSourceByTargetPort, getConnectedTargetBySourcePort } from '../helper/utilities';
 import { evaluateExpression, resolveTemplate } from '../helper/expression';
 import emailjs from '@emailjs/browser';
-import { ensureGmailToken, getConnectedGoogleEmail, gmailSendRaw, toBase64Url } from '../services/GoogleClientService';
+import { getConnectedGoogleEmail, getTokenCached, gmailSendRaw, toBase64Url } from '../helper/googleClientUtils';
 
 export abstract class BaseNodeExecutor implements NodeExecutor {
   abstract executeNode(node: NodeModel, context: ExecutionContext): Promise<NodeExecutionResult>;
@@ -326,86 +326,65 @@ export class ClientSideNodeExecutor extends BaseNodeExecutor {
     }
   }
 
-
   private async executeGmailNode(
     nodeConfig: NodeConfig,
     context: ExecutionContext
   ): Promise<NodeExecutionResult> {
     try {
-      // 1) Validate operation
-      const gen = nodeConfig.settings?.general ?? {};
-      const action = (gen.action ?? 'Send').toString();
-      if (action !== 'Send') {
-        const msg = 'Gmail: Only the "Send" operation is supported in this sample.';
-        showErrorToast('Unsupported Gmail Operation', msg);
-        return { success: false, error: msg };
-      }
-
-      // 2) Validate authentication: require a connected Google account + token
       const account = getConnectedGoogleEmail();
       if (!account) {
-        const msg = 'Gmail: Please sign in on the Authentication tab before running this node.';
+        const msg = 'Gmail: Connect your Google account in the Authentication tab.';
         showErrorToast('Gmail Authentication Missing', msg);
         return { success: false, error: msg };
       }
 
-      // Try to ensure a valid access token (scope: gmail.send); do not prompt unless needed
-      await ensureGmailToken(false);
-
-      // 3) Resolve variable-enabled inputs (VariablePickerTextBox)
-      const toRaw = gen.to ?? '';
-      const subjectRaw = gen.subject ?? '';
-      const messageRaw = gen.message ?? '';
-
-      const toValue = resolveTemplate(toRaw, { context }).trim();
-      const subjectValue = resolveTemplate(subjectRaw, { context }).trim();
-      const messageValue = resolveTemplate(messageRaw, { context }).toString();
-
-      const missing: string[] = [];
-      if (!toValue) missing.push('To');
-      if (!subjectValue) missing.push('Subject');
-      if (missing.length) {
-        const msg = `Gmail: Please provide ${missing.join(', ')}.`;
-        showErrorToast('Gmail: Missing fields', msg);
+      const token = getTokenCached();
+      if (!token) {
+        const msg = 'Gmail token expired/missing. Please re-connect in Authentication tab.';
+        showErrorToast('Gmail Token Required', msg);
         return { success: false, error: msg };
       }
 
-      // 4) Build RFC-2822 text message and encode to base64url
-      //    Gmail expects CRLF line endings; use "From" for clarity (sender is authenticated user).
-      //    Docs: users.messages.send expects base64url-encoded raw MIME.  [2](https://github.com/open-webui/open-webui/discussions/8138)
+      const gen = nodeConfig.settings?.general ?? {};
+      const to = resolveTemplate(gen.to ?? '', { context }).trim();
+      const subject = resolveTemplate(gen.subject ?? '', { context }).trim();
+      const body = resolveTemplate(gen.message ?? '', { context }).toString();
+
+      if (!to || !subject) {
+        const msg = 'Gmail: "To" and "Subject" are required.';
+        showErrorToast('Gmail Missing Fields', msg);
+        return { success: false, error: msg };
+      }
+
       const mime =
         `From: ${account}\r\n` +
-        `To: ${toValue}\r\n` +
-        `Subject: ${subjectValue}\r\n` +
+        `To: ${to}\r\n` +
+        `Subject: ${subject}\r\n` +
         `MIME-Version: 1.0\r\n` +
-        `Content-Type: text/plain; charset="UTF-8"\r\n` +
-        `\r\n` +
-        `${messageValue}`;
+        `Content-Type: text/plain; charset="UTF-8"\r\n\r\n` +
+        `${body}`;
 
-      const raw = toBase64Url(mime); // base64url transform (+ → -, / → _, trim =)  [2](https://github.com/open-webui/open-webui/discussions/8138)
+      const raw = toBase64Url(mime); // RFC 2822 → base64url  [6](https://support.google.com/cloud/answer/15549945?hl=en)
+      const json = await gmailSendRaw(raw, token); // POST users/me/messages/send  [4](https://stackoverflow.com/questions/70406830/google-oauth2-0-unpublished-test-app-accepts-users-not-in-test-user-list)
 
-      // 5) Send via Gmail REST: POST users/me/messages/send   [1](https://sendlayer.com/docs/401-error-invalid-client/)
-      const json = await gmailSendRaw(raw);
-
-      // 6) Return a PLAIN object only (no diagram/node/context refs) so BaseNodeExecutor can store it safely
-      const data = {
-        id: json?.id ?? null,
-        threadId: json?.threadId ?? null,
-        labelIds: Array.isArray(json?.labelIds) ? json.labelIds.slice() : [],
-        to: toValue,
-        subject: subjectValue,
-        sentAt: new Date().toISOString(),
-        provider: 'gmail',
+      return {
+        success: true,
+        data: {
+          id: json?.id ?? null,
+          threadId: json?.threadId ?? null,
+          labelIds: Array.isArray(json?.labelIds) ? json.labelIds.slice() : [],
+          to,
+          subject,
+          sentAt: new Date().toISOString(),
+          provider: 'gmail'
+        }
       };
-
-      return { success: true, data };
     } catch (err: any) {
       const message = (err?.message ?? `${err}`)?.toString();
       showErrorToast('Gmail Send Failed', message);
       return { success: false, error: message };
     }
   }
-
 
   private async executeConditionNode(nodeConfig: NodeConfig, context: ExecutionContext): Promise<NodeExecutionResult> {
     try {

@@ -1,55 +1,65 @@
+// components/GoogleAuthPanel.tsx
+import React, { useEffect, useState } from 'react';
 import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
-import {
-  renderGoogleSignInButton, initGoogle,
-  getConnectedGoogleEmail, ensureGmailToken, disconnectGoogle
-} from '../../services/GoogleClientService';
-import { showErrorToast, showSuccessToast } from '../Toast';
-import { useEffect, useRef, useState } from 'react';
 import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
+import {
+  initGoogleAuth, getTokenInteractive, disconnectGoogle, getConnectedGoogleEmail
+} from '../../helper/googleClientUtils';
+import { showErrorToast, showSuccessToast } from '../Toast';
 
 type Props = {
-  clientId: string;
-  onConnected?: (email: string) => void;
+  clientId: string;                              // REACT_APP_GOOGLE_CLIENT_ID
+  onConnected?: (email: string) => void;         // store email in node.settings.authentication
 };
 
 const GoogleAuthPanel: React.FC<Props> = ({ clientId, onConnected }) => {
-  const hostRef = useRef<HTMLDivElement | null>(null);
-  const [connected, setConnected] = useState<string | null>(getConnectedGoogleEmail());
-  const [ready, setReady] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState<string | null>(getConnectedGoogleEmail());
 
   useEffect(() => {
-    let mounted = true;
     (async () => {
       try {
-        await initGoogle({ clientId });
-        setReady(true);
-        if (hostRef.current) {
-          await renderGoogleSignInButton(hostRef.current, { theme: 'filled_blue', size: 'large', type: 'standard' }, async (email) => {
-            if (!mounted) return;
-            setConnected(email || null);
-            onConnected?.(email || '');
-            showSuccessToast('Google Connected', email || 'Connected');
-          });
-        }
+        await initGoogleAuth({ clientId });
       } catch (e: any) {
         showErrorToast('Google Init Failed', e?.message ?? String(e));
       }
     })();
-    return () => { mounted = false; };
-  }, [clientId, onConnected]);
+  }, [clientId]);
+
+
+    const handleConnect = async (force = false) => {
+    if (loading) return;
+    setLoading(true);
+    try {
+        const { email: mail } = await getTokenInteractive(force, {
+        onPopupOpen: () => setLoading(true),
+        onPopupClosed: (_reason) => {
+            // Popup was closed / failed / timed out / abandoned -> re-enable button
+            setLoading(false);
+        },
+        timeoutMs: 25000,
+        });
+        setEmail(mail);
+        onConnected?.(mail);
+        showSuccessToast('Google Connected', mail);
+    } catch (e: any) {
+        // Re-enable in error path as well
+        setLoading(false);
+        const msg = (e?.message ?? '').toString();
+        if (msg === 'popup_closed' || msg === 'popup_timeout' || msg === 'popup_abandoned') {
+        showErrorToast('Google Sign-in Cancelled', 'You can try connecting again.');
+        } else {
+        showErrorToast('Google Auth Error', msg);
+        }
+    }
+    };
+
 
   const handleChangeAccount = async () => {
     try {
-      await disconnectGoogle();           // revoke + clear cache
-      setConnected(null);
-      // Re-render button so the user can pick another account
-      if (hostRef.current && ready) {
-        hostRef.current.innerHTML = '';
-        await renderGoogleSignInButton(hostRef.current, { theme: 'filled_blue', size: 'large', type: 'standard' }, (email) => {
-          setConnected(email || null);
-          onConnected?.(email || '');
-        });
-      }
+      await disconnectGoogle(); // revoke + clear cache
+      setEmail(null);
+      await handleConnect(true); // force chooser/consent
     } catch (e: any) {
       showErrorToast('Change Account Failed', e?.message ?? String(e));
     }
@@ -57,20 +67,23 @@ const GoogleAuthPanel: React.FC<Props> = ({ clientId, onConnected }) => {
 
   return (
     <div className="config-tab-content">
-      <div className="config-section"><div ref={hostRef} /></div>
+      <div className="config-section">
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <ButtonComponent isPrimary disabled={loading} onClick={() => handleConnect(!email)}>
+            {email ? 'Re-connect Google' : 'Connect Google'}
+          </ButtonComponent>
+          {email && (
+            <ButtonComponent cssClass="e-flat" disabled={loading} onClick={handleChangeAccount}>
+              Change account
+            </ButtonComponent>
+          )}
+        </div>
+      </div>
 
-      {connected && (
+      {email && (
         <div className="config-section">
           <label className="config-label">Connected Account</label>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <TextBoxComponent value={connected} readOnly/>
-            <span>
-            <ButtonComponent cssClass="e-flat" onClick={handleChangeAccount}>Change account</ButtonComponent>
-            <ButtonComponent cssClass="e-flat" onClick={async () => { await handleChangeAccount(); }}>
-              Disconnect
-            </ButtonComponent>
-            </span>
-          </div>
+          <TextBoxComponent value={email} readonly cssClass="config-input" />
         </div>
       )}
     </div>
