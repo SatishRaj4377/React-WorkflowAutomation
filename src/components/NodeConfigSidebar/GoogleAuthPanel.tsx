@@ -26,8 +26,7 @@ const GoogleAuthPanel: React.FC<Props> = ({ clientId, onConnected }) => {
     })();
   }, [clientId]);
 
-
-    const handleConnect = async (force = false) => {
+  const handleConnect = async (force = false) => {
     if (loading) return;
     setLoading(true);
     try {
@@ -52,8 +51,7 @@ const GoogleAuthPanel: React.FC<Props> = ({ clientId, onConnected }) => {
         showErrorToast('Google Auth Error', msg);
         }
     }
-    };
-
+  };
 
   const handleChangeAccount = async () => {
     try {

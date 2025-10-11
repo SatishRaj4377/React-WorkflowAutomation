@@ -91,7 +91,8 @@
   pointer-events: all;
   transition: all 0.2s ease;
 }
-.node-template-container :hover .node-hover-toolbar {
+.node-template-container :hover .node-hover-toolbar,
+.node-template-container :hover .conditon-node-port-label {
  opacity: 1;
 }
 .node-toolbar-btn {
@@ -269,7 +270,7 @@
 .node-port-bottom-right {
   left: 86%;
 }
-.node-port-label {
+.agent-node-port-label {
   position: absolute;
   right: -43px;
   transform: translate(-50%, -100%) rotate(-45deg);
@@ -277,6 +278,21 @@
   font-size: .6rem;
   font-weight: 500;
   width: 60px;
+}
+.conditon-node-port-label {
+    opacity: 0;
+    color: var(--scrollbar-thumb-hover);
+    position: absolute;
+    right: -49px;
+    top: 13px;
+    border-radius: 4px;
+    background: var(--background-color);
+    transform: translate(-50%, -100%);
+    font-size: .6rem;
+    font-weight: 500;
+    width: 32px;
+    padding: 0rem .4rem;
+    text-align: left;
 }
 
 /* Diagram Container Styles */

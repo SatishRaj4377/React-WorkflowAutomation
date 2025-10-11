@@ -37,11 +37,11 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo, onNodeToolbarA
         {portConfig.topPort && <div className="node-port-top"></div>}
         {portConfig.leftPort && <div className="node-port-left"></div>}
         {portConfig.rightPort && <div className="node-port-right"></div>}
-        {portConfig.rightTopPort && <div className="node-port-right-top"></div>}
-        {portConfig.rightBottomPort && <div className="node-port-right-bottom"></div>}
-        {portConfig.bottomLeftPort && <div className="node-port-bottom-left"><span className='node-port-label left'>AI Model</span></div>}
+        {portConfig.rightTopPort && <div className="node-port-right-top"><span className='conditon-node-port-label'>true</span></div>}
+        {portConfig.rightBottomPort && <div className="node-port-right-bottom"><span className='conditon-node-port-label'>false</span></div>}
+        {portConfig.bottomLeftPort && <div className="node-port-bottom-left"><span className='agent-node-port-label'>AI Model</span></div>}
         {/* {portConfig.bottomMiddlePort && <div className="node-port-bottom-middle"></div>} */}
-        {portConfig.bottomRightPort && <div className="node-port-bottom-right"><span className='node-port-label right'>Tool</span></div>}
+        {portConfig.bottomRightPort && <div className="node-port-bottom-right"><span className='agent-node-port-label'>Tool</span></div>}
         
         {/* Icon and Name Rendering... */}
         <div className="node-img-content" style={isAiAgent ? { gap: '1.2rem' } : {}}>
