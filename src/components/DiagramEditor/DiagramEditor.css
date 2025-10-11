@@ -92,7 +92,8 @@
   transition: all 0.2s ease;
 }
 .node-template-container :hover .node-hover-toolbar,
-.node-template-container :hover .conditon-node-port-label {
+.node-template-container :hover .if-conditon-node-port-label,
+.node-template-container :hover .switch-conditon-node-port-label {
  opacity: 1;
 }
 .node-toolbar-btn {
@@ -279,7 +280,7 @@
   font-weight: 500;
   width: 60px;
 }
-.conditon-node-port-label {
+.if-conditon-node-port-label {
     opacity: 0;
     color: var(--scrollbar-thumb-hover);
     position: absolute;
@@ -292,6 +293,19 @@
     font-weight: 500;
     width: 32px;
     padding: 0rem .4rem;
+    text-align: left;
+}
+.switch-conditon-node-port-label {
+    opacity: 0;
+    color: var(--surface-color);
+    position: absolute;
+    top: 13px;
+    border-radius: 20%;
+    background: var(--node-border-color);
+    transform: translate(-50%, -100%);
+    font-size: .6rem;
+    font-weight: 500;
+    padding: 0.1rem .4rem;
     text-align: left;
 }
 

@@ -20,6 +20,7 @@ import JsonVisualizer from './JsonVisualizer';
 import { AUTH_NODE_TYPES, HTTP_METHODS, TIMEZONES } from '../../constants';
 import './NodeConfigSidebar.css';
 import GoogleAuthPanel from './GoogleAuthPanel';
+import { updateSwitchPorts } from '../../helper/utilities/portUtils';
 
 interface ConfigPanelProps {
   isOpen: boolean;
@@ -91,6 +92,20 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
 
     // Call the async function
     fetchData();
+
+    // Initialize/Sync dynamic ports for Switch Case nodes when opening.
+    // Only update if desired count differs from existing, to avoid height jump on open.
+    if (selectedNode && diagram && selectedNode.nodeType === 'Switch Case') {
+      const rules = (selectedNode.settings?.general as any)?.rules as any[] | undefined;
+      const desired = Math.max(1, rules?.length ?? 1);
+      const node: any = (diagram as any).getObject(selectedNode.id);
+      const existing = (node?.addInfo?.dynamicCaseCount)
+        ?? (Array.isArray(node?.ports) ? node.ports.filter((p: any) => String(p.id).startsWith('right-case-')).length : 0)
+        ?? 0;
+      if (existing !== desired) {
+        updateSwitchPorts(diagram as any, selectedNode.id, desired);
+      }
+    }
   }, [selectedNode?.id, diagram, executionContext]);
 
 
@@ -477,22 +492,82 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           </>
         );
 
-      case 'Switch Case':
+      case 'Switch Case': {
+        const rules = (settings.rules ?? [{ left: '', comparator: 'is equal to', right: '' }]) as Array<{ left: string; comparator: string; right: string }>;
+
+        const comparators = ['is equal to', 'is not equal to', 'contains', 'does not contain', 'greater than', 'less than'];
+
+        const addRule = () => {
+          const next = [...rules, { left: '', comparator: 'is equal to', right: '' }];
+          handleConfigChange('rules', next);
+          if (diagram && selectedNode) updateSwitchPorts(diagram as any, selectedNode.id, next.length);
+        };
+        const updateRule = (i: number, field: 'left' | 'comparator' | 'right', val: string) => {
+          const next = rules.slice();
+          next[i] = { ...next[i], [field]: val } as any;
+          handleConfigChange('rules', next);
+          if (diagram && selectedNode) updateSwitchPorts(diagram as any, selectedNode.id, next.length);
+        };
+        const removeRule = (i: number) => {
+          if (rules.length === 1) return; // enforce at least one rule
+          const next = rules.filter((_, idx) => idx !== i);
+          handleConfigChange('rules', next);
+          if (diagram && selectedNode) updateSwitchPorts(diagram as any, selectedNode.id, next.length);
+        };
+
         return (
           <>
             <div className="config-section">
-              <label className="config-label">Expression</label>
-              <VariablePickerTextBox
-                value={settings.expression ?? ''}
-                placeholder="e.g., {{ $.data.status }}"
-                onChange={(val) => handleConfigChange('expression', val)}
-                cssClass="config-input"
-                variableGroups={availableVariables}
-                variablesLoading={variablesLoading}
-              />
+              <div className="config-row" style={{ alignItems: 'center', gap: 8 }}>
+                <label className="config-label">Rules</label>
+                <TooltipComponent content="Add rules. Each rule creates a new case output port.">
+                  <span className='e-icons e-circle-info help-icon'></span>
+                </TooltipComponent>
+              </div>
+
+              {rules.map((r, i) => (
+                <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+                  <VariablePickerTextBox
+                    value={r.left}
+                    placeholder="value1"
+                    onChange={(val) => updateRule(i, 'left', val)}
+                    cssClass="config-input"
+                    variableGroups={availableVariables}
+                    variablesLoading={variablesLoading}
+                  />
+                  <DropDownListComponent
+                    value={r.comparator}
+                    dataSource={comparators}
+                    change={(e: any) => updateRule(i, 'comparator', e.value)}
+                    popupHeight="240px"
+                    zIndex={1000000}
+                    width={'150px'}
+                  />
+                  <VariablePickerTextBox
+                    value={r.right}
+                    placeholder="value2"
+                    onChange={(val) => updateRule(i, 'right', val)}
+                    cssClass="config-input"
+                    variableGroups={availableVariables}
+                    variablesLoading={variablesLoading}
+                  />
+                  <ButtonComponent
+                    cssClass="flat-btn e-flat"
+                    iconCss="e-icons e-trash"
+                    onClick={() => removeRule(i)}
+                    title="Remove rule"
+                    disabled={rules.length === 1}
+                  />
+                </div>
+              ))}
+
+              <ButtonComponent className="add-field-btn" iconCss="e-icons e-plus" onClick={addRule}>
+                Add Rule
+              </ButtonComponent>
             </div>
           </>
         );
+      }
 
       case 'Filter':
         return (

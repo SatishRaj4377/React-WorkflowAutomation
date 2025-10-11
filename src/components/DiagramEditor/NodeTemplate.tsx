@@ -23,6 +23,10 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo, onNodeToolbarA
   const isAiAgent = isAiAgentNode(nodeConfig);
 
   const isRightPortOnly  = portConfig.rightPort && !portConfig.leftPort;
+
+  // Dynamic Switch Case rendering support
+  const dynamicCaseOffsets: number[] = (addInfo as any)?.dynamicCaseOffsets || [];
+  const isSwitchCase = (addInfo.nodeConfig?.nodeType === 'Switch Case');
   
   return (
     <div className="node-template-container">
@@ -37,8 +41,30 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo, onNodeToolbarA
         {portConfig.topPort && <div className="node-port-top"></div>}
         {portConfig.leftPort && <div className="node-port-left"></div>}
         {portConfig.rightPort && <div className="node-port-right"></div>}
-        {portConfig.rightTopPort && <div className="node-port-right-top"><span className='conditon-node-port-label'>true</span></div>}
-        {portConfig.rightBottomPort && <div className="node-port-right-bottom"><span className='conditon-node-port-label'>false</span></div>}
+        {isSwitchCase
+          ? (
+              // Render N right-side ports (case 1..N) for Switch Case
+              (dynamicCaseOffsets.length > 0 ? dynamicCaseOffsets : [0.5]).map((y, i) => (
+                <div
+                  key={`right-case-${i + 1}`}
+                  className="node-port-right"
+                  style={{ top: `${y * 100}%`}}
+                >
+                  <span className='switch-conditon-node-port-label'>{i + 1}</span>
+                </div>
+              ))
+            )
+          : (
+              // Fallback for If Condition (true/false)
+              <>
+                {portConfig.rightTopPort && (
+                  <div className="node-port-right-top"><span className='if-conditon-node-port-label'>true</span></div>
+                )}
+                {portConfig.rightBottomPort && (
+                  <div className="node-port-right-bottom"><span className='if-conditon-node-port-label'>false</span></div>
+                )}
+              </>
+            )}
         {portConfig.bottomLeftPort && <div className="node-port-bottom-left"><span className='agent-node-port-label'>AI Model</span></div>}
         {/* {portConfig.bottomMiddlePort && <div className="node-port-bottom-middle"></div>} */}
         {portConfig.bottomRightPort && <div className="node-port-bottom-right"><span className='agent-node-port-label'>Tool</span></div>}

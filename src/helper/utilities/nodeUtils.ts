@@ -73,7 +73,16 @@ export const calculateNewNodePosition = (sourceNode: NodeModel, portId: string):
       offsetY = baseY + (nodeHeight / 2 + padding); // To the right and below
       break;
 
+    // --- Dynamic Switch Case Ports (right-case-1, 2, ...) ---
     default:
+      if (portId.startsWith('right-case-')) {
+        const idx = parseInt(portId.replace('right-case-', ''), 10) || 1;
+        offsetX = baseX + horizontalSpacing;
+        // spread vertically around the source
+        const spread = nodeHeight + padding;
+        const normalized = (idx - 1); // 0-based
+        offsetY = baseY - spread / 2 + normalized * (padding + 10);
+      }
       break;
   }
 
