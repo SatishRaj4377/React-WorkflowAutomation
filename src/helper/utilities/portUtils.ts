@@ -1,7 +1,8 @@
 import { NodeModel, Point, PointPortModel, PortConstraints, PortModel, PortVisibility, Diagram } from "@syncfusion/ej2-react-diagrams";
-import { NodeCategories, NodeConfig, NodePortDirection, PortConfiguration, PortSide } from "../../types";
-import { isAiAgentNode, isIfOrSwitchCondition, isToolNode, isTriggerNode } from "./nodeUtils";
+import { NodeCategories, NodeConfig, NodePortDirection, NodeType, PortConfiguration, PortSide } from "../../types";
+import { isAiAgentNode, isIfConditionNode, isToolNode, isTriggerNode } from "./nodeUtils";
 import { PORT_POSITIONS } from "../../constants";
+import { NODE_REGISTRY } from "../../constants/nodeRegistry";
 
 export const createPort = (
   id: string,
@@ -20,43 +21,63 @@ export const createPort = (
   constraints,
 });
 
-export const getPortsForNode = (type: NodeCategories): PortModel[] => {
-  switch (type) {
+// Build concrete ports from a declarative PortConfiguration
+function buildPortsFromConfig(config: PortConfiguration): PortModel[] {
+  const ports: PortModel[] = [];
+  if (config.leftPort) ports.push(createPort("left-port", PORT_POSITIONS.LEFT, "Circle", 20, PortConstraints.InConnect));
+  if (config.topPort) ports.push(createPort("top-port", PORT_POSITIONS.TOP, "Circle", 20, PortConstraints.InConnect));
+  if (config.rightPort) ports.push(createPort("right-port", PORT_POSITIONS.RIGHT, "Circle", 20, PortConstraints.OutConnect | PortConstraints.Draw));
+  if (config.rightTopPort) ports.push(createPort("right-top-port", PORT_POSITIONS.RIGHT_TOP, "Circle", 20, PortConstraints.OutConnect | PortConstraints.Draw));
+  if (config.rightBottomPort) ports.push(createPort("right-bottom-port", PORT_POSITIONS.RIGHT_BOTTOM, "Circle", 20, PortConstraints.OutConnect | PortConstraints.Draw));
+  if (config.bottomLeftPort) ports.push(createPort("bottom-left-port", PORT_POSITIONS.BOTTOM_LEFT, "Square", 14, PortConstraints.OutConnect | PortConstraints.Draw));
+  if (config.bottomMiddlePort) ports.push(createPort("bottom-middle-port", PORT_POSITIONS.BOTTOM_MIDDLE, "Square", 14, PortConstraints.OutConnect | PortConstraints.Draw));
+  if (config.bottomRightPort) ports.push(createPort("bottom-right-port", PORT_POSITIONS.BOTTOM_RIGHT, "Square", 14, PortConstraints.OutConnect | PortConstraints.Draw));
+  return ports;
+}
+
+// Backward-compatible default mapping by category
+function getDefaultPortsByCategory(category: NodeCategories): PortModel[] {
+  switch (category) {
     case "ai-agent":
-      return [
-        createPort("left-port", PORT_POSITIONS.AI_AGENT_LEFT, "Circle", 20, PortConstraints.InConnect),
-        createPort("right-port", PORT_POSITIONS.RIGHT, "Circle", 20, PortConstraints.OutConnect | PortConstraints.Draw),
-        createPort("bottom-left-port", PORT_POSITIONS.BOTTOM_LEFT, "Square", 14, PortConstraints.OutConnect | PortConstraints.Draw),
-        // createPort("bottom-middle-port", PORT_POSITIONS.BOTTOM_MIDDLE, "Square", 14, PortConstraints.OutConnect | PortConstraints.Draw, "Memory"),
-        createPort("bottom-right-port", PORT_POSITIONS.BOTTOM_RIGHT, "Square", 14, PortConstraints.OutConnect | PortConstraints.Draw),
-      ];
-
+      return buildPortsFromConfig({
+        leftPort: true,
+        rightPort: true,
+        bottomLeftPort: true,
+        bottomMiddlePort: true,
+        bottomRightPort: true,
+      });
     case "condition":
-      // Default condition node gets 2 right ports; Switch nodes can later be upgraded dynamically
-      return [
-        createPort("left-port", PORT_POSITIONS.LEFT, "Circle", 20, PortConstraints.InConnect),
-        createPort("right-top-port", PORT_POSITIONS.RIGHT_TOP, "Circle", 20, PortConstraints.OutConnect | PortConstraints.Draw),
-        createPort("right-bottom-port", PORT_POSITIONS.RIGHT_BOTTOM, "Circle", 20, PortConstraints.OutConnect | PortConstraints.Draw),
-      ];
-
+      return buildPortsFromConfig({ leftPort: true, rightTopPort: true, rightBottomPort: true });
     case "trigger":
-      return [
-        createPort("right-port", PORT_POSITIONS.RIGHT, "Circle", 20, PortConstraints.OutConnect | PortConstraints.Draw),
-      ];
-
+      return buildPortsFromConfig({ rightPort: true });
     case "tool":
-      return [
-        createPort("top-port", PORT_POSITIONS.TOP, "Circle", 20, PortConstraints.InConnect),
-      ];
+      return buildPortsFromConfig({ topPort: true });
+    default: // action
+      return buildPortsFromConfig({ leftPort: true, rightPort: true });
+  }
+}
 
-    default: // action node
-      return [
-        createPort("left-port", PORT_POSITIONS.LEFT, "Circle", 20, PortConstraints.InConnect),
-        createPort("right-port", PORT_POSITIONS.RIGHT, "Circle", 20, PortConstraints.OutConnect | PortConstraints.Draw),
-      ];
+// New API: derive ports using node registry first, then fall back to category mapping
+export function getPortsForNode(input: NodeConfig | NodeType | NodeCategories): PortModel[] {
+  // Try by NodeConfig (recommended)
+  if (typeof input === 'object' && (input as NodeConfig).nodeType) {
+    const cfg = input as NodeConfig;
+    const entry = NODE_REGISTRY[cfg.nodeType as NodeType];
+    if (entry?.portConfig) return buildPortsFromConfig(entry.portConfig);
+    return getDefaultPortsByCategory(cfg.category);
   }
 
-};
+  // Try by NodeType
+  const typeOrCategory = input as any;
+  const entry = NODE_REGISTRY[typeOrCategory as NodeType];
+  if (entry) {
+    if (entry.portConfig) return buildPortsFromConfig(entry.portConfig);
+    return getDefaultPortsByCategory(entry.category);
+  }
+
+  // Fallback if a bare category was passed
+  return getDefaultPortsByCategory(typeOrCategory as NodeCategories);
+}
 
 // Retrieves a specific port from a given node by its ID.
 export function getNodePortById(node: NodeModel | null | undefined, portId: string): PortModel | undefined {
@@ -142,33 +163,17 @@ export function prepareUserHandlePortData(node: NodeModel): void {
   }
 }
 
-// Get the appropriate port rendering configuration for a node
+// Get the appropriate port rendering configuration for a node in the template
 export const getNodePortConfiguration = (nodeConfig: NodeConfig): PortConfiguration => {
-  if (isTriggerNode(nodeConfig)) {
-    return { rightPort: true };
-  }
+  // Prefer explicit per-node configuration from registry for clarity
+  const registry = NODE_REGISTRY[nodeConfig.nodeType as NodeType];
+  if (registry?.portConfig) return registry.portConfig;
 
-  if (isIfOrSwitchCondition(nodeConfig)) {
-    return { leftPort: true, rightTopPort: true, rightBottomPort: true };
-  }
-
-  if (isAiAgentNode(nodeConfig)) {
-    return {
-      leftPort: true,
-      rightPort: true,
-      bottomLeftPort: true,
-      bottomMiddlePort: true,
-      bottomRightPort: true
-    };
-  }
-
-  if (isToolNode(nodeConfig)){
-    return {
-      topPort: true
-    }
-  }
-
-  // Default for action nodes
+  // Backward-compatible fallbacks
+  if (isTriggerNode(nodeConfig)) return { rightPort: true };
+  if (isIfConditionNode(nodeConfig)) return { leftPort: true, rightTopPort: true, rightBottomPort: true };
+  if (isAiAgentNode(nodeConfig)) return { leftPort: true, rightPort: true, bottomLeftPort: true, bottomMiddlePort: true, bottomRightPort: true };
+  if (isToolNode(nodeConfig)) return { topPort: true };
   return { leftPort: true, rightPort: true };
 };
 

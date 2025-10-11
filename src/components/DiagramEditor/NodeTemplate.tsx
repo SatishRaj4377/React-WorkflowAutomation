@@ -40,7 +40,7 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo, onNodeToolbarA
         {/* Port Rendering Logic based on configuration */}
         {portConfig.topPort && <div className="node-port-top"></div>}
         {portConfig.leftPort && <div className="node-port-left"></div>}
-        {portConfig.rightPort && <div className="node-port-right"></div>}
+        {(portConfig.rightPort && !isSwitchCase) && <div className="node-port-right"></div>}
         {isSwitchCase
           ? (
               // Render N right-side ports (case 1..N) for Switch Case

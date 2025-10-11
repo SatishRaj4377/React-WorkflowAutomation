@@ -23,7 +23,8 @@ export const createNodeFromTemplate = (
     offsetX: position?.x,
     offsetY: position?.y,
     addInfo: { nodeConfig },
-    ports: getPortsForNode(nodeTemplate.category)
+    // Use the new registry-driven API (falls back to category mapping if needed)
+    ports: getPortsForNode(nodeConfig)
   };
 
   initializeNodeDimensions(node);
@@ -165,10 +166,13 @@ export const isStickyNote = (nodeConfig: NodeConfig): boolean =>
   nodeConfig?.category === 'sticky';
 
 // Check if node is an if/switch condition type
-export const isIfOrSwitchCondition = (nodeConfig: NodeConfig): boolean =>
-  isConditionNode(nodeConfig) &&
-  (nodeConfig.nodeType === 'If Condition' || nodeConfig.nodeType === 'Switch Case');
+export const isIfConditionNode = (nodeConfig: NodeConfig): boolean =>
+   nodeConfig?.category === 'condition' && nodeConfig.nodeType === 'If Condition';
 
 // Check if node is a tool type
 export const isToolNode = (nodeConfig: NodeConfig): boolean =>
   nodeConfig?.category === 'tool';
+
+// Check if node is a switch case node
+export const isSwitchNode = (nodeConfig: NodeConfig): boolean =>
+  nodeConfig?.nodeType === 'Switch Case';

@@ -1,4 +1,4 @@
-import { NodeType, NodeCategories, PaletteCategoryLabel } from '../types/types';
+import { NodeType, NodeCategories, PaletteCategoryLabel, PortConfiguration } from '../types';
 
 export interface NodeRegistryEntry {
   type: NodeType;
@@ -8,6 +8,8 @@ export interface NodeRegistryEntry {
   label: string;
   description: string;
   iconId?: string;
+  // ports will be rendered using this schema instead of generic category defaults.
+  portConfig?: PortConfiguration;
 }
 
 export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
@@ -19,6 +21,7 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     label: 'Webhook',
     description: 'Trigger workflow on HTTP request',
     iconId: 'WebhookIcon',
+    portConfig: { rightPort: true },
   },
   'Schedule': {
     type: 'Schedule',
@@ -28,6 +31,7 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     label: 'Schedule',
     description: 'Trigger workflow on schedule',
     iconId: 'ScheduleIcon',
+    portConfig: { rightPort: true },
   },
   'Manual Click': {
     type: 'Manual Click',
@@ -37,6 +41,7 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     label: 'Manual Click',
     description: 'Trigger workflow manually',
     iconId: 'ManualClickIcon',
+    portConfig: { rightPort: true },
   },
   'Chat': {
     type: 'Chat',
@@ -46,6 +51,7 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     label: 'Chat Trigger',
     description: 'Trigger workflow from chat',
     iconId: 'ChatIcon',
+    portConfig: { rightPort: true },
   },
   'AI Agent': {
     type: 'AI Agent',
@@ -55,6 +61,13 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     label: 'AI Agent',
     description: 'Process with AI agent',
     iconId: 'AiAgentIcon',
+    portConfig: {
+      leftPort: true,
+      rightPort: true,
+      bottomLeftPort: true,
+      bottomMiddlePort: true,
+      bottomRightPort: true,
+    },
   },
   'HTTP Request': {
     type: 'HTTP Request',
@@ -136,6 +149,8 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     label: 'If Condition',
     description: 'Branch based on condition',
     iconId: 'IfConditionIcon',
+    // Two right ports by default for If Condition
+    portConfig: { leftPort: true, rightTopPort: true, rightBottomPort: true },
   },
   'Switch Case': {
     type: 'Switch Case',
@@ -145,6 +160,8 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     label: 'Switch Case',
     description: 'Multiple path branching',
     iconId: 'SwitchConditionIcon',
+    // Single right port initially; dynamic ports can be added later
+    portConfig: { leftPort: true, rightPort: true },
   },
   'Filter': {
     type: 'Filter',
@@ -163,6 +180,7 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     label: 'Azure Chat Model',
     description: 'Process with Azure chat model',
     iconId: 'AzureModelIcon',
+    portConfig: { topPort: true },
   },
   'HTTP Request Tool': {
     type: 'HTTP Request Tool',
@@ -172,6 +190,7 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     label: 'HTTP Request',
     description: 'Make HTTP request',
     iconId: 'HttpRequestIcon',
+    portConfig: { topPort: true },
   },
   'EmailJS Tool': {
     type: 'EmailJS Tool',
@@ -181,6 +200,7 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     label: 'EmailJS',
     description: 'Make EmailJS Integration',
     iconId: 'EmailJSIcon',
+    portConfig: { topPort: true },
   },
   'Gmail Tool': {
     type: 'Gmail Tool',
@@ -190,6 +210,7 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     label: 'Gmail',
     description: 'Gmail integration',
     iconId: 'GmailIcon',
+    portConfig: { topPort: true },
   },
   'Google Sheets Tool': {
     type: 'Google Sheets Tool',
@@ -199,6 +220,7 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     label: 'Google Sheets',
     description: 'Google Sheets integration',
     iconId: 'GoogleSheetIcon',
+    portConfig: { topPort: true },
   },
   'Google Calendar Tool': {
     type: 'Google Calendar Tool',
@@ -208,6 +230,7 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     label: 'Google Calendar',
     description: 'Google Calendar integration',
     iconId: 'GoogleCalendarIcon',
+    portConfig: { topPort: true },
   },
   'Google Docs Tool': {
     type: 'Google Docs Tool',
@@ -217,6 +240,7 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     label: 'Google Docs',
     description: 'Google Docs integration',
     iconId: 'GoogleDocsIcon',
+    portConfig: { topPort: true },
   },
 };
 
