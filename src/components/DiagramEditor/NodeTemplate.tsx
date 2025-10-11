@@ -66,7 +66,6 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo, onNodeToolbarA
               </>
             )}
         {portConfig.bottomLeftPort && <div className="node-port-bottom-left"><span className='agent-node-port-label'>AI Model</span></div>}
-        {/* {portConfig.bottomMiddlePort && <div className="node-port-bottom-middle"></div>} */}
         {portConfig.bottomRightPort && <div className="node-port-bottom-right"><span className='agent-node-port-label'>Tool</span></div>}
         
         {/* Icon and Name Rendering... */}

@@ -98,7 +98,6 @@ export interface PortConfiguration {
   rightTopPort?: boolean;
   rightBottomPort?: boolean;
   bottomLeftPort?: boolean;
-  bottomMiddlePort?: boolean;
   bottomRightPort?: boolean;
 }
 

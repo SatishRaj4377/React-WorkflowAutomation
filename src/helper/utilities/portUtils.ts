@@ -1,6 +1,5 @@
 import { NodeModel, Point, PointPortModel, PortConstraints, PortModel, PortVisibility, Diagram } from "@syncfusion/ej2-react-diagrams";
 import { NodeCategories, NodeConfig, NodePortDirection, NodeType, PortConfiguration, PortSide } from "../../types";
-import { isAiAgentNode, isIfConditionNode, isToolNode, isTriggerNode } from "./nodeUtils";
 import { PORT_POSITIONS } from "../../constants";
 import { NODE_REGISTRY } from "../../constants/nodeRegistry";
 
@@ -30,53 +29,39 @@ function buildPortsFromConfig(config: PortConfiguration): PortModel[] {
   if (config.rightTopPort) ports.push(createPort("right-top-port", PORT_POSITIONS.RIGHT_TOP, "Circle", 20, PortConstraints.OutConnect | PortConstraints.Draw));
   if (config.rightBottomPort) ports.push(createPort("right-bottom-port", PORT_POSITIONS.RIGHT_BOTTOM, "Circle", 20, PortConstraints.OutConnect | PortConstraints.Draw));
   if (config.bottomLeftPort) ports.push(createPort("bottom-left-port", PORT_POSITIONS.BOTTOM_LEFT, "Square", 14, PortConstraints.OutConnect | PortConstraints.Draw));
-  if (config.bottomMiddlePort) ports.push(createPort("bottom-middle-port", PORT_POSITIONS.BOTTOM_MIDDLE, "Square", 14, PortConstraints.OutConnect | PortConstraints.Draw));
   if (config.bottomRightPort) ports.push(createPort("bottom-right-port", PORT_POSITIONS.BOTTOM_RIGHT, "Square", 14, PortConstraints.OutConnect | PortConstraints.Draw));
   return ports;
 }
 
-// Backward-compatible default mapping by category
-function getDefaultPortsByCategory(category: NodeCategories): PortModel[] {
-  switch (category) {
-    case "ai-agent":
-      return buildPortsFromConfig({
-        leftPort: true,
-        rightPort: true,
-        bottomLeftPort: true,
-        bottomMiddlePort: true,
-        bottomRightPort: true,
-      });
-    case "condition":
-      return buildPortsFromConfig({ leftPort: true, rightTopPort: true, rightBottomPort: true });
-    case "trigger":
-      return buildPortsFromConfig({ rightPort: true });
-    case "tool":
-      return buildPortsFromConfig({ topPort: true });
-    default: // action
-      return buildPortsFromConfig({ leftPort: true, rightPort: true });
-  }
+// Single source of truth for category fallbacks (used only if registry lacks config)
+const DEFAULT_PORT_CONFIG_BY_CATEGORY: Record<NodeCategories, PortConfiguration> = {
+  'ai-agent': { leftPort: true, rightPort: true, bottomLeftPort: true, bottomRightPort: true },
+  'condition': { leftPort: true, rightTopPort: true, rightBottomPort: true },
+  'trigger': { rightPort: true },
+  'tool': { topPort: true },
+  'action': { leftPort: true, rightPort: true },
+  'sticky': { leftPort: true, rightPort: true },
+};
+
+function resolvePortConfiguration(nodeConfig: NodeConfig): PortConfiguration {
+  const entry = NODE_REGISTRY[nodeConfig.nodeType as NodeType];
+  if (entry?.portConfig) return entry.portConfig;
+  return DEFAULT_PORT_CONFIG_BY_CATEGORY[nodeConfig.category];
 }
 
-// New API: derive ports using node registry first, then fall back to category mapping
+// New API: always prefer registry; fall back to category defaults only if needed
 export function getPortsForNode(input: NodeConfig | NodeType | NodeCategories): PortModel[] {
-  // Try by NodeConfig (recommended)
   if (typeof input === 'object' && (input as NodeConfig).nodeType) {
-    const cfg = input as NodeConfig;
-    const entry = NODE_REGISTRY[cfg.nodeType as NodeType];
-    if (entry?.portConfig) return buildPortsFromConfig(entry.portConfig);
-    return getDefaultPortsByCategory(cfg.category);
+    return buildPortsFromConfig(resolvePortConfiguration(input as NodeConfig));
   }
 
-  // Try by NodeType
   const typeOrCategory = input as any;
   const entry = NODE_REGISTRY[typeOrCategory as NodeType];
   if (entry) {
-    if (entry.portConfig) return buildPortsFromConfig(entry.portConfig);
-    return getDefaultPortsByCategory(entry.category);
+    return buildPortsFromConfig(entry.portConfig ?? DEFAULT_PORT_CONFIG_BY_CATEGORY[entry.category]);
   }
 
-  // Fallback if a bare category was passed
-  return getDefaultPortsByCategory(typeOrCategory as NodeCategories);
+  return buildPortsFromConfig(DEFAULT_PORT_CONFIG_BY_CATEGORY[typeOrCategory as NodeCategories]);
 }
 
 // Retrieves a specific port from a given node by its ID.
@@ -164,18 +149,7 @@ export function prepareUserHandlePortData(node: NodeModel): void {
 }
 
 // Get the appropriate port rendering configuration for a node in the template
-export const getNodePortConfiguration = (nodeConfig: NodeConfig): PortConfiguration => {
-  // Prefer explicit per-node configuration from registry for clarity
-  const registry = NODE_REGISTRY[nodeConfig.nodeType as NodeType];
-  if (registry?.portConfig) return registry.portConfig;
-
-  // Backward-compatible fallbacks
-  if (isTriggerNode(nodeConfig)) return { rightPort: true };
-  if (isIfConditionNode(nodeConfig)) return { leftPort: true, rightTopPort: true, rightBottomPort: true };
-  if (isAiAgentNode(nodeConfig)) return { leftPort: true, rightPort: true, bottomLeftPort: true, bottomMiddlePort: true, bottomRightPort: true };
-  if (isToolNode(nodeConfig)) return { topPort: true };
-  return { leftPort: true, rightPort: true };
-};
+export const getNodePortConfiguration = (nodeConfig: NodeConfig): PortConfiguration => resolvePortConfiguration(nodeConfig);
 
 // ---- Dynamic Switch Case Ports ----
 export function createSwitchCasePorts(count: number): PortModel[] {

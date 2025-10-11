@@ -65,7 +65,6 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
       leftPort: true,
       rightPort: true,
       bottomLeftPort: true,
-      bottomMiddlePort: true,
       bottomRightPort: true,
     },
   },

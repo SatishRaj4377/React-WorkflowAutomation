@@ -55,10 +55,6 @@ export const calculateNewNodePosition = (sourceNode: NodeModel, portId: string):
       offsetX = baseX - (nodeWidth + padding / 2);
       offsetY = baseY + verticalSpacing;
       break;
-    case 'bottom-middle-port':
-      offsetX = baseX; // Directly below
-      offsetY = baseY + verticalSpacing;
-      break;
     case 'bottom-right-port':
       offsetX = baseX + (nodeWidth + padding / 2);
       offsetY = baseY + verticalSpacing;
