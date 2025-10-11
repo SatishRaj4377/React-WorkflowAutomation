@@ -1,10 +1,12 @@
 import React, { useRef, useEffect, useState } from 'react';
+import ReactDOMServer from 'react-dom/server';
 import { createPortal } from 'react-dom';
 import { Draggable } from '@syncfusion/ej2-base';
 import { AIAssistViewComponent  } from '@syncfusion/ej2-react-interactive-chat';
 import { ensurePortalRoot } from '../../helper/variablePickerUtils';
-import './ChatPopup.css';
 import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
+import { IconRegistry } from '../../assets/icons';
+import './ChatPopup.css';
 
 type ChatPopupProps = {
   open: boolean;
@@ -20,6 +22,8 @@ export const ChatPopup: React.FC<ChatPopupProps> = ({
   const aiViewRef = useRef<any>(null);
 
   const [isMinimized, setIsMinimized] = useState(false);
+
+  const MessageIcon = IconRegistry['Message'];
 
   const toggleMinimize = () => {
     if (!popupRef.current) return;
@@ -41,6 +45,14 @@ export const ChatPopup: React.FC<ChatPopupProps> = ({
       }));
     }
   }
+
+  // Chat Banner Template
+  const bannerTemplate = ReactDOMServer.renderToStaticMarkup(
+    <div className="banner-content">
+      <MessageIcon />
+      <span>Send a message below to trigger the chat workflow</span>
+    </div>
+  );
 
   // Make the chat popup draggable by header
   useEffect(() => {
@@ -105,8 +117,10 @@ export const ChatPopup: React.FC<ChatPopupProps> = ({
         <AIAssistViewComponent
           id="workflow-chat"
           ref={aiViewRef}
+          bannerTemplate={bannerTemplate}
           promptPlaceholder='Type a message...'
           promptRequest={handleUserInput}
+          promptIconCss='e-icons e-user'
         />
       </div>
     </div>,

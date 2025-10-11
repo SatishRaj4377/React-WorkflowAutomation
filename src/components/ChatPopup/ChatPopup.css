@@ -55,6 +55,30 @@
     cursor: move;
 }
 
+.e-aiassistview .e-banner-view {
+    margin: 0;
+}
+
+.banner-content svg {
+    margin: -4rem 0 -3rem 0;
+    width: 13rem;
+}
+.banner-content svg path {
+   fill: var(--text-secondary);
+}
+
+.banner-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 3rem;
+    font-weight: 500;
+    font-size: .9rem;
+    color: var(--text-secondary);
+}
+
+
 .chat-popup-body {
     height: 90%;
 }
