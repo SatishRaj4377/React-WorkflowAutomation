@@ -81,7 +81,7 @@ export const calculateNewNodePosition = (sourceNode: NodeModel, portId: string):
         // spread vertically around the source
         const spread = nodeHeight + padding;
         const normalized = (idx - 1); // 0-based
-        offsetY = baseY - spread / 2 + normalized * (padding + 10);
+        offsetY = baseY - spread / 2 + normalized * (padding * 2);
       }
       break;
   }
