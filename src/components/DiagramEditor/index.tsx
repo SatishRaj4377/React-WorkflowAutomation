@@ -910,8 +910,8 @@ export default DiagramEditor;
 
 // Generate Userhandles based on the `OutConnect` ports
 function generatePortBasedUserHandles(node: NodeModel): UserHandleModel[] {
-  const portHandlesInfo: Array<{ portId: string; direction: NodePortDirection }> = (node.addInfo as any)?.userHandlesAtPorts ?? [];
-  return portHandlesInfo.map(({ portId, direction }) => ({
+  const portHandlesInfo: Array<{ portId: string; direction: NodePortDirection; side?: any; offset?: number }> = (node.addInfo as any)?.userHandlesAtPorts ?? [];
+  return portHandlesInfo.map(({ portId, direction, side, offset }) => ({
     name: `add-node-from-port-${portId}`,
     content: `
       <g>
@@ -919,8 +919,8 @@ function generatePortBasedUserHandles(node: NodeModel): UserHandleModel[] {
         <path d="M8 5 V11 M5 8 H11" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
       </g>
     `,
-    side: getPortSide(direction),
-    offset: getPortOffset(direction),
+    side: side ?? getPortSide(direction),
+    offset: offset ?? getPortOffset(direction),
     backgroundColor: GRAY_COLOR,
     pathColor: '#f8fafc',
     borderColor: GRAY_COLOR,
