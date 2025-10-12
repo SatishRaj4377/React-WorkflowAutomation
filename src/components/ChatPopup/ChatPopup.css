@@ -64,7 +64,7 @@
     width: 13rem;
 }
 .banner-content svg path {
-   fill: var(--text-secondary);
+   fill: var(--scrollbar-thumb);
 }
 
 .banner-content {
@@ -75,7 +75,7 @@
     margin-bottom: 3rem;
     font-weight: 500;
     font-size: .9rem;
-    color: var(--text-secondary);
+    color: var(--scrollbar-thumb);
 }
 
 

@@ -108,7 +108,6 @@
 }
 .config-section .show-chat-button {
   background: var(--primary-color);
-  color: var(--surface-color);
 }
 .config-section .msg-svg-icon {
   position: absolute;
