@@ -170,6 +170,22 @@ body, .e-control, .e-card{
   color: var(--text-primary);
 }
 
+/* Horizontal tag style */
+hr {
+  margin: .8rem 0;
+  height: 2px;
+  color: var(--box-shadow2);
+  background-color: var(--box-shadow2);
+  opacity: 0.4;
+}
+
+/* Anchor tag style */
+a {
+  text-decoration: underline;
+  cursor: pointer;
+  color: var(--accent-color);
+}
+
 /* Ej2 Tooltip Text Styles */
 .e-tooltip-wrap .e-tip-content {
   font-weight: 500;

@@ -21,6 +21,7 @@ import { AUTH_NODE_TYPES, HTTP_METHODS, TIMEZONES } from '../../constants';
 import './NodeConfigSidebar.css';
 import GoogleAuthPanel from './GoogleAuthPanel';
 import { updateSwitchPorts } from '../../helper/utilities/portUtils';
+import GoogleSheetsNodeConfig from './GoogleSheetsNodeConfig';
 
 interface ConfigPanelProps {
   isOpen: boolean;
@@ -111,27 +112,36 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
 
   /** Safely update settings */
   const handleConfigChange = (
-    field: string,
-    value: any,
+    fieldOrPatch: string | Record<string, any>,
+    value?: any,
     section: 'general' | 'authentication' | 'advanced' = 'general'
   ) => {
     if (!selectedNode) return;
+    const prevSection = (selectedNode.settings && (selectedNode.settings as any)[section]) ?? {};
 
-    const prevSection =
-      (selectedNode.settings && (selectedNode.settings as any)[section]) || {};
+    const nextSection =
+      typeof fieldOrPatch === 'object' && fieldOrPatch !== null
+        ? { ...prevSection, ...fieldOrPatch }
+        : { ...prevSection, [fieldOrPatch]: value };
+
+    // make sure the editor only calls onNodeConfigChange when something actually changes
+    let same = true;
+    for (const k of Object.keys(nextSection)) {
+      if (prevSection[k] !== nextSection[k]) { same = false; break; }
+    }
+    if (same) return;
+
 
     const updatedConfig: NodeConfig = {
       ...selectedNode,
       settings: {
         ...selectedNode.settings,
-        [section]: {
-          ...prevSection,
-          [field]: value,
-        },
+        [section]: nextSection,
       },
     };
     onNodeConfigChange(selectedNode.id, updatedConfig);
   };
+
 
   const handleNameChange = (value: string) => {
     if (!selectedNode) return;
@@ -453,7 +463,23 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           </>
         );
       }
-      case 'Google Sheets':
+
+      case 'Google Sheets': {
+        const authEmail = (selectedNode?.settings?.authentication as any)?.googleAccountEmail ?? '';
+        const GOOGLE_WEB_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID ?? '';
+
+        return (
+          <GoogleSheetsNodeConfig
+            settings={settings}
+            authEmail={authEmail}
+            onPatch={(patch) => handleConfigChange(patch, undefined, 'general')}
+            variableGroups={availableVariables}
+            variablesLoading={variablesLoading}
+            googleClientId={GOOGLE_WEB_CLIENT_ID}
+          />
+        );
+      }
+
       case 'Google Calendar':
       case 'Google Docs':
       case 'Telegram':
@@ -759,7 +785,18 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
                 clientId={GOOGLE_WEB_CLIENT_ID}
                 onConnected={(email) => handleConfigChange('googleAccountEmail', email, 'authentication')}
               />
-              {/* Nothing else in auth tab per requirement */}
+            </div>
+          );
+        }
+
+        case 'Google Sheets': {
+          const GOOGLE_WEB_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID ?? '';
+          return (
+            <div className="config-tab-content">
+              <GoogleAuthPanel
+                clientId={GOOGLE_WEB_CLIENT_ID}
+                onConnected={(email) => handleConfigChange('googleAccountEmail', email, 'authentication')}
+              />
             </div>
           );
         }

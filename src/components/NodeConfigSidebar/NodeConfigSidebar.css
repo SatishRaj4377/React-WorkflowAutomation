@@ -181,7 +181,7 @@
 }
 
 .config-section .flat-btn{
-  width: 45px;
+  min-width: 45px;
   color: var(--text-secondary);
 }
 
@@ -260,6 +260,39 @@
 .config-panel-content::-webkit-scrollbar-thumb:hover {
   background: var(--text-secondary);
 }
+
+/* Google Sheets */
+.doc-url-preview { 
+  font-size: 12px;
+  color: var(--primary);
+  text-decoration: none;
+  word-break: break-all;
+}
+.doc-url-preview:hover { 
+  text-decoration: underline; 
+}
+
+.subtitle { font-size: 12px; 
+  font-weight: 600; 
+  color: var(--text-secondary); 
+  margin-bottom: 6px; 
+}
+
+.columns-grid { display: grid; 
+  grid-template-columns: 1fr; 
+  gap: 12px; 
+}
+.column-value-row { display: flex; 
+  flex-direction: column; 
+  gap: 6px; 
+  padding: 0 1rem; 
+}
+
+.filter-row { display: flex; 
+  gap: 8px; 
+  align-items: center; 
+}
+
 
 /* Variable Picker Styling */
 /* Popup shell */
