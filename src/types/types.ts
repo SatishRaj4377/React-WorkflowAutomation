@@ -79,3 +79,13 @@ export type VariablesProvider = (context?: {
 export type NodeStatus = 'idle' | 'running' | 'success' | 'error';
 
 export type EmailJSVariableType = Array<{ key: string; value: string }>;
+
+export type DeleteDimParams = {
+  spreadsheetId: string;
+  sheetTitle: string;
+  type: 'Row' | 'Column';
+  startIndex: number;     // 1-based from UI
+  count: number;          // >= 1
+  columnLetter?: string;  // when type === 'Column', preferred input from UI
+  accessToken: string;
+};
