@@ -14,7 +14,7 @@ export type PopupGuardOptions = {
 };
 
 export type TokenInteractiveOptions = {
-  shouldFetchGmailEmail?: boolean; // set true only when gmail metadata scope is included
+  shouldFetchIdentityEmail?: boolean; 
 };
 
 type TokenInfo = { accessToken: string; expiresAt: number };
@@ -125,8 +125,8 @@ export class GoogleAuthClient {
     const accessToken = await p;
 
     // Optionally fetch Gmail email if panel asked for it (only when metadata scope was granted)
-    if (options?.shouldFetchGmailEmail) {
-      try { this.currentEmail = await this.fetchGmailProfileEmail(accessToken); } catch { /* ignore */ }
+    if (options?.shouldFetchIdentityEmail) {
+      try { this.currentEmail = await this.fetchIdentityEmail(accessToken); } catch { /* ignore */ }
     }
 
     return { accessToken, email: this.currentEmail };
@@ -170,14 +170,19 @@ export class GoogleAuthClient {
     });
   }
 
-  private async fetchGmailProfileEmail(accessToken: string): Promise<string | null> {
-    const r = await fetch(
-      'https://gmail.googleapis.com/gmail/v1/users/me/profile?fields=emailAddress',
-      { headers: { Authorization: `Bearer ${accessToken}` } }
-    );
-    if (!r.ok) return null;
-    const j = await r.json();
-    return j?.emailAddress ?? null;
+  private async fetchIdentityEmail(accessToken: string): Promise<string | null> {
+    const endpoints = [
+      'https://openidconnect.googleapis.com/v1/userinfo',
+      'https://www.googleapis.com/oauth2/v3/userinfo',
+    ];
+    for (const url of endpoints) {
+      const r = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+      if (r.ok) {
+        const j = await r.json();
+        if (j?.email) return j.email as string;
+      }
+    }
+    return null;
   }
 
   // Canonical cache key from scopes: dedupe, sort, join with single spaces

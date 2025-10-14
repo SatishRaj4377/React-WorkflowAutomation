@@ -21,7 +21,7 @@ export async function getGmailTokenInteractive(
     GMAIL_UNION,
     forceAccountSelect,
     guard,
-    { shouldFetchGmailEmail: true } // only Gmail needs profile email
+    { shouldFetchIdentityEmail: true }
   );
 }
 

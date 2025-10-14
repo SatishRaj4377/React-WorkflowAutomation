@@ -47,19 +47,17 @@ const GoogleAuthPanel: React.FC<Props> = ({ clientId, nodeType, onConnected }) =
         timeoutMs: 25000,
       };
 
-      // Only Gmail wants profile email (because it requests gmail.metadata)
-      const shouldFetchGmailEmail = nodeType === 'Gmail';
 
       // One popup for this union of scopes; token cached by canonical scope key
       const { email: mail } = await GoogleAuth.getTokenInteractive(
         scopes,
         force,
         guard,
-        { shouldFetchGmailEmail }
+        { shouldFetchIdentityEmail :true }
       );
 
-      // Store/display email for Gmail; for other nodes mail will be null
-      setEmail(mail ?? null);
+      // Store/display email 
+      setEmail(mail);
 
       // Report back to Sidebar (keep contract: empty string allowed)
       onConnected?.(mail ?? '');
@@ -116,17 +114,11 @@ const GoogleAuthPanel: React.FC<Props> = ({ clientId, nodeType, onConnected }) =
       )}
 
       {/* Gmail shows the email; other nodes show a small informational hint */}
-      {nodeType === 'Gmail' ? (
-        email && (
+        {email && (
           <div className="textbox-info" style={{ marginTop: 4 }}>
             Connected Account: <b>{email}</b>
           </div>
-        )
-      ) : (
-        <div className="textbox-info" style={{ marginTop: 4 }}>
-          This connection requests only the scopes required for <b>{nodeType}</b>.
-        </div>
-      )}
+        )}
     </div>
   );
 };
