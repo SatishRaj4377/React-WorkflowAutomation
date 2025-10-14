@@ -24,6 +24,7 @@ import { updateSwitchPorts } from '../../helper/utilities/portUtils';
 import GoogleSheetsNodeConfig from './GoogleSheetsNodeConfig';
 import { getScopesForNode } from '../../helper/googleScopes';
 import { GoogleAuth } from '../../helper/googleAuthClient';
+import GmailNodeConfig from './GmailNodeConfig';
 
 interface ConfigPanelProps {
   isOpen: boolean;
@@ -421,65 +422,16 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
 
       case 'Gmail': {
         return (
-          <>
-            <div className="config-section">
-              <label className="config-label">Action</label>
-              <DropDownListComponent
-                value={settings.action ?? 'Send'}
-                dataSource={['Send']} // keep minimal; matches current requirement
-                placeholder="Select action"
-                change={(e: any) => handleConfigChange('action', e.value)}
-                popupHeight="240px"
-                zIndex={1000000}
-              />
-            </div>
-
-            { (settings.action ?? 'Send') === 'Send' && (
-              <>
-                <div className="config-section">
-                  <label className="config-label">To</label>
-                  <VariablePickerTextBox
-                    value={settings.to ?? ''}
-                    placeholder="recipient@example.com"
-                    onChange={(val) => handleConfigChange('to', val)}
-                    cssClass="config-input"
-                    variableGroups={availableVariables}
-                    variablesLoading={variablesLoading}
-                  />
-                </div>
-
-                <div className="config-section">
-                  <label className="config-label">Subject</label>
-                  <VariablePickerTextBox
-                    value={settings.subject ?? ''}
-                    placeholder="Subject"
-                    onChange={(val) => handleConfigChange('subject', val)}
-                    cssClass="config-input"
-                    variableGroups={availableVariables}
-                    variablesLoading={variablesLoading}
-                  />
-                </div>
-
-                <div className="config-section">
-                  <label className="config-label">Message</label>
-                  <VariablePickerTextBox
-                    value={settings.message ?? ''}
-                    placeholder="Body text"
-                    onChange={(val) => handleConfigChange('message', val)}
-                    cssClass="config-textarea"
-                    multiline
-                    variableGroups={availableVariables}
-                    variablesLoading={variablesLoading}
-                  />
-                </div>
-              </>
-            )}
-          </>
+          <GmailNodeConfig
+            settings={settings}
+            onPatch={(patch) => handleConfigChange(patch, undefined, 'general')}
+            variableGroups={availableVariables}
+            variablesLoading={variablesLoading}
+          />
         );
       }
 
       case 'Google Sheets': {
-        
         const auth = (selectedNode?.settings?.authentication as any) ?? {};
         const connected = isGoogleConnectedFor('Google Sheets', auth);
         const GOOGLE_WEB_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID ?? '';
