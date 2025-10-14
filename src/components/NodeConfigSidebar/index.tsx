@@ -443,7 +443,6 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
             onPatch={(patch) => handleConfigChange(patch, undefined, 'general')}
             variableGroups={availableVariables}
             variablesLoading={variablesLoading}
-            googleClientId={GOOGLE_WEB_CLIENT_ID}
           />
         );
       }

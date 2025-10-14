@@ -5,12 +5,11 @@ import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
 import { TooltipComponent } from '@syncfusion/ej2-react-popups';
 import { VariablePickerTextBox } from './VariablePickerTextBox';
 import {
-    initGoogleSheetsAuth,
-    getSheetsAccessTokenInteractive,
-    listDriveSpreadsheets,
-    listSheets,
-    getHeaderRow,
-} from '../../helper/googleSheetsClientUtils';
+  getSheetsTokenCached,
+  sheetsListUserSpreadsheets as listDriveSpreadsheets,
+  sheetsListSheets as listSheets,
+  sheetsGetHeaderRow as getHeaderRow,
+} from '../../helper/googleSheetsClient';
 import './NodeConfigSidebar.css';
 
 type Props = {
@@ -19,7 +18,6 @@ type Props = {
     onPatch: (patch: Record<string, any>) => void; // merged patch writer for settings.general
     variableGroups: any[];
     variablesLoading: boolean;
-    googleClientId?: string;
 };
 
 type GDoc = { id: string; name: string };
@@ -45,7 +43,6 @@ const GoogleSheetsNodeConfig: React.FC<Props> = ({
     onPatch,
     variableGroups,
     variablesLoading,
-    googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID ?? '',
 }) => {
     const [docs, setDocs] = useState<GDoc[]>([]);
     const [docsLoading, setDocsLoading] = useState(false);
@@ -106,16 +103,15 @@ const GoogleSheetsNodeConfig: React.FC<Props> = ({
 
     useEffect(() => {
         if (!authEmail) return;
-        if (!googleClientId) return;
         if (didPreload.current) return;
 
         didPreload.current = true;
         // Initialize GSI (no popup) then preload docs
         (async () => {
             try {
-                await initGoogleSheetsAuth(googleClientId);
                 setDocsLoading(true);
-                const token = await getSheetsAccessTokenInteractive(false);
+                const token = await getSheetsTokenCached();
+                if (!token) return; 
                 const files = await listDriveSpreadsheets(token);
                 setDocs(files);
             } catch (e) {
@@ -123,7 +119,7 @@ const GoogleSheetsNodeConfig: React.FC<Props> = ({
                 setDocsLoading(false);
             }
         })();
-    }, [authEmail, googleClientId]);
+    }, [authEmail]);
 
     // If user manually types/chooses doc and sheet already set, fetch headers
     useEffect(() => {
@@ -138,7 +134,8 @@ const GoogleSheetsNodeConfig: React.FC<Props> = ({
         if (sheetsByDoc[spreadsheetId]?.length) return;
         try {
             setSheetsLoading(true);
-            const token = await getSheetsAccessTokenInteractive(false);
+            const token = getSheetsTokenCached();
+            if (!token) return;
             const sheets = await listSheets(spreadsheetId, token);
             setSheetsByDoc((prev) => ({ ...prev, [spreadsheetId]: sheets }));
         } catch (e) {
@@ -150,12 +147,11 @@ const GoogleSheetsNodeConfig: React.FC<Props> = ({
     // Fetch latest documents and (if a doc is selected) its sheets.
     // Keeps current selections where possible; does not clear anything.
     const fetchLatest = async () => {
-        if (!authEmail || !googleClientId || reloading) return;
+        if (!authEmail || reloading) return;
         setReloading(true);
         try {
-            // Ensure GIS ready and get a token silently (scopes already granted)
-            await initGoogleSheetsAuth(googleClientId);
-            const token = await getSheetsAccessTokenInteractive(false);
+            const token = getSheetsTokenCached();
+            if (!token) return;
 
             // 1) Reload documents
             const files = await listDriveSpreadsheets(token);
@@ -178,7 +174,8 @@ const GoogleSheetsNodeConfig: React.FC<Props> = ({
         if (columnsBySheet[key]?.length) return;
         try {
             setColsLoading(true);
-            const token = await getSheetsAccessTokenInteractive(false);
+            const token = getSheetsTokenCached();
+            if (!token) return;
             const headers = await getHeaderRow(spreadsheetId, shName, token);
             setColumnsBySheet((prev) => ({ ...prev, [key]: headers }));
         } catch (e) {
@@ -245,7 +242,8 @@ const GoogleSheetsNodeConfig: React.FC<Props> = ({
                         (async () => {
                             try {
                                 setDocsLoading(true);
-                                const token = await getSheetsAccessTokenInteractive(false);
+                                const token = getSheetsTokenCached();
+                                if (!token) return
                                 const files = await listDriveSpreadsheets(token);
                                 setDocs(files);
                             } finally {
@@ -259,7 +257,8 @@ const GoogleSheetsNodeConfig: React.FC<Props> = ({
                         (async () => {
                             try {
                                 setDocsLoading(true);
-                                const token = await getSheetsAccessTokenInteractive(false);
+                                const token = getSheetsTokenCached();
+                                if (!token) return
                                 const files = await listDriveSpreadsheets(token);
                                 setDocs(files);
                             } finally {
@@ -330,6 +329,7 @@ const GoogleSheetsNodeConfig: React.FC<Props> = ({
                     {/* URL preview shown as a button */}
                     <ButtonComponent
                         cssClass="e-flat"
+                        iconCss='e-icons e-open-link'
                         onClick={() => window.open(documentUrl, '_blank', 'noopener,noreferrer')}
                         title="Open in Google Sheets"
                         style={{ maxWidth: '60%', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }}
