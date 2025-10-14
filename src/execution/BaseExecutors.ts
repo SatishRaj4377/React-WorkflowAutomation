@@ -7,7 +7,8 @@ import { generateResponse } from '../services/AzureChatService';
 import { getConnectedSourceByTargetPort, getConnectedTargetBySourcePort } from '../helper/utilities';
 import { evaluateExpression, resolveTemplate } from '../helper/expression';
 import emailjs from '@emailjs/browser';
-import { getConnectedGoogleEmail, getTokenCached, gmailSendRaw, toBase64Url } from '../helper/googleClientUtils';
+import { GoogleAuth } from '../helper/googleAuthClient';
+import { getGmailTokenCached, gmailSendRaw, toBase64Url } from '../helper/googleGmailClient';
 
 export abstract class BaseNodeExecutor implements NodeExecutor {
   abstract executeNode(node: NodeModel, context: ExecutionContext): Promise<NodeExecutionResult>;
@@ -87,12 +88,13 @@ export class ClientSideNodeExecutor extends BaseNodeExecutor {
       case 'Filter':
         return this.executeFilterNode(nodeConfig, context);
 
-
       default:
         return { success: false, error: `Unsupported node type: ${nodeConfig.nodeType}` };
     }
   }
 
+  
+  // ---------------- Chat Trigger ----------------
   private async executeChatTriggerNode(nodeConfig: NodeConfig, context: ExecutionContext): Promise<NodeExecutionResult> {
     try {
       
@@ -140,6 +142,8 @@ export class ClientSideNodeExecutor extends BaseNodeExecutor {
     }
   }
 
+  
+  // ---------------- AI Agent ----------------
   private async executeAiAgentNode(
     node: NodeModel,
     nodeConfig: NodeConfig,
@@ -244,6 +248,8 @@ export class ClientSideNodeExecutor extends BaseNodeExecutor {
     }
   }
     
+  
+  // ---------------- EmailJS ----------------
   private async executeEmailJsNode(
     nodeConfig: NodeConfig,
     context: ExecutionContext
@@ -326,25 +332,27 @@ export class ClientSideNodeExecutor extends BaseNodeExecutor {
     }
   }
 
-  private async executeGmailNode(
-    nodeConfig: NodeConfig,
-    context: ExecutionContext
-  ): Promise<NodeExecutionResult> {
+  
+  // ---------------- Gmail ----------------
+  private async executeGmailNode(nodeConfig: NodeConfig, context: ExecutionContext): Promise<NodeExecutionResult> {
     try {
-      const account = getConnectedGoogleEmail();
+      // 1) Ensure user is connected (we rely on Auth tab for the single-popup consent)
+      const account = GoogleAuth.getConnectedEmail(); // may be null if Gmail metadata not granted
       if (!account) {
         const msg = 'Gmail: Connect your Google account in the Authentication tab.';
         showErrorToast('Gmail Authentication Missing', msg);
         return { success: false, error: msg };
       }
 
-      const token = getTokenCached();
+      // 2) Get a cached token for Gmail’s scope union (send + metadata). No popup here.
+      const token = getGmailTokenCached();
       if (!token) {
         const msg = 'Gmail token expired/missing. Please re-connect in Authentication tab.';
         showErrorToast('Gmail Token Required', msg);
         return { success: false, error: msg };
       }
 
+      // 3) Prepare the message from node settings (templated)
       const gen = nodeConfig.settings?.general ?? {};
       const to = resolveTemplate(gen.to ?? '', { context }).trim();
       const subject = resolveTemplate(gen.subject ?? '', { context }).trim();
@@ -356,6 +364,7 @@ export class ClientSideNodeExecutor extends BaseNodeExecutor {
         return { success: false, error: msg };
       }
 
+      // 4) Build RFC 2822 message and base64url encode
       const mime =
         `From: ${account}\r\n` +
         `To: ${to}\r\n` +
@@ -364,8 +373,10 @@ export class ClientSideNodeExecutor extends BaseNodeExecutor {
         `Content-Type: text/plain; charset="UTF-8"\r\n\r\n` +
         `${body}`;
 
-      const raw = toBase64Url(mime); // RFC 2822 → base64url  [6](https://support.google.com/cloud/answer/15549945?hl=en)
-      const json = await gmailSendRaw(raw, token); // POST users/me/messages/send  [4](https://stackoverflow.com/questions/70406830/google-oauth2-0-unpublished-test-app-accepts-users-not-in-test-user-list)
+      const raw = toBase64Url(mime);
+
+      // 5) Send via Gmail API
+      const json = await gmailSendRaw(raw, token);
 
       return {
         success: true,
@@ -376,8 +387,8 @@ export class ClientSideNodeExecutor extends BaseNodeExecutor {
           to,
           subject,
           sentAt: new Date().toISOString(),
-          provider: 'gmail'
-        }
+          provider: 'gmail',
+        },
       };
     } catch (err: any) {
       const message = (err?.message ?? `${err}`)?.toString();
@@ -386,6 +397,8 @@ export class ClientSideNodeExecutor extends BaseNodeExecutor {
     }
   }
 
+
+  // ---------------- If Condition ----------------
   private async executeConditionNode(nodeConfig: NodeConfig, context: ExecutionContext): Promise<NodeExecutionResult> {
     try {
       const raw = nodeConfig.settings?.general?.condition ?? '';
@@ -407,6 +420,8 @@ export class ClientSideNodeExecutor extends BaseNodeExecutor {
     }
   }
 
+  
+  // ---------------- Switch Case ----------------
   private async executeSwitchNode(nodeConfig: NodeConfig, context: ExecutionContext): Promise<NodeExecutionResult> {
     try {
       const expression = nodeConfig.settings?.general?.expression;
@@ -421,6 +436,7 @@ export class ClientSideNodeExecutor extends BaseNodeExecutor {
   }
 
 
+  // ---------------- Filter ----------------
   private async executeFilterNode(nodeConfig: NodeConfig, context: ExecutionContext): Promise<NodeExecutionResult> {
     try {
       const conditionRaw =

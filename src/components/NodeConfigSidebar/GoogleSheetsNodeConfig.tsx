@@ -321,7 +321,7 @@ const GoogleSheetsNodeConfig: React.FC<Props> = ({
 
 
     const renderUrlRow = () =>
-        operation !== 'Create Sheet' && documentUrl ? (
+        operation !== 'Create Sheet' && sheetName && documentUrl ? (
             <div className="config-section">
                 <div
                     className="config-row"

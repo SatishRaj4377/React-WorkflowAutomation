@@ -22,6 +22,8 @@ import './NodeConfigSidebar.css';
 import GoogleAuthPanel from './GoogleAuthPanel';
 import { updateSwitchPorts } from '../../helper/utilities/portUtils';
 import GoogleSheetsNodeConfig from './GoogleSheetsNodeConfig';
+import { getScopesForNode } from '../../helper/googleScopes';
+import { GoogleAuth } from '../../helper/googleAuthClient';
 
 interface ConfigPanelProps {
   isOpen: boolean;
@@ -53,6 +55,20 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
 
   const nodeIconSrc = selectedNode?.icon ? IconRegistry[selectedNode.icon] : null;
   const MessageIcon = IconRegistry['Message'];
+
+  // Returns true if token for nodeType is cached OR if auth flags indicate a connection.
+  // This lets Sheets work even when no Gmail email is available.
+  const isGoogleConnectedFor = (nodeType: string, auth: any): boolean => {
+    try {
+      const scopes = getScopesForNode(nodeType);                // read union for this node
+      const cached = GoogleAuth.getTokenCached(scopes);         // use cached token if present
+      if (cached) return true;
+    } catch { /* ignore */ }
+    // Fall back to flags you already store in authentication
+    if (nodeType === 'Gmail') return !!auth?.googleAccountEmail;
+    if (nodeType === 'Google Sheets') return !!auth?.googleSheetsConnected || !!auth?.googleAccountEmail;
+    return false;
+  };
 
   // Fetch available variables and node output whenever the selected node or diagram changes.
   useEffect(() => {
@@ -109,7 +125,6 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
     }
   }, [selectedNode?.id, diagram, executionContext]);
 
-
   /** Safely update settings */
   const handleConfigChange = (
     fieldOrPatch: string | Record<string, any>,
@@ -141,7 +156,6 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
     };
     onNodeConfigChange(selectedNode.id, updatedConfig);
   };
-
 
   const handleNameChange = (value: string) => {
     if (!selectedNode) return;
@@ -465,13 +479,15 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
       }
 
       case 'Google Sheets': {
-        const authEmail = (selectedNode?.settings?.authentication as any)?.googleAccountEmail ?? '';
+        
+        const auth = (selectedNode?.settings?.authentication as any) ?? {};
+        const connected = isGoogleConnectedFor('Google Sheets', auth);
         const GOOGLE_WEB_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID ?? '';
 
         return (
           <GoogleSheetsNodeConfig
             settings={settings}
-            authEmail={authEmail}
+            authEmail={connected ? (auth.googleAccountEmail || '__connected__') : ''} 
             onPatch={(patch) => handleConfigChange(patch, undefined, 'general')}
             variableGroups={availableVariables}
             variablesLoading={variablesLoading}
@@ -638,7 +654,6 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
     );
   }, [selectedNode, availableVariables, isChatOpen]);
 
-
   /** Output tab (shows when a node is executed) */
   const renderOutputTab = useCallback(() => {
     if (!nodeOutput) {
@@ -669,7 +684,6 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
       </div>
     );
   }, [ nodeOutput ]);
-
 
   /** Authentication tab */
   const renderAuthenticationTab = useCallback(() => {
@@ -775,27 +789,33 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
             </div>
           );
 
+
         case 'Gmail': {
-          // Ensure 'Gmail' is included in AUTH_NODE_TYPES so this tab appears.
-          // Show only the Google-rendered button (no custom fields).
-          const GOOGLE_WEB_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || ''; // or your config source
+          const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID ?? '';
           return (
             <div className="config-tab-content">
               <GoogleAuthPanel
-                clientId={GOOGLE_WEB_CLIENT_ID}
-                onConnected={(email) => handleConfigChange('googleAccountEmail', email, 'authentication')}
+                clientId={CLIENT_ID}
+                nodeType="Gmail"
+                onConnected={(email) => {
+                  handleConfigChange('googleAccountEmail', email, 'authentication');
+                }}
               />
             </div>
           );
         }
 
         case 'Google Sheets': {
-          const GOOGLE_WEB_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID ?? '';
+          const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID ?? '';
           return (
             <div className="config-tab-content">
               <GoogleAuthPanel
-                clientId={GOOGLE_WEB_CLIENT_ID}
-                onConnected={(email) => handleConfigChange('googleAccountEmail', email, 'authentication')}
+                clientId={CLIENT_ID}
+                nodeType="Google Sheets"
+                onConnected={(email) => {
+                  handleConfigChange('googleSheetsConnected', true, 'authentication');
+                  handleConfigChange('googleAccountEmail', email || '', 'authentication');
+                }}
               />
             </div>
           );
