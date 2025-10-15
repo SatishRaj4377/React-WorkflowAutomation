@@ -2,6 +2,7 @@ import { NodeModel, Point, PointPortModel, PortConstraints, PortModel, PortVisib
 import { NodeCategories, NodeConfig, NodePortDirection, NodeType, PortConfiguration, PortSide } from "../../types";
 import { PORT_POSITIONS } from "../../constants";
 import { NODE_REGISTRY } from "../../constants/nodeRegistry";
+import { isAiAgentNode } from "./nodeUtils";
 
 export const createPort = (
   id: string,
@@ -23,11 +24,12 @@ export const createPort = (
 // Build concrete ports from a declarative PortConfiguration
 function buildPortsFromConfig(config: PortConfiguration): PortModel[] {
   const ports: PortModel[] = [];
-  if (config.leftPort) ports.push(createPort("left-port", PORT_POSITIONS.LEFT, "Circle", 20, PortConstraints.InConnect));
   if (config.topPort) ports.push(createPort("top-port", PORT_POSITIONS.TOP, "Circle", 20, PortConstraints.InConnect));
   if (config.rightPort) ports.push(createPort("right-port", PORT_POSITIONS.RIGHT, "Circle", 20, PortConstraints.OutConnect | PortConstraints.Draw));
   if (config.rightTopPort) ports.push(createPort("right-top-port", PORT_POSITIONS.RIGHT_TOP, "Circle", 20, PortConstraints.OutConnect | PortConstraints.Draw));
   if (config.rightBottomPort) ports.push(createPort("right-bottom-port", PORT_POSITIONS.RIGHT_BOTTOM, "Circle", 20, PortConstraints.OutConnect | PortConstraints.Draw));
+  // if bottomleft port is true, then ports are for ai agent node, so we will use the use the AI agent left port position, otherwise use the default left port position.
+  if (config.leftPort) ports.push(createPort("left-port", config.bottomLeftPort ? PORT_POSITIONS.AI_AGENT_LEFT : PORT_POSITIONS.LEFT, "Circle", 20, PortConstraints.InConnect));
   if (config.bottomLeftPort) ports.push(createPort("bottom-left-port", PORT_POSITIONS.BOTTOM_LEFT, "Square", 14, PortConstraints.OutConnect | PortConstraints.Draw));
   if (config.bottomRightPort) ports.push(createPort("bottom-right-port", PORT_POSITIONS.BOTTOM_RIGHT, "Square", 14, PortConstraints.OutConnect | PortConstraints.Draw));
   return ports;
