@@ -25,7 +25,6 @@ import GoogleSheetsNodeConfig from './GoogleSheetsNodeConfig';
 import { getScopesForNode } from '../../helper/googleScopes';
 import { GoogleAuth } from '../../helper/googleAuthClient';
 import GmailNodeConfig from './GmailNodeConfig';
-import GoogleSheetsTriggerNodeConfig from './GoogleSheetsTriggerNodeConfig';
 
 interface ConfigPanelProps {
   isOpen: boolean;
@@ -254,22 +253,6 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
             </div>
           </>
         );
-
-      case 'Google Sheets Trigger': {
-        const auth = (selectedNode?.settings?.authentication as any) ?? {};
-        // Reuse the same connectivity test as Sheets (same scopes)
-        const connected = isGoogleConnectedFor('Google Sheets', auth);
-        const GOOGLE_WEB_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID ?? '';
-
-        return (
-          <GoogleSheetsTriggerNodeConfig
-            settings={settings}
-            authEmail={connected ? (auth.googleAccountEmail || '__connected__') : ''}
-            onPatch={(patch) => handleConfigChange(patch, undefined, 'general')}
-            googleClientId={GOOGLE_WEB_CLIENT_ID}
-          />
-        );
-      }
 
       case 'AI Agent':
         return (
@@ -773,8 +756,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           );
         }
 
-        case 'Google Sheets': 
-        case 'Google Sheets Trigger': {
+        case 'Google Sheets': {
           const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID ?? '';
           return (
             <div className="config-tab-content">

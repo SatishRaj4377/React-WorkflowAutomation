@@ -112,7 +112,6 @@ export const TIMEZONES = ['UTC', 'Asia/Kolkata', 'America/New_York', 'Europe/Lon
 export const AUTH_NODE_TYPES: NodeType[] = [
   'Gmail',
   'Google Sheets',
-  'Google Sheets Trigger',
   'Google Calendar',
   'Google Docs',
   'Telegram',

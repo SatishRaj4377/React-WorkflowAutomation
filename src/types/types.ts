@@ -36,7 +36,6 @@ export type NodeType =
   | 'Schedule'
   | 'Manual Click'
   | 'Chat'
-  | 'Google Sheets Trigger'
   | 'AI Agent'
   | 'HTTP Request'
   | 'EmailJS'

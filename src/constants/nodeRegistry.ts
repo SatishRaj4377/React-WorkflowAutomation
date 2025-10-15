@@ -53,16 +53,6 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     iconId: 'ChatIcon',
     portConfig: { rightPort: true },
   },
-  'Google Sheets Trigger': {
-    type: 'Google Sheets Trigger',
-    category: 'trigger',
-    paletteCategory: 'Triggers',
-    isServerExecuted: false,
-    label: 'Google Sheets Trigger',
-    description: 'Trigger workflow from Google Sheets changes.',
-    iconId: 'GoogleSheetIcon',
-    portConfig: { rightPort: true },
-  },
   'AI Agent': {
     type: 'AI Agent',
     category: 'ai-agent',
