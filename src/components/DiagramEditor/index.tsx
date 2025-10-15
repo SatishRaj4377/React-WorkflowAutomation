@@ -673,6 +673,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       strokeDashArray: NODE_STROKEDASH_ARR,
       opacity: .7
     }
+    stickyNode.shape= { cornerRadius: 15 };
     
     // Preserve existing width/height if they exist (for loaded nodes)
     if (!stickyNode.width || stickyNode.width < 160) {
@@ -705,7 +706,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   // Update the custom selector style for node templates
   const updateNodeSelection = (nodeIds: string[] | null) => {
     // Remove selection from all node templates
-    const allNodeTemplates = document.querySelectorAll('.node-template');
+    const allNodeTemplates = document.querySelectorAll('.node-template, .sticky-note-container');
     allNodeTemplates.forEach(template => {
       template.classList.remove('selected');
     });
