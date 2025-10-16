@@ -25,6 +25,7 @@ import GoogleSheetsNodeConfig from './GoogleSheetsNodeConfig';
 import { getScopesForNode } from '../../helper/googleScopes';
 import { GoogleAuth } from '../../helper/googleAuthClient';
 import GmailNodeConfig from './GmailNodeConfig';
+import IfConditionNodeConfig from './IfConditionNodeConfig';
 
 interface ConfigPanelProps {
   isOpen: boolean;
@@ -467,23 +468,21 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           </>
         );
 
-      case 'If Condition':
-        return (
-          <>
-            <div className="config-section">
-              <label className="config-label">Condition</label>
-              <VariablePickerTextBox
-                value={settings.condition ?? ''}
-                placeholder="Use an expression or template variable"
-                onChange={(val) => handleConfigChange('condition', val)}
-                cssClass="config-textarea"
-                multiline
-                variableGroups={availableVariables}
-                variablesLoading={variablesLoading}
-              />
-            </div>
-          </>
-        );
+        case 'If Condition': {
+          const conditions = (settings.conditions ?? [
+            { left: '', comparator: 'is equal to', right: '' },
+          ]) as any[];
+
+          return (
+            <IfConditionNodeConfig
+              value={conditions}
+              onChange={(next) => handleConfigChange('conditions', next)}
+              variableGroups={availableVariables}
+              variablesLoading={variablesLoading}
+              label="Conditions"
+            />
+          );
+        }
 
       case 'Switch Case': {
         const rules = (settings.rules ?? [{ left: '', comparator: 'is equal to', right: '' }]) as Array<{ left: string; comparator: string; right: string }>;
