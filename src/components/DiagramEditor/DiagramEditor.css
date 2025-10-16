@@ -287,15 +287,14 @@
     opacity: 0;
     color: var(--scrollbar-thumb-hover);
     position: absolute;
-    right: -49px;
-    top: 13px;
+    right: -33px;
+    top: 11px;
     border-radius: 4px;
     background: var(--background-color);
     transform: translate(-80%, -100%) scale(0);
     font-size: .6rem;
     font-weight: 500;
-    width: 32px;
-    padding: 0rem .4rem;
+    width: 20px;
     text-align: left;
     transition: all 0.2s ease;
 }
