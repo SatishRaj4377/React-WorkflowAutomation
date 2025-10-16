@@ -4,8 +4,8 @@ import { ExecutionContext, NodeConfig, NodeExecutionResult, WorkflowExecutionOpt
 import { findTriggerNodes, findConnectedNodes, updateNodeStatus, resetExecutionStates } from '../helper/workflowExecution';
 import { showErrorToast, showSuccessToast } from '../components/Toast';
 import { globalExecutorRegistry } from './ExecutorRegistry';
-import { ClientSideNodeExecutor } from './BaseExecutors';
 import { ServerNodeExecutor } from './ServerNodeExecutor';
+import { ClientSideNodeExecutor } from './ClientSideNodeExecutor';
 
 /**
  * Service for managing workflow execution with support for both client-side
