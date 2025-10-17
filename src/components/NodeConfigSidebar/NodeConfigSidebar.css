@@ -204,6 +204,12 @@
   background: var(--secondary-color);
 }
 
+/* Color of the dropdown list fixed head */
+.e-dropdownbase .e-fixed-head,
+.e-dropdownbase .e-list-group-item  {
+  color: var(--accent-color);
+}
+
 /* Empty State */
 .config-panel-empty {
   height: 100%;
