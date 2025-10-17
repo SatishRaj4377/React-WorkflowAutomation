@@ -879,17 +879,156 @@ export class ClientSideNodeExecutor extends BaseNodeExecutor {
   // ---------------- Switch Case ----------------
   private async executeSwitchNode(nodeConfig: NodeConfig, context: ExecutionContext): Promise<NodeExecutionResult> {
     try {
-      const expression = nodeConfig.settings?.general?.expression;
-      if (!expression) return { success: false, error: 'No switch expression specified' };
+      const gen = nodeConfig.settings?.general ?? {};
+      const rules = Array.isArray(gen.rules) ? gen.rules as Array<{ left: string; comparator: string; right: string }> : [];
+      const enableDefault: boolean = !!gen.enableDefaultPort;
 
-      const prepared = resolveTemplate(expression, { context }).trim();
-      const value = evaluateExpression(prepared, { context });
-      return { success: true, data: { value } };
-    } catch (error) {
-      return { success: false, error: `Switch evaluation failed: ${error}` };
+      if (rules.length === 0) {
+        const msg = 'Switch Case: Please add at least one case.';
+        showErrorToast('Switch Case Missing', msg);
+        return { success: false, error: msg };
+      }
+
+      // Reuse same resolver + comparator logic as IF (inline minimal copy for surgical change)
+      const UNARY = new Set<string>(['exists', 'does not exist', 'is empty', 'is not empty', 'is true', 'is false']);
+      const ISO_RX = /^\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(:\d{2})?(?:\.\d+)?Z?)?$/;
+
+      const resolveVal = (raw: string): any => {
+        if (typeof raw !== 'string') return raw;
+        const t = raw.trim();
+        return t.startsWith('$.') ? evaluateExpression(t, { context }) : resolveTemplate(raw, { context });
+      };
+      const inferKind = (v: any): 'string' | 'number' | 'boolean' | 'date' | 'array' | 'object' => {
+        if (Array.isArray(v)) return 'array';
+        if (v instanceof Date) return 'date';
+        if (v !== null && typeof v === 'object') return 'object';
+        if (typeof v === 'boolean') return 'boolean';
+        if (typeof v === 'number' && !Number.isNaN(v)) return 'number';
+        if (typeof v === 'string' && ISO_RX.test(v) && !Number.isNaN(+new Date(v))) return 'date';
+        return 'string';
+      };
+      const coerce = (v: any, kind: string) => {
+        try {
+          switch (kind) {
+            case 'number':  return typeof v === 'number' ? v : Number(v);
+            case 'boolean': return typeof v === 'boolean' ? v : /^true$/i.test(String(v)) ? true : /^false$/i.test(String(v)) ? false : Boolean(v);
+            case 'date':    return v instanceof Date ? v : new Date(v);
+            case 'array':   return Array.isArray(v) ? v : (typeof v === 'string' ? JSON.parse(v) : [v]);
+            case 'object':  return v && typeof v === 'object' ? v : (typeof v === 'string' ? JSON.parse(v) : { value: v });
+            default:        return typeof v === 'string' ? v : JSON.stringify(v);
+          }
+        } catch { return v; }
+      };
+      const deepEq = (a: any, b: any) => { try { return JSON.stringify(a) === JSON.stringify(b); } catch { return a === b; } };
+      const toTime = (x: any) => +(x instanceof Date ? x : new Date(x));
+      const isEmpty = (x: any) => x == null ? true : Array.isArray(x) || typeof x === 'string' ? x.length === 0 : typeof x === 'object' ? Object.keys(x).length === 0 : false;
+      const toPair = (v: any): [any, any] => {
+        if (Array.isArray(v) && v.length >= 2) return [v[0], v[1]];
+        if (typeof v === 'string') {
+          const p = v.split(',').map(s => s.trim());
+          if (p.length >= 2) return [p[0], p[1]];
+        }
+        return [v, v];
+      };
+      const compare = (left: any, op: string, right: any): boolean => {
+        if (op === 'exists')         return typeof left !== 'undefined';
+        if (op === 'does not exist') return typeof left === 'undefined';
+        if (op === 'is empty')       return isEmpty(left);
+        if (op === 'is not empty')   return !isEmpty(left);
+        if (op === 'is true')        return Boolean(left) === true;
+        if (op === 'is false')       return Boolean(left) === false;
+
+        const kind = inferKind(left);
+        const l = coerce(left, kind);
+        const r = (op === 'is between' || op === 'is not between')
+          ? toPair(coerce(right, kind))
+          : coerce(right, kind);
+
+        switch (op) {
+          case 'is equal to':               return deepEq(l, r);
+          case 'is not equal to':           return !deepEq(l, r);
+          case 'contains':                  return String(l).includes(String(r));
+          case 'does not contain':          return !String(l).includes(String(r));
+          case 'starts with':               return String(l).startsWith(String(r));
+          case 'ends with':                 return String(l).endsWith(String(r));
+          case 'matches regex':             try { return new RegExp(String(r)).test(String(l)); } catch { return false; }
+          case 'greater than':              return Number(l) >  Number(r);
+          case 'greater than or equal to':  return Number(l) >= Number(r);
+          case 'less than':                 return Number(l) <  Number(r);
+          case 'less than or equal to':     return Number(l) <= Number(r);
+          case 'is between':                return Number(l) >= Number(r[0]) && Number(l) <= Number(r[1]);
+          case 'is not between':            return !(Number(l) >= Number(r[0]) && Number(l) <= Number(r[1]));
+          case 'before':                    return toTime(l) <  toTime(r);
+          case 'after':                     return toTime(l) >  toTime(r);
+          case 'on or before':              return toTime(l) <= toTime(r);
+          case 'on or after':               return toTime(l) >= toTime(r);
+          case 'contains value':            return Array.isArray(l) ? l.some(x => deepEq(x, r)) : String(l).includes(String(r));
+          case 'length greater than':       return (Array.isArray(l) || typeof l === 'string') ? (l as any).length > Number(r) : false;
+          case 'length less than':          return (Array.isArray(l) || typeof l === 'string') ? (l as any).length < Number(r) : false;
+          case 'has key':                   return l && typeof l === 'object' && String(r) in l;
+          case 'has property':              return l && typeof l === 'object' && Object.prototype.hasOwnProperty.call(l, String(r));
+          default:                          return false;
+        }
+      };
+
+      // Validate inputs upfront (similar to IF strictness)
+      for (let i = 0; i < rules.length; i++) {
+        const r = rules[i];
+        const rowNo = i + 1;
+        if (!r || !String(r.left ?? '').trim()) {
+          const msg = `Switch Case: Row ${rowNo} — "Value 1" is required.`;
+          showErrorToast('Switch Case Missing', msg);
+          return { success: false, error: msg };
+        }
+        // Non-unary comparators must have right value
+        if (!UNARY.has(r.comparator) && !String(r.right ?? '').trim()) {
+          const msg = `Switch Case: Row ${rowNo} — "Value 2" is required for "${r.comparator}".`;
+          showErrorToast('Switch Case Missing', msg);
+          return { success: false, error: msg };
+        }
+        // Regex basic check
+        if (r.comparator === 'matches regex' && String(r.right ?? '').trim()) {
+          try { new RegExp(String(resolveVal(r.right))); } catch (e: any) {
+            const msg = `Switch Case: Row ${rowNo} — Invalid regex: ${e?.message ?? 'syntax error'}.`;
+            showErrorToast('Switch Case Invalid Regex', msg);
+            return { success: false, error: msg };
+          }
+        }
+      }
+
+      // Evaluate first-match
+      const rowResults: boolean[] = [];
+      let matchedIndex: number = -1;
+
+      for (let i = 0; i < rules.length; i++) {
+        const r = rules[i];
+        const L = resolveVal(r.left ?? '');
+        const R = UNARY.has(r.comparator) ? undefined : resolveVal(r.right ?? '');
+        const ok = compare(L, r.comparator, R);
+        rowResults.push(ok);
+        if (ok && matchedIndex === -1) matchedIndex = i;
+      }
+
+      // Prepare port id for traversal phase
+      const matchedPortId = matchedIndex >= 0
+        ? `right-case-${matchedIndex + 1}`
+        : (enableDefault ? 'right-case-default' : null);
+
+      return {
+        success: true,
+        data: {
+          matchedCaseIndex: matchedIndex >= 0 ? matchedIndex : null,
+          matchedPortId,
+          defaultTaken: matchedIndex < 0 && enableDefault,
+          rowResults
+        }
+      };
+    } catch (error: any) {
+      const msg = `Switch Case execution failed: ${error?.message ?? String(error)}`;
+      showErrorToast('Switch Case Failed', msg);
+      return { success: false, error: msg };
     }
   }
-
 
   // ---------------- Filter ----------------
   private async executeFilterNode(nodeConfig: NodeConfig, context: ExecutionContext): Promise<NodeExecutionResult> {

@@ -25,7 +25,7 @@ import GoogleSheetsNodeConfig from './GoogleSheetsNodeConfig';
 import { getScopesForNode } from '../../helper/googleScopes';
 import { GoogleAuth } from '../../helper/googleAuthClient';
 import GmailNodeConfig from './GmailNodeConfig';
-import IfConditionNodeConfig from './IfConditionNodeConfig';
+import ConditionNodeConfig from './ConditionNodeConfig';
 
 interface ConfigPanelProps {
   isOpen: boolean;
@@ -115,14 +115,16 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
     // Initialize/Sync dynamic ports for Switch Case nodes when opening.
     // Only update if desired count differs from existing, to avoid height jump on open.
     if (selectedNode && diagram && selectedNode.nodeType === 'Switch Case') {
-      const rules = (selectedNode.settings?.general as any)?.rules as any[] | undefined;
+      const general = (selectedNode?.settings?.general as any) ?? {};
+      const rules = general?.rules as any[] | undefined;
       const desired = Math.max(1, rules?.length ?? 1);
       const node: any = (diagram as any).getObject(selectedNode.id);
+      const enableDefault = !!general?.enableDefaultPort;
       const existing = (node?.addInfo?.dynamicCaseCount)
         ?? (Array.isArray(node?.ports) ? node.ports.filter((p: any) => String(p.id).startsWith('right-case-')).length : 0)
         ?? 0;
       if (existing !== desired) {
-        updateSwitchPorts(diagram as any, selectedNode.id, desired);
+        updateSwitchPorts(diagram as any, selectedNode.id, desired, enableDefault);
       }
     }
   }, [selectedNode?.id, diagram, executionContext]);
@@ -474,7 +476,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           ]) as any[];
 
           return (
-            <IfConditionNodeConfig
+            <ConditionNodeConfig
               value={conditions}
               onChange={(next) => handleConfigChange('conditions', next)}
               variableGroups={availableVariables}
@@ -486,76 +488,51 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
 
       case 'Switch Case': {
         const rules = (settings.rules ?? [{ left: '', comparator: 'is equal to', right: '' }]) as Array<{ left: string; comparator: string; right: string }>;
+        const enableDefault: boolean = !!settings.enableDefaultPort;
 
-        const comparators = ['is equal to', 'is not equal to', 'contains', 'does not contain', 'greater than', 'less than'];
+        // Map Switch rows <-> IfCondition rows (joiner is unused)
+        const rows = rules.map(r => ({ left: r.left, comparator: r.comparator, right: r.right }));
 
-        const addRule = () => {
-          const next = [...rules, { left: '', comparator: 'is equal to', right: '' }];
-          handleConfigChange('rules', next);
-          if (diagram && selectedNode) updateSwitchPorts(diagram as any, selectedNode.id, next.length);
+        const onRowsChange = (nextRows: any[]) => {
+          // Persist back as 'rules' (ignore joiners)
+          handleConfigChange('rules', nextRows.map(r => ({ left: r.left ?? '', comparator: r.comparator, right: r.right ?? '' })));
+          if (diagram && selectedNode) {
+            const count = Math.max(1, nextRows.length);
+            updateSwitchPorts(diagram as any, selectedNode.id, count);
+          }
         };
-        const updateRule = (i: number, field: 'left' | 'comparator' | 'right', val: string) => {
-          const next = rules.slice();
-          next[i] = { ...next[i], [field]: val } as any;
-          handleConfigChange('rules', next);
-          if (diagram && selectedNode) updateSwitchPorts(diagram as any, selectedNode.id, next.length);
-        };
-        const removeRule = (i: number) => {
-          if (rules.length === 1) return; // enforce at least one rule
-          const next = rules.filter((_, idx) => idx !== i);
-          handleConfigChange('rules', next);
-          if (diagram && selectedNode) updateSwitchPorts(diagram as any, selectedNode.id, next.length);
+
+        const onToggleDefault = (checked: boolean) => {
+          handleConfigChange('enableDefaultPort', checked);
+          if (diagram && selectedNode) {
+            const count = Math.max(1, rules.length);
+            updateSwitchPorts(diagram as any, selectedNode.id, count, checked); // include default port when enabled
+          }
         };
 
         return (
           <>
-            <div className="config-section">
-              <div className="config-row" style={{ alignItems: 'center', gap: 8 }}>
-                <label className="config-label">Rules</label>
-                <TooltipComponent content="Add rules. Each rule creates a new case output port.">
-                  <span className='e-icons e-circle-info help-icon'></span>
-                </TooltipComponent>
+            <ConditionNodeConfig
+              value={rows as any}
+              onChange={onRowsChange}
+              variableGroups={availableVariables}
+              variablesLoading={variablesLoading}
+              label="Cases"
+              showJoiners={false} // <-- hide AND/OR for Switch Case
+            />
+
+            {/* Enable default port */}
+            <div className="config-section" style={{ marginTop: 8 }}>
+              <label className="config-label">Default Port</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input
+                  type="checkbox"
+                  checked={enableDefault}
+                  onChange={(e) => onToggleDefault(e.currentTarget.checked)}
+                  id="switch-default-port"
+                />
+                <label htmlFor="switch-default-port">Enable default port (executes if no case matches)</label>
               </div>
-
-              {rules.map((r, i) => (
-                <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
-                  <VariablePickerTextBox
-                    value={r.left}
-                    placeholder="value1"
-                    onChange={(val) => updateRule(i, 'left', val)}
-                    cssClass="config-input"
-                    variableGroups={availableVariables}
-                    variablesLoading={variablesLoading}
-                  />
-                  <DropDownListComponent
-                    value={r.comparator}
-                    dataSource={comparators}
-                    change={(e: any) => updateRule(i, 'comparator', e.value)}
-                    popupHeight="240px"
-                    zIndex={1000000}
-                    width={'150px'}
-                  />
-                  <VariablePickerTextBox
-                    value={r.right}
-                    placeholder="value2"
-                    onChange={(val) => updateRule(i, 'right', val)}
-                    cssClass="config-input"
-                    variableGroups={availableVariables}
-                    variablesLoading={variablesLoading}
-                  />
-                  <ButtonComponent
-                    cssClass="flat-btn e-flat"
-                    iconCss="e-icons e-trash"
-                    onClick={() => removeRule(i)}
-                    title="Remove rule"
-                    disabled={rules.length === 1}
-                  />
-                </div>
-              ))}
-
-              <ButtonComponent className="add-field-btn" iconCss="e-icons e-plus" onClick={addRule}>
-                Add Rule
-              </ButtonComponent>
             </div>
           </>
         );

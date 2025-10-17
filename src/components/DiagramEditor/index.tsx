@@ -509,7 +509,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   // handle the node toolbar actions
   const handleNodeToolbarAction = (nodeId: string, action: NodeToolbarAction) => {
     const diagram = diagramRef.current;
-    console.log(action)
     switch (action) {
       case 'edit':
         // open the config panel

@@ -6,7 +6,7 @@ import { showErrorToast, showSuccessToast } from '../components/Toast';
 import { globalExecutorRegistry } from './ExecutorRegistry';
 import { ServerNodeExecutor } from './ServerNodeExecutor';
 import { ClientSideNodeExecutor } from './ClientSideNodeExecutor';
-import { isIfConditionNode } from '../helper/utilities';
+import { isIfConditionNode, isSwitchNode } from '../helper/utilities';
 
 /**
  * Service for managing workflow execution with support for both client-side
@@ -142,17 +142,20 @@ export class WorkflowExecutionService {
         throw new Error(result.error || 'Node execution failed');
       }
 
-      
       const cfg = this.getNodeConfig(node);
-      const type = (cfg?.nodeType ?? '').toLowerCase();
-      if (type === 'if condition') {
+      if (cfg && isIfConditionNode(cfg)) {
         // Read IF result
         const out = (this.executionContext.results as Record<string, any>)[node.id];
         const isTrue = Boolean(out?.conditionResult);
         const portId = isTrue ? 'right-top-port' : 'right-bottom-port';
 
-        // Mark node success + ONLY the taken connector success
+        // Reset once and then paint only the matched connector
         updateNodeStatus(this.diagram, node.id, 'success', { restrictToSourcePortId: portId });
+      } else if (cfg && isSwitchNode(cfg)) {
+        const out = (this.executionContext.results as Record<string, any>)[node.id!];
+        const portId: string | null = out?.matchedPortId ?? null;
+        // Reset once and then paint only the matched connector
+        updateNodeStatus(this.diagram, node.id!, 'success', portId ? { restrictToSourcePortId: portId } : undefined);
       } else {
         // Default: Mark success and continue with connected nodes
         updateNodeStatus(this.diagram, node.id, 'success');
@@ -197,6 +200,29 @@ export class WorkflowExecutionService {
         if (!ok && !this.options.enableDebug) throw new Error('Branch execution failed');
       }
       return; // do not fall through
+    }
+    if (nodeConfig && isSwitchNode(nodeConfig)) {
+      const out = node.id ? (this.executionContext.results as Record<string, any>)[node.id] : undefined;
+      const desiredPort: string | null = out?.matchedPortId ?? null;
+
+      // If no match and no default, there may be no desired port -> end branch gracefully
+      const connectors = (this.diagram as any)?.connectors ?? [];
+      const targets = desiredPort
+        ? connectors
+            .filter((c: any) => c.sourceID === node.id && c.sourcePortID === desiredPort)
+            .map((c: any) => (this.diagram as any).getObject(c.targetID))
+            .filter((n: any) => {
+              const nc = (n?.addInfo as any)?.nodeConfig;
+              return nc?.category !== 'tool';
+            })
+        : [];
+
+      for (const nxt of targets) {
+        await this.checkExecutionCancelled();
+        const ok = await this.executeBranchWithErrorHandling(nxt);
+        if (!ok && !this.options.enableDebug) throw new Error('Branch execution failed');
+      }
+      return;
     }
 
     // Default traversal for non-IF nodes (unchanged)     

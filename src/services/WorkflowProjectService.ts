@@ -314,20 +314,6 @@ export class WorkflowProjectService {
   }
 
   /**
-   * Execute a workflow
-   * This is a placeholder implementation
-   */
-  executeWorkflow(workflow: WorkflowData): Promise<any> {
-    return new Promise((resolve) => {
-      console.log('Executing workflow:', workflow);
-      // Simulate workflow execution
-      setTimeout(() => {
-        resolve({ success: true, message: 'Workflow executed successfully' });
-      }, 2000);
-    });
-  }
-
-  /**
    * Import workflow from JSON file
    */
   importWorkflow(json: string): WorkflowData {

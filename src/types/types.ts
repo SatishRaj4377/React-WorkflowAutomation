@@ -90,9 +90,9 @@ export type DeleteDimParams = {
   accessToken: string;
 };
 
-export type IfJoiner = 'AND' | 'OR';
+export type ConditionJoiner = 'AND' | 'OR';
 
-export type IfComparator =
+export type ConditionComparator =
   // generic equality / string
   | 'is equal to' | 'is not equal to'
   | 'contains' | 'does not contain' | 'starts with' | 'ends with' | 'matches regex'
@@ -109,16 +109,16 @@ export type IfComparator =
   | 'contains value' | 'length greater than' | 'length less than'
   | 'has key' | 'has property';
 
-export type IfValueKind = 'string' | 'number' | 'boolean' | 'date' | 'array' | 'object';
+export type ConditionValueKind = 'string' | 'number' | 'boolean' | 'date' | 'array' | 'object';
 
-export interface IfRow {
+export interface ConditionRow {
   left: string;                 // Variable or literal; supports {{ }} and bare "$." expressions
-  comparator: IfComparator;     // Operator picked from grouped list
+  comparator: ConditionComparator;     // Operator picked from grouped list
   right: string;                // Variable/literal; may be unused for unary ops
-  joiner?: IfJoiner;            // AND/OR from the second row onward (combines with previous)
+  joiner?: ConditionJoiner;            // AND/OR from the second row onward (combines with previous)
 }
 
-export interface IfNodeOutput {
+export interface ConditionNodeOutput {
   conditionResult: boolean;     // final boolean outcome
   rowResults: boolean[];        // per-row outcomes (useful for debug/UX)
 }

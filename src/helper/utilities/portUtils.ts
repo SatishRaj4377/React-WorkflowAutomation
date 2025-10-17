@@ -154,64 +154,65 @@ export function prepareUserHandlePortData(node: NodeModel): void {
 export const getNodePortConfiguration = (nodeConfig: NodeConfig): PortConfiguration => resolvePortConfiguration(nodeConfig);
 
 // ---- Dynamic Switch Case Ports ----
-export function createSwitchCasePorts(count: number): PortModel[] {
+export function createSwitchCasePorts(count: number, includeDefault: boolean = false): PortModel[] {
   const ports: PortModel[] = [];
-  // left input
   ports.push(createPort("left-port", PORT_POSITIONS.LEFT, "Circle", 20, PortConstraints.InConnect));
 
-  // distribute y offsets between 0.2 and 0.8 based on count
-  const start = 0.2;
-  const end = 0.8;
+  const start = 0.2, end = 0.8;
   const step = count > 1 ? (end - start) / (count - 1) : 0;
   for (let i = 0; i < count; i++) {
     const y = count === 1 ? 0.5 : start + i * step;
-    ports.push(
-      createPort(`right-case-${i + 1}`, { x: 1, y }, "Circle", 20, PortConstraints.OutConnect | PortConstraints.Draw)
-    );
+    ports.push(createPort(`right-case-${i + 1}`, { x: 1, y }, "Circle", 20, PortConstraints.OutConnect | PortConstraints.Draw));
+  }
+
+  // optional default port (placed slightly below the last case)
+  if (includeDefault) {
+    const y = Math.min(0.95, (count === 1 ? 0.5 : end) + 0.08);
+    ports.push(createPort('right-case-default', { x: 1, y }, "Circle", 20, PortConstraints.OutConnect | PortConstraints.Draw));
   }
   return ports;
 }
 
-export function initializeSwitchCaseNodePorts(node: NodeModel, rulesCount: number = 1) {
+export function initializeSwitchCaseNodePorts(node: NodeModel, rulesCount: number = 1, includeDefault: boolean = false) {
   const count = Math.max(1, rulesCount);
-  node.ports = createSwitchCasePorts(count);
-  const start = 0.2;
-  const end = 0.8;
+  node.ports = createSwitchCasePorts(count, includeDefault);
+
+  const start = 0.2, end = 0.8;
   const step = count > 1 ? (end - start) / (count - 1) : 0;
   const offsets = Array.from({ length: count }, (_, i) => (count === 1 ? 0.5 : start + i * step));
+
   if (!node.addInfo) node.addInfo = {} as any;
-  (node.addInfo as any).dynamicCaseOffsets = offsets;
-  (node.addInfo as any).dynamicCaseCount = count;
+  (node.addInfo as any).dynamicCaseOffsets = includeDefault ? [...offsets, Math.min(0.95, (count === 1 ? 0.5 : end) + 0.08)] : offsets;
+  (node.addInfo as any).dynamicCaseCount = includeDefault ? (count + 1) : count;
+
   prepareUserHandlePortData(node);
 }
 
-export function updateSwitchPorts(diagram: Diagram | null, nodeId: string, rulesCount: number) {
+export function updateSwitchPorts(diagram: Diagram | null, nodeId: string, rulesCount: number, includeDefault: boolean = false) {
   if (!diagram) return;
   const node = diagram.getObject(nodeId) as NodeModel | null;
   if (!node) return;
 
   const count = Math.max(1, rulesCount);
-
-  // Update ports dynamically
-  node.ports = createSwitchCasePorts(count);
+  node.ports = createSwitchCasePorts(count, includeDefault); // Update ports dynamically
 
   // Store offsets for template rendering
-  const start = 0.2;
-  const end = 0.8;
+  const start = 0.2, end = 0.8;
   const step = count > 1 ? (end - start) / (count - 1) : 0;
   const offsets = Array.from({ length: count }, (_, i) => (count === 1 ? 0.5 : start + i * step));
   if (!node.addInfo) node.addInfo = {} as any;
-  (node.addInfo as any).dynamicCaseOffsets = offsets;
-  (node.addInfo as any).dynamicCaseCount = count;
+  (node.addInfo as any).dynamicCaseOffsets = includeDefault ? [...offsets, Math.min(0.95, (count === 1 ? 0.5 : end) + 0.08)] : offsets;
+  (node.addInfo as any).dynamicCaseCount = includeDefault ? (count + 1) : count;
 
   // Adjust height to give space for handles visually
   const baseHeight = 80;
   const extraPerRule = 22;
-  node.height = baseHeight + Math.max(0, count - 1) * extraPerRule;
+  const totalPorts = includeDefault ? (count + 1) : count;
+  node.height = baseHeight + Math.max(0, totalPorts - 1) * extraPerRule;
 
   prepareUserHandlePortData(node);
-  try {
+  try { 
     (diagram as any).dataBind();
     (diagram as any).refresh();
-  } catch {}
+  } catch { }
 }

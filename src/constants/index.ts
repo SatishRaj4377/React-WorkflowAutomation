@@ -1,6 +1,6 @@
 import { ItemModel } from "@syncfusion/ej2-react-splitbuttons";
 import { templateImages } from "../assets/icons";
-import { IfComparator, IfValueKind, NodeType, TemplateProjectConfig } from "../types";
+import { ConditionComparator, ConditionValueKind, NodeType, TemplateProjectConfig } from "../types";
 
 export const NODE_MENU = ['editNode', 'delete'];
 export const DIAGRAM_MENU = ['addNode', 'addSticky', 'lockWorkflow', 'selectAll'];
@@ -122,7 +122,7 @@ export const AUTH_NODE_TYPES: NodeType[] = [
 ];
 
 // ---- operator sets by kind (includes Exists / Doesn't exist everywhere)
-export const STRING_COMPARATORS: IfComparator[] = [
+export const STRING_COMPARATORS: ConditionComparator[] = [
   'exists', 'does not exist',
   'is empty', 'is not empty',
   'is equal to', 'is not equal to',
@@ -131,7 +131,7 @@ export const STRING_COMPARATORS: IfComparator[] = [
   'matches regex',
 ];
 
-export const NUMBER_COMPARATORS: IfComparator[] = [
+export const NUMBER_COMPARATORS: ConditionComparator[] = [
   'exists', 'does not exist',
   'is equal to', 'is not equal to',
   'greater than', 'greater than or equal to',
@@ -139,13 +139,13 @@ export const NUMBER_COMPARATORS: IfComparator[] = [
   'is between', 'is not between',
 ];
 
-export const BOOLEAN_COMPARATORS: IfComparator[] = [
+export const BOOLEAN_COMPARATORS: ConditionComparator[] = [
   'exists', 'does not exist',
   'is true', 'is false',
   'is equal to', 'is not equal to', // keep equality for consistency
 ];
 
-export const DATE_COMPARATORS: IfComparator[] = [
+export const DATE_COMPARATORS: ConditionComparator[] = [
   'exists', 'does not exist',
   'is equal to', 'is not equal to',
   'before', 'after',
@@ -153,20 +153,20 @@ export const DATE_COMPARATORS: IfComparator[] = [
   'is between', 'is not between',
 ];
 
-export const ARRAY_COMPARATORS: IfComparator[] = [
+export const ARRAY_COMPARATORS: ConditionComparator[] = [
   'exists', 'does not exist',
   'is empty', 'is not empty',
   'contains value',
   'length greater than', 'length less than',
 ];
 
-export const OBJECT_COMPARATORS: IfComparator[] = [
+export const OBJECT_COMPARATORS: ConditionComparator[] = [
   'exists', 'does not exist',
   'is empty', 'is not empty',
   'has key', 'has property',
 ];
 
-export function getComparatorsFor(kind: IfValueKind): IfComparator[] {
+export function getComparatorsFor(kind: ConditionValueKind): ConditionComparator[] {
   switch (kind) {
     case 'number': return NUMBER_COMPARATORS;
     case 'boolean': return BOOLEAN_COMPARATORS;
@@ -183,7 +183,7 @@ export type OpKind = 'String' | 'Number' | 'Boolean' | 'Date' | 'Array' | 'Objec
 export interface OpOption {
   group: OpKind;                 // group header
   text: string;                  // display text
-  value: IfComparator;           // canonical comparator
+  value: ConditionComparator;           // canonical comparator
   [key: string]: unknown;        // satisfy Syncfusion { [k:string]:Object }[] signature
 }
 
@@ -242,12 +242,12 @@ export function orderByPreferredGroup(all: OpOption[], preferred: OpKind): OpOpt
 }
 
 // Ops which DO NOT need a right operand (hide value2 line for these)
-export const UNARY_COMPARATORS = new Set<IfComparator>([
+export const UNARY_COMPARATORS = new Set<ConditionComparator>([
   'exists', 'does not exist',
   'is empty', 'is not empty',
   'is true', 'is false',
 ]);
 
-export function usesRightOperand(op: IfComparator): boolean {
+export function usesRightOperand(op: ConditionComparator): boolean {
   return !UNARY_COMPARATORS.has(op);
 }
