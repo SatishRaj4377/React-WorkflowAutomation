@@ -1,6 +1,6 @@
 import emailjs from '@emailjs/browser';
 import { getGmailTokenCached, gmailSendRaw, toBase64Url } from '../../helper/googleGmailClient';
-import { extractSpreadsheetIdFromUrl, getSheetsTokenCached, sheetsAppendRowByHeaders, sheetsCreateSheet, sheetsDeleteDimension, sheetsDeleteSheetByTitle, sheetsGetHeaderRow, sheetsGetRowsWithFilters, sheetsUpdateRowByMatch } from '../../helper/googleSheetsClient';
+import { extractSpreadsheetIdFromUrl, getSheetsTokenCached, sheetsAppendRowByHeaders, sheetsCreateSheet, sheetsDeleteDimension, sheetsDeleteSheetByTitle, sheetsGetAllRows, sheetsGetHeaderRow, sheetsGetRowsWithFilters, sheetsUpdateRowByMatch } from '../../helper/googleSheetsClient';
 import { ExecutionContext, NodeConfig, NodeExecutionResult } from '../../types';
 import { NodeModel } from '@syncfusion/ej2-react-diagrams';
 import { showErrorToast } from '../../components/Toast';
@@ -380,19 +380,25 @@ async function executeEmailJsNode(nodeConfig: NodeConfig, context: ExecutionCont
             }))
             .filter((f: any) => f.column.length > 0);
 
+          let result: { headers: string[]; rows: Array<Record<string, any>> };
           if (resolvedFilters.length === 0) {
-            const msg = 'Get Row(s): Please add at least one valid filter.';
-            showErrorToast('Sheets Filters Missing', msg);
-            return { success: false, error: msg };
+            // No filters -> fetch all rows for the selected sheet
+            const headers = await sheetsGetHeaderRow(docId, sheetName, token);
+            if (!headers?.length) {
+              const msg = 'Get Row(s): No columns found. Create headers in row 1 and try again.';
+              showErrorToast('Sheets Headers Missing', msg);
+              return { success: false, error: msg };
+            }
+            result = await sheetsGetAllRows(docId, sheetName, token);
+          } else {
+            result = await sheetsGetRowsWithFilters(
+              docId,
+              sheetName,
+              resolvedFilters,
+              logic,
+              token
+            );
           }
-
-          const result = await sheetsGetRowsWithFilters(
-            docId,
-            sheetName,
-            resolvedFilters,
-            logic,
-            token
-          );
 
           if (!result?.headers?.length) {
             const msg = 'Get Row(s): No columns found. Create headers in row 1 and try again.';

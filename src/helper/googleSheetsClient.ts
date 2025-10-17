@@ -281,3 +281,39 @@ export async function sheetsGetRowsWithFilters(
 
   return { headers, rows };
 }
+
+
+export async function sheetsGetAllRows(
+  spreadsheetId: string,
+  sheetTitle: string,
+  accessToken: string
+): Promise<{ headers: string[]; rows: Array<Record<string, any>> }> {
+  // Read all rows in the sheet. Using "1:999999" to cover all populated rows.
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${
+    encodeURIComponent(spreadsheetId)
+  }/values/${encodeURIComponent(sheetTitle)}!1:999999?majorDimension=ROWS`;
+
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Sheets get-all failed: ${res.status} ${res.statusText} ${text}`.trim());
+  }
+
+  const json = await res.json();
+  const values: any[][] = Array.isArray(json?.values) ? json.values : [];
+
+  if (values.length === 0) return { headers: [], rows: [] };
+
+  // Row 1 = headers
+  const headers = values[0].map((h: any) => String(h ?? '').trim());
+  // Remaining rows mapped to { header: value }
+  const rows = values.slice(1).map((r) => {
+    const obj: Record<string, any> = {};
+    headers.forEach((h, i) => { obj[h] = r[i] ?? ''; });
+    return obj;
+  });
+
+  return { headers, rows };
+}

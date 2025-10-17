@@ -601,6 +601,9 @@ const GoogleSheetsNodeConfig: React.FC<Props> = ({
                             zIndex={1000000}
                         />
                     </div>
+                    <div className="textbox-info" style={{ marginTop: 8 }}>
+                      Leave filters empty to return <b>all rows</b> from the selected sheet.
+                    </div>
                 </div>
 
                 <div className="config-section">
