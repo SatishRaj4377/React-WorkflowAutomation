@@ -21,7 +21,7 @@ export const ChatPopup: React.FC<ChatPopupProps> = ({
 }) => {
   const popupRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<Draggable | null>(null);
-  const aiViewRef = useRef<any>(null);
+  const aiViewRef = useRef<AIAssistViewComponent>(null);
 
   const [isMinimized, setIsMinimized] = useState(false);
 
@@ -30,7 +30,7 @@ export const ChatPopup: React.FC<ChatPopupProps> = ({
   const toggleMinimize = () => {
     if (!popupRef.current) return;
     if (popupRef.current.style.height === '0px'){
-      popupRef.current.style.height = '400px'; // Restore height
+      popupRef.current.style.height = '380px'; // Restore height
       setIsMinimized(false);
     } else {
       popupRef.current.style.height = '0px'; // Minimize
@@ -94,11 +94,6 @@ export const ChatPopup: React.FC<ChatPopupProps> = ({
       <div className="chat-popup-header" >
         <div className="chat-popup-title">Chat</div>
         <div className='chat-popup-btn-group'>
-          <ButtonComponent
-            className="chat-popup-btn"
-            title='Refresh'
-            iconCss='e-icons e-refresh'
-            />
           <ButtonComponent
             className="chat-popup-btn"
             title={isMinimized ? 'Maximize' : 'Minimize'}
