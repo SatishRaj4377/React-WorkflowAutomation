@@ -97,6 +97,11 @@ export class WorkflowExecutionService {
     this.executionStatus.isExecuting = true;
     // Allow client executors (AI Agent) to resolve connected nodes/port
     (this.executionContext as any).diagram = this.diagram;
+
+    // Notify UI that a new execution cycle started (clear any previous waiting banners)
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('wf:trigger:clear'));
+    }
   }
 
   /**
@@ -251,10 +256,19 @@ export class WorkflowExecutionService {
     }
 
     try {
-      // if a chat trigger then don't set timeout, as we will wait for the node to be triggered by a chat message
+      // If a trigger that waits for external input (e.g., Chat/Webhook), do not timeout and show waiting banner
+      const isWaitingTrigger = nodeConfig.nodeType === 'Chat' || nodeConfig.nodeType === 'Webhook';
+      if (isWaitingTrigger && typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('wf:trigger:waiting', { detail: { type: nodeConfig.nodeType } })
+        );
+      }
+
       const isChatTrigger = nodeConfig.nodeType === 'Chat';
-      const result = isChatTrigger
-        ? await executor.executeNode(node, this.executionContext) 
+      const isWebhookTrigger = nodeConfig.nodeType === 'Webhook';
+
+      const result = (isChatTrigger || isWebhookTrigger)
+        ? await executor.executeNode(node, this.executionContext)
         : await Promise.race([
             executor.executeNode(node, this.executionContext),
             this.createTimeout()
@@ -262,6 +276,10 @@ export class WorkflowExecutionService {
 
       // After successful execution, notify context update
       if (result.success) {
+        // Clear waiting banner once the trigger resumes/completes
+        if (isWaitingTrigger && typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('wf:trigger:resumed'));
+        }
         this.notifyContextUpdate();
       }
 
@@ -348,6 +366,10 @@ export class WorkflowExecutionService {
   private cleanupExecution() {
     this.executionStatus.isExecuting = false;
     this.executionStatus.currentNodeId = undefined;
+    // Ensure any waiting banner is cleared when execution finishes
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('wf:trigger:clear'));
+    }
   }
 
   /**
@@ -422,6 +444,11 @@ export class WorkflowExecutionService {
     this.executionStatus.isExecuting = false;
     this.executionStatus.error = 'Execution cancelled by user';
     showErrorToast('Execution Cancelled', 'Workflow execution was cancelled');
+
+    // Clear any waiting banner on cancel
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('wf:trigger:clear'));
+    }
   }
 
   /**

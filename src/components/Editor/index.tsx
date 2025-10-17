@@ -17,6 +17,7 @@ import { diagramHasChatTrigger, findTriggerNodes, resetExecutionStates } from '.
 import { handleEditorKeyDown } from '../../helper/keyboardShortcuts';
 import { WorkflowExecutionService } from '../../execution/WorkflowExecutionService';
 import { ChatPopup } from '../ChatPopup';
+import { MessageComponent } from '@syncfusion/ej2-react-notifications';
 import './Editor.css';
 
 interface EditorProps {
@@ -38,6 +39,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const [isExecuting, setIsExecuting] = useState(false);
   const [isChatOpen, setChatOpen] = useState(false);
   const [executionContext, setExecutionContext] = useState<ExecutionContext>({ results: {}, variables: {} });
+  const [waitingTrigger, setWaitingTrigger] = useState<{ active: boolean; type?: string }>({ active: false });
 
   const [projectName, setProjectName] = useState(project.name);
   const [diagramRef, setDiagramRef] = useState<any>(null);
@@ -608,6 +610,26 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     };
   }, [isExecuting, diagramHasChatTrigger, handleExecuteWorkflow]);
 
+  // Listen for trigger waiting/resume events to show a banner above the toolbar
+  useEffect(() => {
+    const onWaiting = (e: Event) => {
+      const ce = e as CustomEvent<{ type?: string }>;
+      setWaitingTrigger({ active: true, type: ce.detail?.type });
+    };
+    const onResumed = () => setWaitingTrigger({ active: false });
+    const onClear = () => setWaitingTrigger({ active: false });
+
+    window.addEventListener('wf:trigger:waiting', onWaiting as EventListener);
+    window.addEventListener('wf:trigger:resumed', onResumed as EventListener);
+    window.addEventListener('wf:trigger:clear', onClear as EventListener);
+
+    return () => {
+      window.removeEventListener('wf:trigger:waiting', onWaiting as EventListener);
+      window.removeEventListener('wf:trigger:resumed', onResumed as EventListener);
+      window.removeEventListener('wf:trigger:clear', onClear as EventListener);
+    };
+  }, []);
+
 
   // Open the chat popup when the engine (executor) requests it
   useEffect(() => {
@@ -692,6 +714,14 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
           />
         </div>
         
+        {/* Trigger waiting banner */}
+        <div className={`trigger-start-notification ${waitingTrigger.active ? 'active' : ''}`}>
+          <MessageComponent severity="Info" cssClass="e-content-center" showIcon={false} title={waitingTrigger.type + " Trigger"} >
+            <span className="spinner-inline" />
+            Waiting for trigger event
+          </MessageComponent>
+        </div>
+
         {/* Floating Toolbar */}
         <div className="editor-toolbar">
           <Toolbar 
