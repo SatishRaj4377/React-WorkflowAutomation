@@ -29,6 +29,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const { theme } = useTheme();
   const workflowExecutionRef = useRef<WorkflowExecutionService | null>(null);
   const chatPendingMessageRef = useRef<{ text: string; at: string } | null>(null);
+  const assistantRespondedRef = useRef<boolean>(false);
 
   const [nodePaletteSidebarOpen, setNodePaletteSidebarOpen] = useState(false);
   const [nodeConfigPanelOpen, setNodeConfigPanelOpen] = useState(false);
@@ -255,16 +256,43 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     }
 
     setIsExecuting(true);
+
+    // Track if any node posted an assistant message during this run
+    assistantRespondedRef.current = false;
+    const markAssistantResponded = () => { assistantRespondedRef.current = true; };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('wf:chat:assistant-response', markAssistantResponded as EventListener);
+    }
     
     try {
       const result = await workflowExecutionRef.current.executeWorkflow();
       if (result) {
         setExecutionContext(workflowExecutionRef.current.getExecutionContext());
       }
+      // Only send a final completion note if no assistant message was already posted
+      if (!assistantRespondedRef.current && typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('wf:chat:assistant-response', {
+            detail: { text: 'Workflow execution completed.' }
+          })
+        );
+      }
     } catch (error) {
-      showErrorToast('Execution Failed', error instanceof Error ? error.message : 'Unknown error occurred');
+      const errMsg = error instanceof Error ? error.message : 'Unknown error occurred';
+      showErrorToast('Execution Failed', errMsg);
+      // Only send a failure note if no assistant message was already posted
+      if (!assistantRespondedRef.current && typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('wf:chat:assistant-response', {
+            detail: { text: `Workflow execution failed: ${errMsg}` }
+          })
+        );
+      }
     } finally {
       setIsExecuting(false);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('wf:chat:assistant-response', markAssistantResponded as EventListener);
+      }
     }
   };
   const handleCancelExecution = () => {
@@ -272,6 +300,15 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       workflowExecutionRef.current.stopExecution();
     }
     setIsExecuting(false);
+    // Cancel any pending chat trigger listener to avoid multiple executions
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('wf:chat:cancel'));
+      window.dispatchEvent(
+        new CustomEvent('wf:chat:assistant-response', {
+          detail: { text: 'Workflow execution has been cancelled.' }
+        })
+      );
+    }
   };
   const handleTogglePan = () => {
     if (!diagramRef) return;

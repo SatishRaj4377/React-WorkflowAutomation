@@ -71,8 +71,10 @@ export class WorkflowExecutionService {
         triggerNodes.map(node => this.executeBranchWithErrorHandling(node))
       );
 
-      // Check if any branch failed
-      const success = results.every(result => result);
+      // Check if any branch failed or any node error was recorded
+      const allBranchesOk = results.every(result => result);
+      const hadError = Boolean(this.executionStatus.error);
+      const success = allBranchesOk && !hadError;
       if (success) {
         showSuccessToast('Execution Complete', 'Workflow executed successfully');
       }

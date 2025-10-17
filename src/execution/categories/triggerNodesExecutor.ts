@@ -32,7 +32,7 @@ async function executeChatTriggerNode(): Promise<NodeExecutionResult> {
     // 1) Attach the listener FIRST (so we don't miss the Editor's forwarded message)
     const waitForMessage = () =>
       new Promise<{ text: string; at: string }>((resolve, reject) => {
-        const handler = (e: Event) => {
+        const onMessage = (e: Event) => {
           const ce = e as CustomEvent<{ text?: string; at?: string }>;
           const text = (ce.detail?.text || '').trim();
           if (text.length > 0) {
@@ -40,11 +40,17 @@ async function executeChatTriggerNode(): Promise<NodeExecutionResult> {
             resolve({ text, at: ce.detail?.at || new Date().toISOString() });
           }
         };
+        const onCancel = () => {
+          const err = new Error('Chat trigger cancelled');
+          cleanup(err);
+        };
         const cleanup = (err?: Error) => {
-          window.removeEventListener('wf:chat:message', handler as EventListener);
+          window.removeEventListener('wf:chat:message', onMessage as EventListener);
+          window.removeEventListener('wf:chat:cancel', onCancel as EventListener);
           if (err) reject(err);
         };
-        window.addEventListener('wf:chat:message', handler as EventListener, { once: true });
+        window.addEventListener('wf:chat:message', onMessage as EventListener, { once: true });
+        window.addEventListener('wf:chat:cancel', onCancel as EventListener, { once: true });
       });
 
     const pending = waitForMessage();
