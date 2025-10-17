@@ -65,8 +65,11 @@
 }
 
 .config-tabs .e-tab-header {
+  position: sticky;
+  top: 0;
   background: var(--background-color);
   border-bottom: 1px solid var(--border-color);
+  z-index: 100000;
 }
 
 .config-tabs .e-tab-header .e-toolbar-item {

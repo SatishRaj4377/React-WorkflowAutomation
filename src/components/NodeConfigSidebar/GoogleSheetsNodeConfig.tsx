@@ -332,7 +332,7 @@ const GoogleSheetsNodeConfig: React.FC<Props> = ({
                         iconCss='e-icons e-open-link'
                         onClick={() => window.open(documentUrl, '_blank', 'noopener,noreferrer')}
                         title="Open in Google Sheets"
-                        style={{ maxWidth: '60%', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }}
+                        style={{ maxWidth: '60%', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden', border:'1.2px dashed var(--scrollbar-thumb)' }}
                     >
                         {`Open ${documentName} - ${sheetName}` || 'Open in Google Sheets'}
                     </ButtonComponent>
