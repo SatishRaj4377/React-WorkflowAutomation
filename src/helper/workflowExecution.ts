@@ -65,6 +65,20 @@ export function findConnectedNodes(diagram: any, nodeId: string) {
   return targets;
 }
 
+// Port-specific traversal (e.g., IF true/false flows)
+export function findConnectedNodesFromPort(diagram: any, nodeId: string, sourcePortId: string) {
+  const src = diagram?.getObject(nodeId);
+  if (!src) return [];
+  return (diagram.connectors ?? [])
+    .filter((c: any) => c.sourceID === nodeId && c.sourcePortID === sourcePortId)
+    .map((c: any) => diagram.getObject(c.targetID))
+    .filter((node: any) => {
+      const cfg = (node?.addInfo as any)?.nodeConfig;
+      return cfg?.category !== 'tool';
+    });
+}
+
+
 /**
  * Update the visual state of a node during/after execution
  * @param diagram DiagramComponent instance
@@ -74,7 +88,8 @@ export function findConnectedNodes(diagram: any, nodeId: string) {
 export const updateNodeStatus = (
   diagram: DiagramComponent,
   nodeId: string,
-  status: NodeStatus
+  status: NodeStatus,
+  opts?: { restrictToSourcePortId?: string }
 ) => {
   // Find the node
   const node = diagram?.getObject(nodeId) as NodeModel;
@@ -125,9 +140,25 @@ export const updateNodeStatus = (
 
   // Update connected connectors status
   if (status === 'success' || status === 'error') {
-    const connectors = diagram?.connectors || [];
+    const connectors = diagram?.connectors ?? [];
+    
+    // If we are scoping to a specific source port (e.g., IF true/false),
+    // first remove success/error classes from ALL outgoing connectors of this node.
+    if (opts?.restrictToSourcePortId) {
+      connectors.forEach((conn) => {
+        if (conn.sourceID !== nodeId) return;
+        const pathEl = document.getElementById(`${conn.id}_path`);
+        const decEl  = document.getElementById(`${conn.id}_tarDec`);
+        pathEl?.classList.remove('workflow-connector-success', 'workflow-connector-error');
+        decEl?.classList.remove('workflow-connector-targetDec-success', 'workflow-connector-targetDec-error');
+      });
+    }
+
     connectors.forEach(conn => {
       if (conn.sourceID === nodeId) {
+        // if scope provided, only paint connectors from that specific port
+        if (opts?.restrictToSourcePortId && conn.sourcePortID !== opts.restrictToSourcePortId) return;
+
         const connectorPath = document.getElementById(`${conn.id}_path`);
         const connectorTargetDecorator = document.getElementById(`${conn.id}_tarDec`);
         if (connectorPath) {

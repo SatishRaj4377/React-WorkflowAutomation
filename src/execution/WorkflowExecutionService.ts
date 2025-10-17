@@ -6,6 +6,7 @@ import { showErrorToast, showSuccessToast } from '../components/Toast';
 import { globalExecutorRegistry } from './ExecutorRegistry';
 import { ServerNodeExecutor } from './ServerNodeExecutor';
 import { ClientSideNodeExecutor } from './ClientSideNodeExecutor';
+import { isIfConditionNode } from '../helper/utilities';
 
 /**
  * Service for managing workflow execution with support for both client-side
@@ -141,8 +142,21 @@ export class WorkflowExecutionService {
         throw new Error(result.error || 'Node execution failed');
       }
 
-      // Mark success and continue with connected nodes
-      updateNodeStatus(this.diagram, node.id, 'success');
+      
+      const cfg = this.getNodeConfig(node);
+      const type = (cfg?.nodeType ?? '').toLowerCase();
+      if (type === 'if condition') {
+        // Read IF result
+        const out = (this.executionContext.results as Record<string, any>)[node.id];
+        const isTrue = Boolean(out?.conditionResult);
+        const portId = isTrue ? 'right-top-port' : 'right-bottom-port';
+
+        // Mark node success + ONLY the taken connector success
+        updateNodeStatus(this.diagram, node.id, 'success', { restrictToSourcePortId: portId });
+      } else {
+        // Default: Mark success and continue with connected nodes
+        updateNodeStatus(this.diagram, node.id, 'success');
+      }
       await this.executeConnectedNodes(node);
 
       return true;
@@ -156,15 +170,41 @@ export class WorkflowExecutionService {
    * Execute connected nodes
    */
   private async executeConnectedNodes(node: NodeModel): Promise<void> {
+    const nodeConfig = this.getNodeConfig(node);
+
+    if (nodeConfig && isIfConditionNode(nodeConfig)) {
+      // 1) Read outcome produced by the client executor 
+      const out = node.id ? (this.executionContext.results as Record<string, any>)[node.id] : undefined;
+      const isTrue = Boolean(out?.conditionResult);
+
+      // 2) Pick the right port (top=true, bottom=false) 
+      const desiredPort = isTrue ? 'right-top-port' : 'right-bottom-port';
+
+      // 3) Resolve targets connected from that specific port
+      const connectors = (this.diagram as any)?.connectors ?? [];
+      const targets = connectors
+        .filter((c: any) => c.sourceID === node.id && c.sourcePortID === desiredPort)
+        .map((c: any) => (this.diagram as any).getObject(c.targetID))
+        .filter((n: any) => {
+          const nc = (n?.addInfo as any)?.nodeConfig;
+          return nc?.category !== 'tool'; // stay off tool branches here
+        });
+
+      // 4) Execute the chosen branch only               
+      for (const nxt of targets) {
+        await this.checkExecutionCancelled();
+        const ok = await this.executeBranchWithErrorHandling(nxt);
+        if (!ok && !this.options.enableDebug) throw new Error('Branch execution failed');
+      }
+      return; // do not fall through
+    }
+
+    // Default traversal for non-IF nodes (unchanged)     
     const connectedNodes = findConnectedNodes(this.diagram, node.id as string);
-    
     for (const nextNode of connectedNodes) {
       await this.checkExecutionCancelled();
-      
       const success = await this.executeBranchWithErrorHandling(nextNode);
-      if (!success && !this.options.enableDebug) {
-        throw new Error('Branch execution failed');
-      }
+      if (!success && !this.options.enableDebug) throw new Error('Branch execution failed');
     }
   }
 

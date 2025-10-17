@@ -5,7 +5,7 @@ export abstract class BaseNodeExecutor implements NodeExecutor {
   abstract executeNode(node: NodeModel, context: ExecutionContext): Promise<NodeExecutionResult>;
 
   canExecute(node: NodeModel): boolean {
-    const nodeConfig = (node.addInfo as any)?.nodeConfig as NodeConfig;
+    const nodeConfig = this.getNodeConfig(node) as NodeConfig;
     return this.getSupportedNodeTypes().includes(nodeConfig?.nodeType);
   }
 

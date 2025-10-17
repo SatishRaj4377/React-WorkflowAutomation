@@ -1,6 +1,6 @@
 import { ItemModel } from "@syncfusion/ej2-react-splitbuttons";
 import { templateImages } from "../assets/icons";
-import { NodeType, TemplateProjectConfig } from "../types";
+import { IfComparator, IfValueKind, NodeType, TemplateProjectConfig } from "../types";
 
 export const NODE_MENU = ['editNode', 'delete'];
 export const DIAGRAM_MENU = ['addNode', 'addSticky', 'lockWorkflow', 'selectAll'];
@@ -120,3 +120,134 @@ export const AUTH_NODE_TYPES: NodeType[] = [
   'EmailJS',
   'EmailJS Tool',
 ];
+
+// ---- operator sets by kind (includes Exists / Doesn't exist everywhere)
+export const STRING_COMPARATORS: IfComparator[] = [
+  'exists', 'does not exist',
+  'is empty', 'is not empty',
+  'is equal to', 'is not equal to',
+  'contains', 'does not contain',
+  'starts with', 'ends with',
+  'matches regex',
+];
+
+export const NUMBER_COMPARATORS: IfComparator[] = [
+  'exists', 'does not exist',
+  'is equal to', 'is not equal to',
+  'greater than', 'greater than or equal to',
+  'less than', 'less than or equal to',
+  'is between', 'is not between',
+];
+
+export const BOOLEAN_COMPARATORS: IfComparator[] = [
+  'exists', 'does not exist',
+  'is true', 'is false',
+  'is equal to', 'is not equal to', // keep equality for consistency
+];
+
+export const DATE_COMPARATORS: IfComparator[] = [
+  'exists', 'does not exist',
+  'is equal to', 'is not equal to',
+  'before', 'after',
+  'on or before', 'on or after',
+  'is between', 'is not between',
+];
+
+export const ARRAY_COMPARATORS: IfComparator[] = [
+  'exists', 'does not exist',
+  'is empty', 'is not empty',
+  'contains value',
+  'length greater than', 'length less than',
+];
+
+export const OBJECT_COMPARATORS: IfComparator[] = [
+  'exists', 'does not exist',
+  'is empty', 'is not empty',
+  'has key', 'has property',
+];
+
+export function getComparatorsFor(kind: IfValueKind): IfComparator[] {
+  switch (kind) {
+    case 'number': return NUMBER_COMPARATORS;
+    case 'boolean': return BOOLEAN_COMPARATORS;
+    case 'date': return DATE_COMPARATORS;
+    case 'array': return ARRAY_COMPARATORS;
+    case 'object': return OBJECT_COMPARATORS;
+    default: return STRING_COMPARATORS;
+  }
+}
+
+// ---- UI data for grouped DropDownList (kept compact "most used" ops)
+export type OpKind = 'String' | 'Number' | 'Boolean' | 'Date' | 'Array' | 'Object';
+
+export interface OpOption {
+  group: OpKind;                 // group header
+  text: string;                  // display text
+  value: IfComparator;           // canonical comparator
+  [key: string]: unknown;        // satisfy Syncfusion { [k:string]:Object }[] signature
+}
+
+export const OP_OPTIONS: OpOption[] = [
+  // String
+  { group: 'String', text: 'exists', value: 'exists' },
+  { group: 'String', text: 'does not exist', value: 'does not exist' },
+  { group: 'String', text: 'is empty', value: 'is empty' },
+  { group: 'String', text: 'is not empty', value: 'is not empty' },
+  { group: 'String', text: 'is equal to', value: 'is equal to' },
+  { group: 'String', text: 'contains', value: 'contains' },
+  { group: 'String', text: 'starts with', value: 'starts with' },
+  { group: 'String', text: 'matches regex', value: 'matches regex' },
+
+  // Number
+  { group: 'Number', text: 'exists', value: 'exists' },
+  { group: 'Number', text: 'does not exist', value: 'does not exist' },
+  { group: 'Number', text: 'is equal to', value: 'is equal to' },
+  { group: 'Number', text: 'greater than', value: 'greater than' },
+  { group: 'Number', text: 'less than', value: 'less than' },
+  { group: 'Number', text: 'is between', value: 'is between' },
+
+  // Boolean
+  { group: 'Boolean', text: 'exists', value: 'exists' },
+  { group: 'Boolean', text: 'does not exist', value: 'does not exist' },
+  { group: 'Boolean', text: 'is true', value: 'is true' },
+  { group: 'Boolean', text: 'is false', value: 'is false' },
+
+  // Date
+  { group: 'Date', text: 'exists', value: 'exists' },
+  { group: 'Date', text: 'does not exist', value: 'does not exist' },
+  { group: 'Date', text: 'before', value: 'before' },
+  { group: 'Date', text: 'after', value: 'after' },
+  { group: 'Date', text: 'is between', value: 'is between' },
+
+  // Array
+  { group: 'Array', text: 'exists', value: 'exists' },
+  { group: 'Array', text: 'does not exist', value: 'does not exist' },
+  { group: 'Array', text: 'is empty', value: 'is empty' },
+  { group: 'Array', text: 'is not empty', value: 'is not empty' },
+  { group: 'Array', text: 'contains value', value: 'contains value' },
+
+  // Object
+  { group: 'Object', text: 'exists', value: 'exists' },
+  { group: 'Object', text: 'does not exist', value: 'does not exist' },
+  { group: 'Object', text: 'is empty', value: 'is empty' },
+  { group: 'Object', text: 'is not empty', value: 'is not empty' },
+  { group: 'Object', text: 'has key', value: 'has key' },
+];
+
+// Preferred group ordering helper (kept simple & pure)
+export function orderByPreferredGroup(all: OpOption[], preferred: OpKind): OpOption[] {
+  const first = all.filter(o => o.group === preferred);
+  const rest = all.filter(o => o.group !== preferred);
+  return [...first, ...rest];
+}
+
+// Ops which DO NOT need a right operand (hide value2 line for these)
+export const UNARY_COMPARATORS = new Set<IfComparator>([
+  'exists', 'does not exist',
+  'is empty', 'is not empty',
+  'is true', 'is false',
+]);
+
+export function usesRightOperand(op: IfComparator): boolean {
+  return !UNARY_COMPARATORS.has(op);
+}

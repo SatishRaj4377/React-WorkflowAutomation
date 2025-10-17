@@ -89,3 +89,36 @@ export type DeleteDimParams = {
   columnLetter?: string;  // when type === 'Column', preferred input from UI
   accessToken: string;
 };
+
+export type IfJoiner = 'AND' | 'OR';
+
+export type IfComparator =
+  // generic equality / string
+  | 'is equal to' | 'is not equal to'
+  | 'contains' | 'does not contain' | 'starts with' | 'ends with' | 'matches regex'
+  // number
+  | 'greater than' | 'greater than or equal to' | 'less than' | 'less than or equal to'
+  | 'is between' | 'is not between'
+  // boolean
+  | 'is true' | 'is false'
+  // date
+  | 'before' | 'after' | 'on or before' | 'on or after'
+  // existence / emptiness (cross-kind)
+  | 'exists' | 'does not exist' | 'is empty' | 'is not empty'
+  // array/object
+  | 'contains value' | 'length greater than' | 'length less than'
+  | 'has key' | 'has property';
+
+export type IfValueKind = 'string' | 'number' | 'boolean' | 'date' | 'array' | 'object';
+
+export interface IfRow {
+  left: string;                 // Variable or literal; supports {{ }} and bare "$." expressions
+  comparator: IfComparator;     // Operator picked from grouped list
+  right: string;                // Variable/literal; may be unused for unary ops
+  joiner?: IfJoiner;            // AND/OR from the second row onward (combines with previous)
+}
+
+export interface IfNodeOutput {
+  conditionResult: boolean;     // final boolean outcome
+  rowResults: boolean[];        // per-row outcomes (useful for debug/UX)
+}
