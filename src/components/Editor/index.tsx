@@ -615,6 +615,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         <ChatPopup 
           open={isChatOpen} 
           onClose={() => setChatOpen(false)} 
+          promptSuggestions={selectedNode?.settings?.general?.promptSuggestions}
         />
 
         {/* Sidebar for Node Palette */}

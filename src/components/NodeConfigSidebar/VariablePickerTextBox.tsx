@@ -330,7 +330,7 @@ export const VariablePickerTextBox: React.FC<VariablePickerTextBoxProps> = ({
   const onFocusIn = useCallback(() => setOpen(true), []);
 
   return (
-    <div ref={wrapperRef}>
+    <div ref={wrapperRef} style={{width: '100%'}}>
       <TextBoxComponent
         value={value}
         placeholder={placeholder}

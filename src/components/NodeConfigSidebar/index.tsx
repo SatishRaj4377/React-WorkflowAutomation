@@ -240,9 +240,29 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           </>
         );
 
-      case 'Chat':
+      case 'Chat': {
+        const promptSuggestions: string[] = settings.promptSuggestions ?? [];
+        const header: string = settings.promptSuggestionsHeader ?? '';
+
+        const addSuggestion = () => {
+          const next = [...promptSuggestions, ''];
+          handleConfigChange({ promptSuggestions: next }); // general
+        };
+
+        const updateSuggestion = (i: number, val: string) => {
+          const next = promptSuggestions.slice();
+          next[i] = val;
+          handleConfigChange({ promptSuggestions: next });
+        };
+
+        const removeSuggestion = (i: number) => {
+          const next = promptSuggestions.filter((_, idx) => idx !== i);
+          handleConfigChange({ promptSuggestions: next });
+        };
+
         return (
           <>
+            {/* --- Show/Hide Chat Button --- */}
             <div className="config-section">
               <ButtonComponent
                 onClick={() => setChatOpen(prev => !prev)}
@@ -254,8 +274,44 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
                 </span>
               </ButtonComponent>
             </div>
+
+            {/* --- Prompt suggestions --- */}
+            <div className="config-section">
+              <div className="config-row" style={{ alignItems: 'center', gap: 8 }}>
+                <label className="config-label">Prompt suggestions (optional)</label>
+                <TooltipComponent content="Add quick prompts that appear in the chat popup. Click a suggestion to auto-fill and send.">
+                  <span className="e-icons e-circle-info help-icon"></span>
+                </TooltipComponent>
+              </div>
+
+              {(promptSuggestions ?? []).map((s, i) => (
+                <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+                  {/* Use your VariablePickerTextBox to allow {{variables}} if needed */}
+                  <VariablePickerTextBox
+                    value={s}
+                    onChange={(val) => updateSuggestion(i, val)}
+                    placeholder="Type a suggestion…"
+                    cssClass="config-input"
+                    variableGroups={availableVariables}
+                    variablesLoading={variablesLoading}
+                  />
+                  <ButtonComponent
+                    cssClass="flat-btn e-flat"
+                    iconCss="e-icons e-trash"
+                    onClick={() => removeSuggestion(i)}
+                    title="Remove"
+                  />
+                </div>
+              ))}
+
+              <ButtonComponent style={{border: '.1rem solid var(--scrollbar-thumb)', opacity: .8, color: 'var(--text-secondary)'}} className="e-flat add-field-btn" iconCss="e-icons e-plus" onClick={addSuggestion}>
+                Add suggestion
+              </ButtonComponent>
+            </div>
           </>
         );
+      }
+
 
       case 'AI Agent':
         return (

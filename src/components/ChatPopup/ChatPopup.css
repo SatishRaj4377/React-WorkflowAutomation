@@ -7,7 +7,7 @@
     max-width: 50%;
     max-height: 70%;
     width: 340px;
-    height: 340px;
+    height: 400px;
     background: var(--surface-color);
     color: var(--text-primary);
     border: 1px solid var(--border-color);
@@ -61,10 +61,14 @@
 
 .banner-content svg {
     margin: -4rem 0 -3rem 0;
-    width: 13rem;
+    width: 9rem;
 }
 .banner-content svg path {
    fill: var(--scrollbar-thumb);
+}
+.banner-content span {
+   width: 90%;
+   margin-top: -1.3rem;
 }
 
 .banner-content {
@@ -90,6 +94,10 @@
 /* Hide the scrollbar */
 .chat-popup-body .e-aiassistview .e-views {
     overflow: auto;
+}
+
+.e-aiassistview .e-view-container {
+    margin: 0;
 }
 
 /* Hide the header */
@@ -135,4 +143,14 @@
 
 .chat-popup-body .e-assist-textarea {
     color: var(--text-primary) !important;
+}
+
+/* Suggestion prompt styles */
+.chat-popup-body .e-aiassistview .e-suggestions li {
+    background-color: transparent;
+    border: 1px solid var(--scrollbar-thumb);
+    border-radius: 8px;
+    padding: .5rem 1rem;
+    color: var(--text-secondary);
+    margin: 0 1rem 0 0;
 }

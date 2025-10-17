@@ -11,11 +11,13 @@ import './ChatPopup.css';
 type ChatPopupProps = {
   open: boolean;
   onClose: () => void;
+  promptSuggestions?: string[];
 };
 
 export const ChatPopup: React.FC<ChatPopupProps> = ({
   open,
   onClose,
+  promptSuggestions,
 }) => {
   const popupRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<Draggable | null>(null);
@@ -121,6 +123,7 @@ export const ChatPopup: React.FC<ChatPopupProps> = ({
           promptPlaceholder='Type a message...'
           promptRequest={handleUserInput}
           promptIconCss='e-icons e-user'
+          promptSuggestions={promptSuggestions}
         />
       </div>
     </div>,
