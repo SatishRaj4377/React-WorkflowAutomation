@@ -62,7 +62,7 @@
   border-radius: 100%; /* different shape for tool node - circular shape */
 }
 .node-template-container.running .node-template {
-  background-color: var(--box-shadow);
+  background-color: var(--node-executing-color);
   border: 2px solid var(--accent-color);
   box-shadow: 0 0 0 1px var(--accent-color);
 }

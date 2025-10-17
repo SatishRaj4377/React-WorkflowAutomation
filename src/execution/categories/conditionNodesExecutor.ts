@@ -1,6 +1,16 @@
 import { ExecutionContext, NodeConfig, NodeExecutionResult } from '../../types';
 import { showErrorToast } from '../../components/Toast';
-import { evaluateExpression, resolveTemplate } from '../../helper/expression';
+import { evaluateExpression, resolveTemplate } from '../../helper/expression'
+import {
+  UNARY_COMPARATORS,
+  NUMERIC_RIGHT_COMPARATORS,
+  PAIR_COMPARATORS,
+  REGEX_COMPARATORS,
+  KEY_PROP_COMPARATORS,
+  resolveValue,
+  parsePairValues,
+  compareValues
+} from '../../helper/conditionUtils';
 
 export async function executeConditionCategory(
   nodeConfig: NodeConfig,
@@ -21,113 +31,11 @@ export async function executeConditionCategory(
 
 // ---------------- If Condition ----------------
 async function executeIfConditionNode(nodeConfig: NodeConfig, context: ExecutionContext): Promise<NodeExecutionResult> {
-  // Helpers kept local to avoid changing other files
-  const UNARY = new Set<string>(['exists', 'does not exist', 'is empty', 'is not empty', 'is true', 'is false']);
-  const NEEDS_NUMERIC_RIGHT = new Set<string>(['greater than', 'greater than or equal to', 'less than', 'less than or equal to', 'length greater than', 'length less than']);
-  const NEEDS_PAIR = new Set<string>(['is between', 'is not between']);
-  const NEEDS_REGEX = new Set<string>(['matches regex']);
-  const NEEDS_KEY_PROP = new Set<string>(['has key', 'has property']);
-  const ISO_RX = /^\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(:\d{2})?(?:\.\d+)?Z?)?$/;
-
   const toast = (title: string, detail: string) => showErrorToast(title, detail);
-
   const isBlank = (s: unknown) => (typeof s !== 'string') || s.trim().length === 0;
 
-  // Resolve text -> value: bare "$." uses evaluateExpression; otherwise resolveTemplate (string interpolation)
-  const resolveVal = (raw: string): any => {
-    if (typeof raw !== 'string') return raw;
-    const t = raw.trim();
-    return t.startsWith('$.') ? evaluateExpression(t, { context }) : resolveTemplate(raw, { context });
-  };
-
-  const inferKind = (v: any): 'string' | 'number' | 'boolean' | 'date' | 'array' | 'object' => {
-    if (Array.isArray(v)) return 'array';
-    if (v instanceof Date) return 'date';
-    if (v !== null && typeof v === 'object') return 'object';
-    if (typeof v === 'boolean') return 'boolean';
-    if (typeof v === 'number' && !Number.isNaN(v)) return 'number';
-    if (typeof v === 'string' && ISO_RX.test(v) && !Number.isNaN(+new Date(v))) return 'date';
-    return 'string';
-  };
-
-  const coerce = (v: any, kind: string) => {
-    try {
-      switch (kind) {
-        case 'number': return typeof v === 'number' ? v : Number(v);
-        case 'boolean': return typeof v === 'boolean' ? v : /^true$/i.test(String(v)) ? true : /^false$/i.test(String(v)) ? false : Boolean(v);
-        case 'date': return v instanceof Date ? v : new Date(v);
-        case 'array': return Array.isArray(v) ? v : (typeof v === 'string' ? JSON.parse(v) : [v]);
-        case 'object': return v && typeof v === 'object' ? v : (typeof v === 'string' ? JSON.parse(v) : { value: v });
-        default: return typeof v === 'string' ? v : JSON.stringify(v);
-      }
-    } catch { return v; }
-  };
-
-  const deepEq = (a: any, b: any) => { try { return JSON.stringify(a) === JSON.stringify(b); } catch { return a === b; } };
-  const toTime = (x: any) => +(x instanceof Date ? x : new Date(x));
-  const isEmpty = (x: any) => x == null ? true : Array.isArray(x) || typeof x === 'string'
-    ? x.length === 0
-    : typeof x === 'object'
-      ? Object.keys(x).length === 0
-      : false;
-
-  const parsePair = (v: any): [any, any] => {
-    if (Array.isArray(v) && v.length >= 2) return [v[0], v[1]];
-    if (typeof v === 'string') {
-      const parts = v.split(',').map(s => s.trim());
-      if (parts.length >= 2) return [parts[0], parts[1]];
-    }
-    return [v, v]; // will fail validation for numeric/date if not usable
-  };
-
-  const compare = (left: any, op: string, right: any): boolean => {
-    // Unary ops first (existence/emptiness/boolean checks)
-    if (op === 'exists') return typeof left !== 'undefined';
-    if (op === 'does not exist') return typeof left === 'undefined';
-    if (op === 'is empty') return isEmpty(left);
-    if (op === 'is not empty') return !isEmpty(left);
-    if (op === 'is true') return Boolean(left) === true;
-    if (op === 'is false') return Boolean(left) === false;
-
-    const kind = inferKind(left);
-    const l = coerce(left, kind);
-    const r = (op === 'is between' || op === 'is not between')
-      ? parsePair(coerce(right, kind))
-      : coerce(right, kind);
-
-    switch (op) {
-      case 'is equal to': return deepEq(l, r);
-      case 'is not equal to': return !deepEq(l, r);
-
-      case 'contains': return String(l).includes(String(r));
-      case 'does not contain': return !String(l).includes(String(r));
-      case 'starts with': return String(l).startsWith(String(r));
-      case 'ends with': return String(l).endsWith(String(r));
-      case 'matches regex': try { return new RegExp(String(r)).test(String(l)); } catch { return false; }
-
-      case 'greater than': return Number(l) > Number(r);
-      case 'greater than or equal to': return Number(l) >= Number(r);
-      case 'less than': return Number(l) < Number(r);
-      case 'less than or equal to': return Number(l) <= Number(r);
-      case 'is between': return Number(l) >= Number(r[0]) && Number(l) <= Number(r[1]);
-      case 'is not between': return !(Number(l) >= Number(r[0]) && Number(l) <= Number(r[1]));
-
-      case 'before': return toTime(l) < toTime(r);
-      case 'after': return toTime(l) > toTime(r);
-      case 'on or before': return toTime(l) <= toTime(r);
-      case 'on or after': return toTime(l) >= toTime(r);
-
-      case 'contains value': return Array.isArray(l) ? l.some(x => deepEq(x, r)) : String(l).includes(String(r));
-      case 'length greater than': return (Array.isArray(l) || typeof l === 'string') ? (l as any).length > Number(r) : false;
-      case 'length less than': return (Array.isArray(l) || typeof l === 'string') ? (l as any).length < Number(r) : false;
-      case 'has key': return l && typeof l === 'object' && String(r) in l;
-      case 'has property': return l && typeof l === 'object' && Object.prototype.hasOwnProperty.call(l, String(r));
-      default: return false;
-    }
-  };
-
   try {
-    // 0) Prefer structured rows; fallback to legacy single expression
+    // Prefer structured rows; fallback to legacy single expression
     const rows = Array.isArray(nodeConfig.settings?.general?.conditions)
       ? (nodeConfig.settings!.general!.conditions as Array<{ left: string; comparator: string; right: string; joiner?: 'AND' | 'OR' }>)
       : null;
@@ -140,7 +48,7 @@ async function executeIfConditionNode(nodeConfig: NodeConfig, context: Execution
         toast('If Condition Missing', msg);
         return { success: false, error: msg };
       }
-      const result = !!new Function('context', 'evaluateExpression', `"use strict"; return ( ${prepared} );`)(context, evaluateExpression);
+      const result = !!new Function('context', 'evaluateExpression', '"use strict"; return ( ' + prepared + ' );')(context, evaluateExpression);
       return { success: true, data: { conditionResult: result, rowResults: [result], evaluatedAt: new Date().toISOString() } };
     }
 
@@ -157,15 +65,15 @@ async function executeIfConditionNode(nodeConfig: NodeConfig, context: Execution
       }
 
       // 1.b) If comparator needs a right operand, ensure "Value 2" is present
-      if (!UNARY.has(comparator) && isBlank(right)) {
+      if (!UNARY_COMPARATORS.has(comparator) && isBlank(right)) {
         const msg = `Row ${rowNo}: "Value 2" is required for "${comparator}".`;
         toast('If Condition: Missing Input', msg);
         return { success: false, error: msg };
       }
 
       // 1.c) Regex validation
-      if (NEEDS_REGEX.has(comparator) && !isBlank(right)) {
-        try { new RegExp(String(resolveVal(right))); } catch (e: any) {
+      if (REGEX_COMPARATORS.has(comparator) && !isBlank(right)) {
+        try { new RegExp(String(resolveValue(right, context))); } catch (e: any) {
           const msg = `Row ${rowNo}: Invalid regular expression in "Value 2" — ${e?.message ?? 'syntax error'}.`;
           toast('If Condition: Invalid Regex', msg);
           return { success: false, error: msg };
@@ -173,9 +81,9 @@ async function executeIfConditionNode(nodeConfig: NodeConfig, context: Execution
       }
 
       // 1.d) Pair validation ("between")
-      if (NEEDS_PAIR.has(comparator) && !isBlank(right)) {
-        const rv = resolveVal(right);
-        const [a, b] = parsePair(rv);
+      if (PAIR_COMPARATORS.has(comparator) && !isBlank(right)) {
+        const rv = resolveValue(right, context);
+        const [a, b] = parsePairValues(rv);
         if (a == null || b == null || (String(a).length === 0) || (String(b).length === 0)) {
           const msg = `Row ${rowNo}: "${comparator}" expects two values (e.g., "min,max").`;
           toast('If Condition: Invalid Range', msg);
@@ -184,8 +92,8 @@ async function executeIfConditionNode(nodeConfig: NodeConfig, context: Execution
       }
 
       // 1.e) Numeric‑right validation for length/compare
-      if (NEEDS_NUMERIC_RIGHT.has(comparator) && !isBlank(right)) {
-        const num = Number(resolveVal(right));
+      if (NUMERIC_RIGHT_COMPARATORS.has(comparator) && !isBlank(right)) {
+        const num = Number(resolveValue(right, context));
         if (Number.isNaN(num)) {
           const msg = `Row ${rowNo}: "Value 2" must be a number for "${comparator}".`;
           toast('If Condition: Invalid Number', msg);
@@ -194,8 +102,8 @@ async function executeIfConditionNode(nodeConfig: NodeConfig, context: Execution
       }
 
       // 1.f) Key/property right required & non-empty string
-      if (NEEDS_KEY_PROP.has(comparator) && !isBlank(right)) {
-        const rtxt = String(resolveVal(right)).trim();
+      if (KEY_PROP_COMPARATORS.has(comparator) && !isBlank(right)) {
+        const rtxt = String(resolveValue(right, context)).trim();
         if (!rtxt) {
           const msg = `Row ${rowNo}: "Value 2" must be a non-empty key/property name.`;
           toast('If Condition: Invalid Field', msg);
@@ -204,21 +112,21 @@ async function executeIfConditionNode(nodeConfig: NodeConfig, context: Execution
       }
     }
 
-    // 2) EVALUATE rows (after validation)
+    // Evaluate rows
     const rowResults: boolean[] = [];
-    let acc = true;
+    let cumulative = true;
 
     for (let idx = 0; idx < rows.length; idx++) {
       const row = rows[idx];
-
+      
       // Resolve left; for unary ops we still resolve left (exist/empty checks), right only when needed
-      const leftVal = resolveVal(row.left ?? '');
-      const rightVal = UNARY.has(row.comparator) ? undefined : resolveVal(row.right ?? '');
+      const leftVal = resolveValue(row.left ?? '', context);
+      const rightVal = UNARY_COMPARATORS.has(row.comparator) ? undefined : resolveValue(row.right ?? '', context);
 
       // Extra type validations on resolved values (date/numeric between) for better messages
       if (row.comparator === 'is between' || row.comparator === 'is not between') {
         // Try numeric first, then date
-        const [a, b] = parsePair(rightVal);
+        const [a, b] = parsePairValues(rightVal);
         const lv = leftVal;
         const bothNum = !Number.isNaN(Number(a)) && !Number.isNaN(Number(b)) && !Number.isNaN(Number(lv));
         const bothDate = !Number.isNaN(+new Date(a)) && !Number.isNaN(+new Date(b)) && !Number.isNaN(+new Date(lv));
@@ -229,7 +137,7 @@ async function executeIfConditionNode(nodeConfig: NodeConfig, context: Execution
         }
       }
 
-      if (NEEDS_REGEX.has(row.comparator)) {
+      if (REGEX_COMPARATORS.has(row.comparator)) {
         try { new RegExp(String(rightVal)); } catch (e: any) {
           const msg = `Row ${idx + 1}: Invalid regular expression — ${e?.message ?? 'syntax error'}.`;
           toast('If Condition: Invalid Regex', msg);
@@ -238,22 +146,20 @@ async function executeIfConditionNode(nodeConfig: NodeConfig, context: Execution
       }
 
       // Compare
-      const ok = compare(leftVal, row.comparator, rightVal);
+      const ok = compareValues(leftVal, row.comparator, rightVal);
       rowResults.push(ok);
-
       // Fold with AND/OR
-      acc = idx === 0 ? ok : (row.joiner === 'OR' ? (acc || ok) : (acc && ok));
+      cumulative = idx === 0 ? ok : (row.joiner === 'OR' ? (cumulative || ok) : (cumulative && ok));
     }
 
-    // 3) Success -> return standard payload (Base executor will record results[nodeId] for us)
     return {
       success: true,
-      data: { conditionResult: Boolean(acc), rowResults, evaluatedAt: new Date().toISOString() }
+      data: { conditionResult: Boolean(cumulative), rowResults, evaluatedAt: new Date().toISOString() }
     };
 
   } catch (error: any) {
     const msg = `If Condition execution failed: ${error?.message ?? String(error)}`;
-    showErrorToast('If Condition Failed', msg); // Ensure user sees the exact failure
+    showErrorToast('If Condition Failed', msg);
     return { success: false, error: msg };
   }
 }
@@ -262,7 +168,7 @@ async function executeIfConditionNode(nodeConfig: NodeConfig, context: Execution
 async function executeSwitchNode(nodeConfig: NodeConfig, context: ExecutionContext): Promise<NodeExecutionResult> {
   try {
     const gen = nodeConfig.settings?.general ?? {};
-    const rules = Array.isArray(gen.rules) ? gen.rules as Array<{ left: string; comparator: string; right: string }> : [];
+    const rules = Array.isArray(gen.rules) ? (gen.rules as Array<{ left: string; comparator: string; right: string }>) : [];
     const enableDefault: boolean = !!gen.enableDefaultPort;
 
     if (rules.length === 0) {
@@ -270,88 +176,6 @@ async function executeSwitchNode(nodeConfig: NodeConfig, context: ExecutionConte
       showErrorToast('Switch Case Missing', msg);
       return { success: false, error: msg };
     }
-
-    // Reuse same resolver + comparator logic as IF (inline minimal copy for surgical change)
-    const UNARY = new Set<string>(['exists', 'does not exist', 'is empty', 'is not empty', 'is true', 'is false']);
-    const ISO_RX = /^\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(:\d{2})?(?:\.\d+)?Z?)?$/;
-
-    const resolveVal = (raw: string): any => {
-      if (typeof raw !== 'string') return raw;
-      const t = raw.trim();
-      return t.startsWith('$.') ? evaluateExpression(t, { context }) : resolveTemplate(raw, { context });
-    };
-    const inferKind = (v: any): 'string' | 'number' | 'boolean' | 'date' | 'array' | 'object' => {
-      if (Array.isArray(v)) return 'array';
-      if (v instanceof Date) return 'date';
-      if (v !== null && typeof v === 'object') return 'object';
-      if (typeof v === 'boolean') return 'boolean';
-      if (typeof v === 'number' && !Number.isNaN(v)) return 'number';
-      if (typeof v === 'string' && ISO_RX.test(v) && !Number.isNaN(+new Date(v))) return 'date';
-      return 'string';
-    };
-    const coerce = (v: any, kind: string) => {
-      try {
-        switch (kind) {
-          case 'number': return typeof v === 'number' ? v : Number(v);
-          case 'boolean': return typeof v === 'boolean' ? v : /^true$/i.test(String(v)) ? true : /^false$/i.test(String(v)) ? false : Boolean(v);
-          case 'date': return v instanceof Date ? v : new Date(v);
-          case 'array': return Array.isArray(v) ? v : (typeof v === 'string' ? JSON.parse(v) : [v]);
-          case 'object': return v && typeof v === 'object' ? v : (typeof v === 'string' ? JSON.parse(v) : { value: v });
-          default: return typeof v === 'string' ? v : JSON.stringify(v);
-        }
-      } catch { return v; }
-    };
-    const deepEq = (a: any, b: any) => { try { return JSON.stringify(a) === JSON.stringify(b); } catch { return a === b; } };
-    const toTime = (x: any) => +(x instanceof Date ? x : new Date(x));
-    const isEmpty = (x: any) => x == null ? true : Array.isArray(x) || typeof x === 'string' ? x.length === 0 : typeof x === 'object' ? Object.keys(x).length === 0 : false;
-    const toPair = (v: any): [any, any] => {
-      if (Array.isArray(v) && v.length >= 2) return [v[0], v[1]];
-      if (typeof v === 'string') {
-        const p = v.split(',').map(s => s.trim());
-        if (p.length >= 2) return [p[0], p[1]];
-      }
-      return [v, v];
-    };
-    const compare = (left: any, op: string, right: any): boolean => {
-      if (op === 'exists') return typeof left !== 'undefined';
-      if (op === 'does not exist') return typeof left === 'undefined';
-      if (op === 'is empty') return isEmpty(left);
-      if (op === 'is not empty') return !isEmpty(left);
-      if (op === 'is true') return Boolean(left) === true;
-      if (op === 'is false') return Boolean(left) === false;
-
-      const kind = inferKind(left);
-      const l = coerce(left, kind);
-      const r = (op === 'is between' || op === 'is not between')
-        ? toPair(coerce(right, kind))
-        : coerce(right, kind);
-
-      switch (op) {
-        case 'is equal to': return deepEq(l, r);
-        case 'is not equal to': return !deepEq(l, r);
-        case 'contains': return String(l).includes(String(r));
-        case 'does not contain': return !String(l).includes(String(r));
-        case 'starts with': return String(l).startsWith(String(r));
-        case 'ends with': return String(l).endsWith(String(r));
-        case 'matches regex': try { return new RegExp(String(r)).test(String(l)); } catch { return false; }
-        case 'greater than': return Number(l) > Number(r);
-        case 'greater than or equal to': return Number(l) >= Number(r);
-        case 'less than': return Number(l) < Number(r);
-        case 'less than or equal to': return Number(l) <= Number(r);
-        case 'is between': return Number(l) >= Number(r[0]) && Number(l) <= Number(r[1]);
-        case 'is not between': return !(Number(l) >= Number(r[0]) && Number(l) <= Number(r[1]));
-        case 'before': return toTime(l) < toTime(r);
-        case 'after': return toTime(l) > toTime(r);
-        case 'on or before': return toTime(l) <= toTime(r);
-        case 'on or after': return toTime(l) >= toTime(r);
-        case 'contains value': return Array.isArray(l) ? l.some(x => deepEq(x, r)) : String(l).includes(String(r));
-        case 'length greater than': return (Array.isArray(l) || typeof l === 'string') ? (l as any).length > Number(r) : false;
-        case 'length less than': return (Array.isArray(l) || typeof l === 'string') ? (l as any).length < Number(r) : false;
-        case 'has key': return l && typeof l === 'object' && String(r) in l;
-        case 'has property': return l && typeof l === 'object' && Object.prototype.hasOwnProperty.call(l, String(r));
-        default: return false;
-      }
-    };
 
     // Validate inputs upfront (similar to IF strictness)
     for (let i = 0; i < rules.length; i++) {
@@ -362,15 +186,13 @@ async function executeSwitchNode(nodeConfig: NodeConfig, context: ExecutionConte
         showErrorToast('Switch Case Missing', msg);
         return { success: false, error: msg };
       }
-      // Non-unary comparators must have right value
-      if (!UNARY.has(r.comparator) && !String(r.right ?? '').trim()) {
+      if (!UNARY_COMPARATORS.has(r.comparator) && !String(r.right ?? '').trim()) {
         const msg = `Switch Case: Row ${rowNo} — "Value 2" is required for "${r.comparator}".`;
         showErrorToast('Switch Case Missing', msg);
         return { success: false, error: msg };
       }
-      // Regex basic check
       if (r.comparator === 'matches regex' && String(r.right ?? '').trim()) {
-        try { new RegExp(String(resolveVal(r.right))); } catch (e: any) {
+        try { new RegExp(String(resolveValue(r.right, context))); } catch (e: any) {
           const msg = `Switch Case: Row ${rowNo} — Invalid regex: ${e?.message ?? 'syntax error'}.`;
           showErrorToast('Switch Case Invalid Regex', msg);
           return { success: false, error: msg };
@@ -384,14 +206,13 @@ async function executeSwitchNode(nodeConfig: NodeConfig, context: ExecutionConte
 
     for (let i = 0; i < rules.length; i++) {
       const r = rules[i];
-      const L = resolveVal(r.left ?? '');
-      const R = UNARY.has(r.comparator) ? undefined : resolveVal(r.right ?? '');
-      const ok = compare(L, r.comparator, R);
+      const leftVal = resolveValue(r.left ?? '', context);
+      const rightVal = UNARY_COMPARATORS.has(r.comparator) ? undefined : resolveValue(r.right ?? '', context);
+      const ok = compareValues(leftVal, r.comparator, rightVal);
       rowResults.push(ok);
       if (ok && matchedIndex === -1) matchedIndex = i;
     }
 
-    // Prepare port id for traversal phase
     const matchedPortId = matchedIndex >= 0
       ? `right-case-${matchedIndex + 1}`
       : (enableDefault ? 'right-case-default' : null);

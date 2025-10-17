@@ -5,6 +5,7 @@ import { VariablePickerTextBox } from './VariablePickerTextBox';
 import { ConditionComparator, ConditionJoiner, ConditionRow, ConditionValueKind } from '../../types';
 import { OP_OPTIONS, OpKind, orderByPreferredGroup, usesRightOperand } from '../../constants';
 
+const ISO_DATE_TEXT_RX = /^\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(:\d{2})?(?:\.\d+)?Z?)?$/;
 // Infer kind from left value (heuristic at config-time; runtime does precise inference)
 function inferKindFromLeftText(raw: string): ConditionValueKind {
   if (!raw || typeof raw !== 'string') return 'string';
@@ -13,7 +14,7 @@ function inferKindFromLeftText(raw: string): ConditionValueKind {
   if (s.startsWith('{') && s.endsWith('}')) return 'object';
   if (/^(true|false)$/i.test(s)) return 'boolean';
   if (!isNaN(Number(s)) && s !== '') return 'number';
-  if (/^\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(:\d{2})?(?:\.\d+)?Z?)?$/.test(s)) return 'date';
+  if (ISO_DATE_TEXT_RX.test(s)) return 'date';
   return 'string';
 }
 
@@ -79,11 +80,11 @@ const ConditionNodeConfig: React.FC<ConditionNodeConfigProps> = ({
             kind === 'object' ? 'Object' : 'String';
 
           // DO NOT use hooks inside map; call pure helper
-          const groupedOptions = orderByPreferredGroup(OP_OPTIONS, preferredGroup);
+          const operatorOptions = orderByPreferredGroup(OP_OPTIONS, preferredGroup);
 
           // Show joiner *below current row* only if there is a next row
           const showJoinerBelow = i < rows.length - 1;
-          const needsRight = usesRightOperand(row.comparator);
+          const requiresRightOperand = usesRightOperand(row.comparator);
 
           return (
             <React.Fragment key={i}>
@@ -111,7 +112,7 @@ const ConditionNodeConfig: React.FC<ConditionNodeConfigProps> = ({
                   <div style={{ width: '40%' }}>
                     <DropDownListComponent
                       value={row.comparator}
-                      dataSource={groupedOptions as unknown as { [key: string]: object }[]}
+                      dataSource={operatorOptions as unknown as { [key: string]: object }[]}
                       fields={{ text: 'text', value: 'value', groupBy: 'group' }}
                       allowFiltering={true}
                       filterBarPlaceholder="Search operations…"
@@ -125,7 +126,7 @@ const ConditionNodeConfig: React.FC<ConditionNodeConfigProps> = ({
                 </div>
 
                 {/* Line 2: Value 2 - only for binary ops */}
-                {needsRight && (
+                {requiresRightOperand && (
                   <div style={{ marginTop: 8, width: '85%', marginLeft: 'auto'}}>
                     <VariablePickerTextBox
                       value={row.right ?? ''}

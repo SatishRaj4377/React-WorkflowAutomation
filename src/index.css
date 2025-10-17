@@ -53,9 +53,10 @@ body, .e-control, .e-card{
   --node-handle: #a8adb3;
   --node-border-color: #9193a2ff;
   --node-success-color: #00c445;
-  --node-success-color-light: rgba(162, 255, 162, 0.208);
   --node-error-color: #d92727;
-  --node-error-color-light: rgba(255, 119, 119, 0.235);
+  --node-executing-color: rgb(188 225 255);
+  --node-success-color-light: rgb(233 255 233);
+  --node-error-color-light: rgb(255 221 221);
   --node-toolbar-btn-color: #a8adb3dd;
   --sticky-note-bg-color: #e7f8ff;
   --sticky-note-stroke-color: #536381;
@@ -130,8 +131,9 @@ body, .e-control, .e-card{
   --sticky-note-bg-color: #193d67;
   --sticky-note-stroke-color: #f1f5f9;
   --sticky-note-text-color: #f1f5f9;
-  --node-success-color-light: rgba(15, 125, 9, 0.13);
-  --node-error-color-light: rgba(141, 9, 9, 0.16);
+  --node-executing-color: rgb(0 27 50);
+  --node-success-color-light: rgb(2 42 0);
+  --node-error-color-light: rgb(29 0 0);
 
   --scrollbar-bg: #20264b;
   --scrollbar-thumb: #52627a;
