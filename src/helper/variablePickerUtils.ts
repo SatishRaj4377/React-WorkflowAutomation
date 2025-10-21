@@ -114,6 +114,17 @@ export const getAvailableVariablesForNode = (
     .map((pid) => getNodeOutputAsVariableGroup(pid, diagram, context))
     .filter(Boolean) as VariableGroup[];
 
+  // If a loop is active, expose the current item as its own variable group for easy picking
+  const curItem = (context as any)?.variables?.currentLoopItem;
+  if (curItem !== undefined) {
+    groups.unshift({
+      nodeId: '__current_loop__',
+      nodeType: 'Loop Context',
+      nodeName: 'Current Loop Item',
+      variables: flattenJsonToVariables(curItem, 'currentLoopItem', '$.currentLoopItem'),
+    });
+  }
+
   // Debug once; remove in production if noisy
   console.debug('[getAvailableVariablesForNode]', {
     nodeId,

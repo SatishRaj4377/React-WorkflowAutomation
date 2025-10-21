@@ -182,6 +182,49 @@ export class WorkflowExecutionService {
   private async executeConnectedNodes(node: NodeModel): Promise<void> {
     const nodeConfig = this.getNodeConfig(node);
 
+    // Loop node: run downstream branch once per item
+    if (nodeConfig?.nodeType === 'Loop') {
+      const out = node.id ? (this.executionContext.results as Record<string, any>)[node.id] : undefined;
+      const items: any[] = Array.isArray(out?.items) ? out.items : [];
+
+      // Resolve targets from the loop's main right port
+      const connectors = (this.diagram as any)?.connectors ?? [];
+      const targets = connectors
+        .filter((c: any) => c.sourceID === node.id && c.sourcePortID === 'right-port')
+        .map((c: any) => (this.diagram as any).getObject(c.targetID))
+        .filter((n: any) => {
+          const nc = (n?.addInfo as any)?.nodeConfig;
+          return nc?.category !== 'tool';
+        });
+
+      for (let index = 0; index < items.length; index++) {
+        await this.checkExecutionCancelled();
+        const item = items[index];
+        // augment context with loop meta and current item
+        const prevVars = { ...(this.executionContext.variables || {}) } as any;
+        this.executionContext.variables = {
+          ...prevVars,
+          item,
+          currentLoopItem: item,
+          currentLoopIndex: index,
+          currentLoopCount: items.length,
+        } as any;
+        // keep a non-variable alias as well (optional)
+        (this.executionContext as any).loopIndex = index;
+
+        for (const nxt of targets) {
+          const ok = await this.executeBranchWithErrorHandling(nxt);
+          if (!ok && !this.options.enableDebug) throw new Error('Loop branch execution failed');
+        }
+      }
+
+      // Cleanup loop variables after loop
+      const varsAny = (this.executionContext.variables || {}) as any;
+      const { item, currentLoopItem, currentLoopIndex, currentLoopCount, ...rest } = varsAny;
+      this.executionContext.variables = rest;
+      return;
+    }
+
     if (nodeConfig && isIfConditionNode(nodeConfig)) {
       // 1) Read outcome produced by the client executor 
       const out = node.id ? (this.executionContext.results as Record<string, any>)[node.id] : undefined;

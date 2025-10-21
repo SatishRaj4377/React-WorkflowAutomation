@@ -172,3 +172,7 @@ export const isToolNode = (nodeConfig: NodeConfig): boolean =>
 // Check if node is a switch case node
 export const isSwitchNode = (nodeConfig: NodeConfig): boolean =>
   nodeConfig?.nodeType === 'Switch Case';
+
+// Check if node is a loop node
+export const isLoopNode = (nodeConfig: NodeConfig): boolean =>
+  nodeConfig?.nodeType === 'Loop';

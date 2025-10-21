@@ -626,6 +626,29 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
         );
       }
 
+      case 'Loop': {
+        return (
+          <>
+            <div className="config-section">
+              <div className="config-row" style={{ alignItems: 'center', gap: 8 }}>
+                <label className="config-label">Items (list) to iterate</label>
+                <TooltipComponent content="Choose an array from previous nodes (e.g., $.Google_Sheets#123.rows). Each downstream node will run once per item as $.item.">
+                  <span className="e-icons e-circle-info help-icon"></span>
+                </TooltipComponent>
+              </div>
+              <VariablePickerTextBox
+                value={settings.input ?? ''}
+                placeholder="$.previousNode.items"
+                onChange={(val) => handleConfigChange('input', val)}
+                cssClass="config-input"
+                variableGroups={availableVariables}
+                variablesLoading={variablesLoading}
+              />
+            </div>
+          </>
+        );
+      }
+
       default:
         return null;
     }

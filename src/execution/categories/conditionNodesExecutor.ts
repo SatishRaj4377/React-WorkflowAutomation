@@ -24,6 +24,8 @@ export async function executeConditionCategory(
       return executeSwitchNode(nodeConfig, context);
     case 'Filter':
       return executeFilterNode(nodeConfig, context);
+    case 'Loop':
+      return executeLoopNode(nodeConfig, context);
     default:
       return { success: false, error: `Unsupported condition node type: ${nodeConfig.nodeType}` };
   }
@@ -348,5 +350,34 @@ async function executeFilterNode(nodeConfig: NodeConfig, context: ExecutionConte
     return { success: true, data: { filtered, count: filtered.length } };
   } catch (error: any) {
     return { success: false, error: `Filter execution failed: ${error?.message ?? String(error)}` };
+  }
+}
+
+// ---------------- Loop ----------------
+async function executeLoopNode(nodeConfig: NodeConfig, context: ExecutionContext): Promise<NodeExecutionResult> {
+  try {
+    const gen = nodeConfig.settings?.general ?? {};
+
+    // Validate input expression
+    const inputExpr = String(gen.input ?? '').trim();
+    if (!inputExpr) {
+      const msg = 'Loop: Please provide the Items (list) input.';
+      showErrorToast('Loop Missing Input', msg);
+      return { success: false, error: msg };
+    }
+
+    const resolved = resolveValue(inputExpr, context);
+    if (!Array.isArray(resolved)) {
+      const got = resolved === null ? 'null' : typeof resolved;
+      const msg = `Loop: Items input must resolve to an array. Got ${got}.`;
+      showErrorToast('Loop Invalid Input', msg);
+      return { success: false, error: msg };
+    }
+
+    // Return items; per-item execution handled by WorkflowExecutionService
+    const items = resolved as any[];
+    return { success: true, data: { items, count: items.length } };
+  } catch (error: any) {
+    return { success: false, error: `Loop execution failed: ${error?.message ?? String(error)}` };
   }
 }
