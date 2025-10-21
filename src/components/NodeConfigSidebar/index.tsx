@@ -342,13 +342,6 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           </>
         );
 
-      case 'Azure Chat Model Tool':
-        return (
-          <>
-
-          </>
-        );
-
       case 'HTTP Request':
         return (
           <>
@@ -594,23 +587,21 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
         );
       }
 
-      case 'Filter':
+      case 'Filter':{
+        const conditions = (settings.conditions ?? [
+          { left: '', comparator: 'is equal to', right: '' },
+        ]) as any[];
+
         return (
-          <>
-            <div className="config-section">
-              <label className="config-label">Predicate</label>
-              <VariablePickerTextBox
-                value={settings.predicate ?? ''}
-                placeholder="e.g., item.amount > 1000"
-                onChange={(val) => handleConfigChange('predicate', val)}
-                cssClass="config-textarea"
-                multiline
-                variableGroups={availableVariables}
-                variablesLoading={variablesLoading}
-              />
-            </div>
-          </>
+          <ConditionNodeConfig
+            value={conditions}
+            onChange={(next) => handleConfigChange('conditions', next)}
+            variableGroups={availableVariables}
+            variablesLoading={variablesLoading}
+            label="Conditions"
+          />
         );
+      }
 
       default:
         return null;
