@@ -598,7 +598,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
             <div className="config-section">
               <div className="config-row" style={{ alignItems: 'center', gap: 8 }}>
                 <label className="config-label">Items (list) to filter</label>
-                <TooltipComponent content="Select an array from previous nodes using the picker">
+                <TooltipComponent content="Select an array from previous nodes using the picker (e.g., $.NodeName#ID.rows). This defines $.item for conditions.">
                   <span className="e-icons e-circle-info help-icon"></span>
                 </TooltipComponent>
               </div>
@@ -618,6 +618,9 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
               variableGroups={availableVariables}
               variablesLoading={variablesLoading}
               label="Conditions"
+              // Make left operands item-relative using the Items expression
+              leftMode={'itemField'}
+              leftBaseListExpr={settings.input ?? ''}
             />
           </>
         );

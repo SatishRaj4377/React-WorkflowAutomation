@@ -231,14 +231,16 @@ export const VariablePickerPopup: React.FC<PickerPopupProps> = ({
                   data={buildJsonFromVariables(g.variables)}
                   collapsed={false}
                   onKeyClick={(path) => {
-                    // Use the same token format as VariablePickerTextBox default
+                    // Build a readable node-qualified path using only node name: $.<NodeName>.<relativePath>
+                    const relative = String(path).replace(/^\$\./, '');
+                    const qualifiedPath = `$.${g.nodeName}.${relative}`;
                     const fakeVar = {
-                      key: path,
-                      path,
+                      key: qualifiedPath,
+                      path: qualifiedPath,
                       type: 'any',
                       preview: undefined,
                     } as unknown as Variable;
-                    onPick(fakeVar); // delegate insertion to VariablePickerTextBox
+                    onPick(fakeVar);
                   }}
                 />
               </div>
@@ -264,6 +266,10 @@ type VariablePickerTextBoxProps = {
   variablesLoading: boolean;
   tokenFormatter?: (v: Variable) => string; // default: {{ <path> }}
   ej2Props?: Partial<TextBoxComponent>;
+  // Insert mode: 'value' inserts a {{ $.node#id.path }} token; 'itemField' inserts $.item.<field>
+  mode?: 'value' | 'itemField';
+  // Base list expression for itemField mode, e.g., $.Employees#node123.rows
+  baseListExpr?: string;
 };
 
 export const VariablePickerTextBox: React.FC<VariablePickerTextBoxProps> = ({
@@ -276,6 +282,8 @@ export const VariablePickerTextBox: React.FC<VariablePickerTextBoxProps> = ({
   variablesLoading,
   tokenFormatter = (v) => `{{ ${v.path} }}`,
   ej2Props = {},
+  mode = 'value',
+  baseListExpr,
 }) => {
   // Wrapper helps locate the native EJ2 input
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -304,6 +312,45 @@ export const VariablePickerTextBox: React.FC<VariablePickerTextBoxProps> = ({
     (v: Variable) => {
       const el = inputRef.current;
       if (!el) return;
+
+      // If itemField mode, convert a node-qualified path under the base list into $.item.{rest}
+      if (mode === 'itemField' && baseListExpr) {
+        // Normalize base: strip single mustache wrapper if present
+        let base = String(baseListExpr).trim();
+        const single = base.match(/^\{\{\s*([^}]+)\s*\}\}$/);
+        if (single) base = single[1].trim();
+
+        const picked = String((v as any).path || '').trim();
+
+        // Build a safe RegExp using the base expression literal
+        const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const baseEsc = esc(base);
+        const reFull = new RegExp(`^${baseEsc}\\[(?:\\d+)\\](?:\\.(.*))?$`);
+        const reHead = new RegExp(`^${baseEsc}(?:\\[(?:\\d+)\\])?$`);
+
+        let insertValue = '';
+        const mFull = picked.match(reFull);
+        if (mFull) {
+          const rest = mFull[1];
+          insertValue = rest ? `$.item.${rest}` : `$.item`;
+        } else if (reHead.test(picked)) {
+          insertValue = `$.item`;
+        }
+
+        if (insertValue) {
+          const { nextValue, nextCaret } = insertAtCaret(el, insertValue);
+          onChange(nextValue);
+          requestAnimationFrame(() => {
+            const el2 = inputRef.current;
+            if (el2) { el2.focus(); try { el2.setSelectionRange(nextCaret, nextCaret); } catch { /* noop */ } }
+          });
+          setOpen(false);
+          return;
+        }
+        // If it didn't match base, fall through to value token insertion
+      }
+
+      // Default: insert as a value token (node-qualified path)
       const token = tokenFormatter(v);
       const { nextValue, nextCaret } = insertAtCaret(el, token);
       onChange(nextValue);

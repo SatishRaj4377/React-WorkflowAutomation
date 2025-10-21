@@ -25,6 +25,10 @@ export interface ConditionNodeConfigProps {
   variablesLoading: boolean;
   label?: string;
   showJoiners?: boolean;
+  // When provided, the left textbox will insert item-relative paths (e.g., $.item.name)
+  leftMode?: 'value' | 'itemField';
+  // Base list expression (e.g., $.Employees#node123.rows) used to map picked keys to $.item.*
+  leftBaseListExpr?: string;
 }
 
 const ConditionNodeConfig: React.FC<ConditionNodeConfigProps> = ({
@@ -34,6 +38,8 @@ const ConditionNodeConfig: React.FC<ConditionNodeConfigProps> = ({
   variablesLoading,
   label = 'Conditions',
   showJoiners = true,
+  leftMode = 'value',
+  leftBaseListExpr,
 }) => {
   const rows: ConditionRow[] = useMemo(
     () => (value && value.length ? value : [{ left: '', comparator: 'is equal to', right: '' }]),
@@ -107,6 +113,9 @@ const ConditionNodeConfig: React.FC<ConditionNodeConfigProps> = ({
                       cssClass="config-input"
                       variableGroups={variableGroups}
                       variablesLoading={variablesLoading}
+                      // In Filter node, this inserts $.item.* based on the base list expression
+                      mode={leftMode}
+                      baseListExpr={leftBaseListExpr}
                     />
                   </div>
                   <div style={{ width: '40%' }}>
