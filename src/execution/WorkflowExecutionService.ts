@@ -187,6 +187,17 @@ export class WorkflowExecutionService {
       const out = node.id ? (this.executionContext.results as Record<string, any>)[node.id] : undefined;
       const items: any[] = Array.isArray(out?.items) ? out.items : [];
 
+      // Expose a schema/sample for variable picker even when not executing
+      const firstSample = items && items.length > 0 ? items[0] : undefined;
+      const prevVarsInit = { ...(this.executionContext.variables || {}) } as any;
+      this.executionContext.variables = {
+        ...prevVarsInit,
+        currentLoopItemSchema: firstSample,
+        currentLoopSourceNodeId: node.id,
+        currentLoopCountLastRun: Array.isArray(items) ? items.length : 0,
+      } as any;
+      this.notifyContextUpdate();
+
       // Resolve targets from the loop's main right port
       const connectors = (this.diagram as any)?.connectors ?? [];
       const targets = connectors
@@ -218,7 +229,7 @@ export class WorkflowExecutionService {
         }
       }
 
-      // Cleanup loop variables after loop
+      // Cleanup loop variables after loop (keep schema for picker)
       const varsAny = (this.executionContext.variables || {}) as any;
       const { item, currentLoopItem, currentLoopIndex, currentLoopCount, ...rest } = varsAny;
       this.executionContext.variables = rest;
