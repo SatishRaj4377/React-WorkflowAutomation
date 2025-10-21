@@ -22,9 +22,20 @@ export const ISO_DATE_REGEX = /^(\d{4})-(\d{2})-(\d{2})(?:[T ]\d{2}:\d{2}(?::\d{
 export const resolveValue = (raw: string, context: ExecutionContext): any => {
   if (typeof raw !== 'string') return raw;
   const trimmed = raw.trim();
-  return trimmed.startsWith('$.')
-    ? evaluateExpression(trimmed, { context })
-    : resolveTemplate(raw, { context });
+
+  // Direct path expression -> return raw resolved value
+  if (trimmed.startsWith('$.')) {
+    return evaluateExpression(trimmed, { context });
+  }
+
+  // Entire string is a single {{ ... }} -> evaluate and return raw (array/object/primitive)
+  const singleMustache = trimmed.match(/^\{\{\s*([^}]+)\s*\}\}$/);
+  if (singleMustache) {
+    return evaluateExpression(singleMustache[1], { context });
+  }
+
+  // Mixed template text -> string interpolation
+  return resolveTemplate(raw, { context });
 };
 
 export type ConditionValueKind = 'string' | 'number' | 'boolean' | 'date' | 'array' | 'object';

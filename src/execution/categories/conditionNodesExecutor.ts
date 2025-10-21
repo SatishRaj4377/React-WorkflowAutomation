@@ -236,19 +236,117 @@ async function executeSwitchNode(nodeConfig: NodeConfig, context: ExecutionConte
 // ---------------- Filter ----------------
 async function executeFilterNode(nodeConfig: NodeConfig, context: ExecutionContext): Promise<NodeExecutionResult> {
   try {
-    const conditionRaw = nodeConfig.settings?.general?.predicate ?? nodeConfig.settings?.general?.filterCondition;
-    if (!conditionRaw) return { success: false, error: 'No filter predicate specified' };
+    const gen = nodeConfig.settings?.general ?? {};
 
-    const predicateStr = resolveTemplate(conditionRaw, { context }).trim();
-    const fn = new Function('item', 'context', 'evaluateExpression', `"use strict"; return ( ${predicateStr} );`);
+    // 1) Validate required input list expression (VariablePickerTextBox stores strings)
+    const inputExpr = String(gen.input ?? '').trim();
+    if (!inputExpr) {
+      const msg = 'Filter: Please provide the Items (list) input.';
+      showErrorToast('Filter Missing Input', msg);
+      return { success: false, error: msg };
+    }
 
-    const input = nodeConfig.settings?.general?.input ?? [];
-    const filtered: any[] = (input as any[]).filter((item: any) => {
-      try { return !!fn(item, context, evaluateExpression); } catch { return false; }
-    });
+    // 2) Resolve input expression -> must be an array
+    const resolved = resolveValue(inputExpr, context);
+    if (!Array.isArray(resolved)) {
+      const got = resolved === null ? 'null' : typeof resolved;
+      const msg = `Filter: Items input must resolve to an array. Got ${got}.`;
+      showErrorToast('Filter Invalid Input', msg);
+      return { success: false, error: msg };
+    }
+    const inputArr: any[] = resolved as any[];
 
-    return { success: true, data: { filtered } };
-  } catch (error) {
-    return { success: false, error: `Filter execution failed: ${error}` };
+    // 3) Prefer structured rows (same as IF), else legacy predicate string
+    const rows = Array.isArray(gen.conditions)
+      ? (gen.conditions as Array<{ left: string; comparator: string; right: string; joiner?: 'AND' | 'OR' }>)
+      : null;
+
+    if (!rows || rows.length === 0) {
+      const conditionRaw = gen.predicate ?? gen.filterCondition;
+      if (!conditionRaw) {
+        const msg = 'Filter: Please configure at least one condition row or a predicate.';
+        showErrorToast('Filter Missing Condition', msg);
+        return { success: false, error: msg };
+      }
+      const predicateStr = resolveTemplate(String(conditionRaw), { context }).trim();
+      const fn = new Function('item', 'context', 'evaluateExpression', '"use strict"; return ( ' + predicateStr + ' );');
+      const filtered = inputArr.filter((item: any) => {
+        try { return !!fn(item, context, evaluateExpression); } catch { return false; }
+      });
+      return { success: true, data: { filtered, count: filtered.length } };
+    }
+
+    // 4) Strict validation (reuse If Condition logic)
+    const isBlank = (s: unknown) => (typeof s !== 'string') || s.trim().length === 0;
+    for (let idx = 0; idx < rows.length; idx++) {
+      const { left, comparator, right } = rows[idx];
+      const rowNo = idx + 1;
+      if (isBlank(left)) {
+        const msg = `Row ${rowNo}: "Value 1" is required.`;
+        showErrorToast('Filter: Missing Input', msg);
+        return { success: false, error: msg };
+      }
+      if (!UNARY_COMPARATORS.has(comparator) && isBlank(right)) {
+        const msg = `Row ${rowNo}: "Value 2" is required for "${comparator}".`;
+        showErrorToast('Filter: Missing Input', msg);
+        return { success: false, error: msg };
+      }
+      if (REGEX_COMPARATORS.has(comparator) && !isBlank(right)) {
+        try { new RegExp(String(resolveValue(String(right), context))); } catch (e: any) {
+          const msg = `Row ${rowNo}: Invalid regex — ${e?.message ?? 'syntax error'}.`;
+          showErrorToast('Filter: Invalid Regex', msg);
+          return { success: false, error: msg };
+        }
+      }
+      if (PAIR_COMPARATORS.has(comparator) && !isBlank(right)) {
+        const rv = resolveValue(String(right), context);
+        const [a, b] = parsePairValues(rv);
+        if (a == null || b == null || String(a).length === 0 || String(b).length === 0) {
+          const msg = `Row ${rowNo}: "${comparator}" expects two values (e.g., "min,max").`;
+          showErrorToast('Filter: Invalid Range', msg);
+          return { success: false, error: msg };
+        }
+      }
+      if (NUMERIC_RIGHT_COMPARATORS.has(comparator) && !isBlank(right)) {
+        const num = Number(resolveValue(String(right), context));
+        if (Number.isNaN(num)) {
+          const msg = `Row ${rowNo}: "Value 2" must be a number for "${comparator}".`;
+          showErrorToast('Filter: Invalid Number', msg);
+          return { success: false, error: msg };
+        }
+      }
+      if (KEY_PROP_COMPARATORS.has(comparator) && !isBlank(right)) {
+        const rtxt = String(resolveValue(String(right), context)).trim();
+        if (!rtxt) {
+          const msg = `Row ${rowNo}: "Value 2" must be a non-empty key/property name.`;
+          showErrorToast('Filter: Invalid Field', msg);
+          return { success: false, error: msg };
+        }
+      }
+    }
+
+    // 5) Evaluate conditions per item with $.item available
+    const filtered: any[] = [];
+    for (const item of inputArr) {
+      // Expose current item as $.item
+      const augmentedContext: ExecutionContext = {
+        ...(context || {}),
+        variables: { ...(context?.variables || {}), item },
+      } as ExecutionContext;
+
+      let cumulative = true;
+      for (let idx = 0; idx < rows.length; idx++) {
+        const row = rows[idx];
+        const leftVal = resolveValue(row.left ?? '', augmentedContext);
+        const rightVal = UNARY_COMPARATORS.has(row.comparator) ? undefined : resolveValue(row.right ?? '', augmentedContext);
+        const ok = compareValues(leftVal, row.comparator, rightVal);
+        cumulative = idx === 0 ? ok : (row.joiner === 'OR' ? (cumulative || ok) : (cumulative && ok));
+      }
+      if (cumulative) filtered.push(item);
+    }
+
+    return { success: true, data: { filtered, count: filtered.length } };
+  } catch (error: any) {
+    return { success: false, error: `Filter execution failed: ${error?.message ?? String(error)}` };
   }
 }

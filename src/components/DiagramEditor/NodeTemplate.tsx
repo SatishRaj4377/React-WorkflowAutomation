@@ -2,7 +2,7 @@ import React from 'react';
 import { NodeConfig, NodeToolbarAction } from '../../types';
 import { IconRegistry } from '../../assets/icons';
 import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
-import { getNodePortConfiguration, isAiAgentNode } from '../../helper/utilities';
+import { getNodePortConfiguration, isAiAgentNode, isSwitchNode } from '../../helper/utilities';
 
 interface NodeTemplateProps {
   id: string;
@@ -26,7 +26,7 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo, onNodeToolbarA
 
   // Dynamic Switch Case rendering support
   const dynamicCaseOffsets: number[] = (addInfo as any)?.dynamicCaseOffsets || [];
-  const isSwitchCase = (addInfo.nodeConfig?.nodeType === 'Switch Case');
+  const isSwitchCase = isSwitchNode(nodeConfig);
   
   return (
     <div className="node-template-container">

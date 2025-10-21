@@ -593,13 +593,33 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
         ]) as any[];
 
         return (
-          <ConditionNodeConfig
-            value={conditions}
-            onChange={(next) => handleConfigChange('conditions', next)}
-            variableGroups={availableVariables}
-            variablesLoading={variablesLoading}
-            label="Conditions"
-          />
+          <>
+            {/* Items (list) input expression */}
+            <div className="config-section">
+              <div className="config-row" style={{ alignItems: 'center', gap: 8 }}>
+                <label className="config-label">Items (list) to filter</label>
+                <TooltipComponent content="Select an array from previous nodes using the picker">
+                  <span className="e-icons e-circle-info help-icon"></span>
+                </TooltipComponent>
+              </div>
+              <VariablePickerTextBox
+                value={settings.input ?? ''}
+                placeholder="$.previousNode.items"
+                onChange={(val) => handleConfigChange('input', val)}
+                cssClass="config-input"
+                variableGroups={availableVariables}
+                variablesLoading={variablesLoading}
+              />
+            </div>
+
+            <ConditionNodeConfig
+              value={conditions}
+              onChange={(next) => handleConfigChange('conditions', next)}
+              variableGroups={availableVariables}
+              variablesLoading={variablesLoading}
+              label="Conditions"
+            />
+          </>
         );
       }
 

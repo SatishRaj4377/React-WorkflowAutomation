@@ -164,12 +164,13 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
   },
   'Filter': {
     type: 'Filter',
-    category: 'action',
+    category: 'condition',
     paletteCategory: 'Flow',
     isServerExecuted: false,
     label: 'Filter',
     description: 'Filter array items',
     iconId: 'FilterIcon',
+    portConfig: { leftPort: true, rightPort: true },
   },
   'Azure Chat Model Tool': {
     type: 'Azure Chat Model Tool',
