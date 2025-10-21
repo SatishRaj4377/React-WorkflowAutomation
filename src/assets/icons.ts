@@ -15,6 +15,7 @@ import TwilioIcon from '../assets/images/svg-icons/twilio.svg';
 import WebhookIcon from '../assets/images/svg-icons/webhook.svg';
 import ManualClickIcon from '../assets/images/svg-icons/manual-click.svg';
 import EmailJSIcon from '../assets/images/svg-icons/email-js.svg';
+import LoopIcon from '../assets/images/svg-icons/loop.svg';
 import NodeLoader from '../assets/images/svg-icons/node-loader.svg';
 
 import ApiIntegrationImage from '../assets/images/template-images/api-integration.jpg';
@@ -57,6 +58,7 @@ export const IconRegistry: { [key: string]: string | React.ElementType } = {
   WebhookIcon,
   ManualClickIcon,
   EmailJSIcon,
+  LoopIcon,
   NodeLoader,
   ChevronDown,
   Message

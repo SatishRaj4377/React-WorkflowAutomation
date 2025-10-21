@@ -48,6 +48,7 @@ export type NodeType =
   | 'If Condition'
   | 'Switch Case'
   | 'Filter'
+  | 'Loop'
   | 'Azure Chat Model Tool'
   | 'EmailJS Tool'
   | 'Gmail Tool'

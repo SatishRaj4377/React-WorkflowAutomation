@@ -172,6 +172,16 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     iconId: 'FilterIcon',
     portConfig: { leftPort: true, rightPort: true },
   },
+  'Loop': {
+    type: 'Loop',
+    category: 'condition',
+    paletteCategory: 'Flow',
+    isServerExecuted: false,
+    label: 'Loop',
+    description: 'Loop over array items',
+    iconId: 'LoopIcon',
+    portConfig: { leftPort: true, rightPort: true },
+  },
   'Azure Chat Model Tool': {
     type: 'Azure Chat Model Tool',
     category: 'tool',
