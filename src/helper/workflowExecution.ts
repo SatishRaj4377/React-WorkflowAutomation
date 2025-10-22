@@ -2,7 +2,7 @@ import { DiagramComponent } from '@syncfusion/ej2-react-diagrams';
 import { NodeModel } from '@syncfusion/ej2-diagrams';
 import { ExecutionContext, NodeConfig, NodeExecutionResult, NodeStatus } from '../types';
 import { IconRegistry } from '../assets/icons';
-import { getNodeConfig, isTriggerNode } from './utilities';
+import { getNodeConfig, isToolNode, isTriggerNode } from './utilities';
 
 /**
  * Find all trigger nodes in the workflow
@@ -74,9 +74,27 @@ export function findConnectedNodesFromPort(diagram: any, nodeId: string, sourceP
     .map((c: any) => diagram.getObject(c.targetID))
     .filter((node: any) => {
       const cfg = (node?.addInfo as any)?.nodeConfig;
-      return cfg?.category !== 'tool';
+      return isToolNode(cfg);
     });
 }
+
+
+export function resolveTargetsFromRightPortSafe(diagram: any, nodeId: string): NodeModel[] {
+  let targets = findConnectedNodesFromPort(diagram as any, nodeId, 'right-port');
+  if (targets.length > 0) return targets;
+
+  // Fallback: include connectors missing sourcePortID (some templates do not stamp it)
+  const connectors = ((diagram as any)?.connectors ?? []) as any[];
+  const rawTargets = connectors
+    .filter(c => c.sourceID === nodeId && (!c.sourcePortID || c.sourcePortID === 'right-port'))
+    .map(c => (diagram as any).getObject(c.targetID));
+
+  return rawTargets.filter((n: any) => {
+    const cfg = (n?.addInfo as any)?.nodeConfig;
+    return cfg?.category !== 'tool';
+  });
+}
+
 
 
 /**

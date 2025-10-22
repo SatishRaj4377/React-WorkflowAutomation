@@ -1,12 +1,12 @@
 import { DiagramComponent } from '@syncfusion/ej2-react-diagrams';
 import { NodeModel } from '@syncfusion/ej2-diagrams';
 import { ExecutionContext, NodeConfig, NodeExecutionResult, WorkflowExecutionOptions, WorkflowExecutionStatus } from '../types';
-import { findTriggerNodes, findConnectedNodes, updateNodeStatus, resetExecutionStates } from '../helper/workflowExecution';
+import { findTriggerNodes, findConnectedNodes, updateNodeStatus, resetExecutionStates, findConnectedNodesFromPort, resolveTargetsFromRightPortSafe } from '../helper/workflowExecution';
 import { showErrorToast, showSuccessToast } from '../components/Toast';
 import { globalExecutorRegistry } from './ExecutorRegistry';
 import { ServerNodeExecutor } from './ServerNodeExecutor';
 import { ClientSideNodeExecutor } from './ClientSideNodeExecutor';
-import { isIfConditionNode, isSwitchNode } from '../helper/utilities';
+import { getNodeConfig, isIfConditionNode, isLoopNode, isSwitchNode } from '../helper/utilities';
 
 /**
  * Service for managing workflow execution with support for both client-side
@@ -149,7 +149,7 @@ export class WorkflowExecutionService {
         throw new Error(result.error || 'Node execution failed');
       }
 
-      const cfg = this.getNodeConfig(node);
+      const cfg = getNodeConfig(node);
       if (cfg && isIfConditionNode(cfg)) {
         // Read IF result
         const out = (this.executionContext.results as Record<string, any>)[node.id];
@@ -180,126 +180,29 @@ export class WorkflowExecutionService {
    * Execute connected nodes
    */
   private async executeConnectedNodes(node: NodeModel): Promise<void> {
-    const nodeConfig = this.getNodeConfig(node);
+    const nodeConfig = getNodeConfig(node);
+    if (!nodeConfig) return;
 
-    // Loop node: run downstream branch once per item
-    if (nodeConfig?.nodeType === 'Loop') {
-      const out = node.id ? (this.executionContext.results as Record<string, any>)[node.id] : undefined;
-      const items: any[] = Array.isArray(out?.items) ? out.items : [];
-
-      // Expose a schema/sample for variable picker even when not executing
-      const firstSample = items && items.length > 0 ? items[0] : undefined;
-      const prevVarsInit = { ...(this.executionContext.variables || {}) } as any;
-      this.executionContext.variables = {
-        ...prevVarsInit,
-        currentLoopItemSchema: firstSample,
-        currentLoopSourceNodeId: node.id,
-        currentLoopCountLastRun: Array.isArray(items) ? items.length : 0,
-      } as any;
-      this.notifyContextUpdate();
-
-      // Resolve targets from the loop's main right port
-      const connectors = (this.diagram as any)?.connectors ?? [];
-      const targets = connectors
-        .filter((c: any) => c.sourceID === node.id && c.sourcePortID === 'right-port')
-        .map((c: any) => (this.diagram as any).getObject(c.targetID))
-        .filter((n: any) => {
-          const nc = (n?.addInfo as any)?.nodeConfig;
-          return nc?.category !== 'tool';
-        });
-
-      for (let index = 0; index < items.length; index++) {
-        await this.checkExecutionCancelled();
-        const item = items[index];
-        // augment context with loop meta and current item
-        const prevVars = { ...(this.executionContext.variables || {}) } as any;
-        this.executionContext.variables = {
-          ...prevVars,
-          item,
-          currentLoopItem: item,
-          currentLoopIndex: index,
-          currentLoopCount: items.length,
-        } as any;
-        // keep a non-variable alias as well (optional)
-        (this.executionContext as any).loopIndex = index;
-
-        for (const nxt of targets) {
-          const ok = await this.executeBranchWithErrorHandling(nxt);
-          if (!ok && !this.options.enableDebug) throw new Error('Loop branch execution failed');
-        }
-      }
-
-      // Cleanup loop variables after loop (keep schema for picker)
-      const varsAny = (this.executionContext.variables || {}) as any;
-      const { item, currentLoopItem, currentLoopIndex, currentLoopCount, ...rest } = varsAny;
-      this.executionContext.variables = rest;
+    if (isLoopNode(nodeConfig)) {
+      await this.handleLoopNode(node);
       return;
     }
-
-    if (nodeConfig && isIfConditionNode(nodeConfig)) {
-      // 1) Read outcome produced by the client executor 
-      const out = node.id ? (this.executionContext.results as Record<string, any>)[node.id] : undefined;
-      const isTrue = Boolean(out?.conditionResult);
-
-      // 2) Pick the right port (top=true, bottom=false) 
-      const desiredPort = isTrue ? 'right-top-port' : 'right-bottom-port';
-
-      // 3) Resolve targets connected from that specific port
-      const connectors = (this.diagram as any)?.connectors ?? [];
-      const targets = connectors
-        .filter((c: any) => c.sourceID === node.id && c.sourcePortID === desiredPort)
-        .map((c: any) => (this.diagram as any).getObject(c.targetID))
-        .filter((n: any) => {
-          const nc = (n?.addInfo as any)?.nodeConfig;
-          return nc?.category !== 'tool'; // stay off tool branches here
-        });
-
-      // 4) Execute the chosen branch only               
-      for (const nxt of targets) {
-        await this.checkExecutionCancelled();
-        const ok = await this.executeBranchWithErrorHandling(nxt);
-        if (!ok && !this.options.enableDebug) throw new Error('Branch execution failed');
-      }
-      return; // do not fall through
-    }
-    if (nodeConfig && isSwitchNode(nodeConfig)) {
-      const out = node.id ? (this.executionContext.results as Record<string, any>)[node.id] : undefined;
-      const desiredPort: string | null = out?.matchedPortId ?? null;
-
-      // If no match and no default, there may be no desired port -> end branch gracefully
-      const connectors = (this.diagram as any)?.connectors ?? [];
-      const targets = desiredPort
-        ? connectors
-            .filter((c: any) => c.sourceID === node.id && c.sourcePortID === desiredPort)
-            .map((c: any) => (this.diagram as any).getObject(c.targetID))
-            .filter((n: any) => {
-              const nc = (n?.addInfo as any)?.nodeConfig;
-              return nc?.category !== 'tool';
-            })
-        : [];
-
-      for (const nxt of targets) {
-        await this.checkExecutionCancelled();
-        const ok = await this.executeBranchWithErrorHandling(nxt);
-        if (!ok && !this.options.enableDebug) throw new Error('Branch execution failed');
-      }
+    if (isIfConditionNode(nodeConfig)) {
+      await this.handleIfConditionNode(node);
       return;
     }
-
-    // Default traversal for non-IF nodes (unchanged)     
-    const connectedNodes = findConnectedNodes(this.diagram, node.id as string);
-    for (const nextNode of connectedNodes) {
-      await this.checkExecutionCancelled();
-      const success = await this.executeBranchWithErrorHandling(nextNode);
-      if (!success && !this.options.enableDebug) throw new Error('Branch execution failed');
+    if (isSwitchNode(nodeConfig)) {
+      await this.handleSwitchCaseNode(node);
+      return;
     }
+    await this.handleDefaultTraversal(node);
   }
 
   /**
    * Execute a single node with timeout
    */
   private async executeNodeWithTimeout(node: NodeModel): Promise<NodeExecutionResult> {
-    const nodeConfig = this.getNodeConfig(node);
+    const nodeConfig = getNodeConfig(node);
     if (!nodeConfig) {
       return { success: false, error: 'Invalid node configuration' };
     }
@@ -346,11 +249,100 @@ export class WorkflowExecutionService {
     }
   }
 
-  /**
-   * Get node configuration
-   */
-  private getNodeConfig(node: NodeModel): NodeConfig | undefined {
-    return (node.addInfo as any)?.nodeConfig;
+  // --- Loop handler: Executes the branch connected to Loop's right port N times (N = items length)
+  private async handleLoopNode(node: NodeModel): Promise<void> {
+    const nodeId = node.id!;
+    const out = (this.executionContext.results as Record<string, any>)[nodeId];
+    const items: any[] = Array.isArray(out?.items) ? out.items : [];
+    const total = items.length;
+
+    // 1) Update context RIGHT AFTER the loop node executed (default view) — no 'items'
+    (this.executionContext.results as any)[nodeId] = {
+      currentloopitem: total > 0 ? items[0] : undefined,
+      currentLoopIndex: total > 0 ? 0 : null,         // 0-based
+      currentLoopIteration: total > 0 ? 1 : null,     // 1-based
+      currentLoopCount: total,
+      currentLoopNodeId: nodeId,                      // helpful for expressions/debug
+    };
+    this.notifyContextUpdate();
+
+    // 2) If no items, nothing to execute downstream
+    if (total === 0) return;
+
+    // 3) Resolve downstream targets from right-port (robust)
+    const targets = resolveTargetsFromRightPortSafe(this.diagram, nodeId);
+
+    // 4) Iterate and publish LIVE frame (still no 'items' in context)
+    for (let i = 0; i < total; i++) {
+      await this.checkExecutionCancelled();
+
+      const item = items[i];
+      (this.executionContext.results as any)[nodeId] = {
+        currentloopitem: item,
+        currentLoopIndex: i,           // 0-based
+        currentLoopIteration: i + 1,   // 1-based
+        currentLoopCount: total,
+        currentLoopNodeId: nodeId,
+        currentLoopIsFirst: i === 0,
+        currentLoopIsLast: i === total - 1,
+      };
+      this.notifyContextUpdate();
+
+      await this.executeTargets(targets);
+    }
+
+    // 5) After loop: keep a small default (first item only)
+    (this.executionContext.results as any)[nodeId] = {
+      currentloopitem: items[0],
+      currentLoopIndex: 0,
+      currentLoopIteration: 1,
+      currentLoopCount: total,
+      currentLoopNodeId: nodeId,
+    };
+    this.notifyContextUpdate();
+  }
+
+
+  // --- IF handler: read outcome and traverse the chosen port only ---
+  private async handleIfConditionNode(node: NodeModel): Promise<void> {
+    const out = (this.executionContext.results as Record<string, any>)[node.id!];
+    const isTrue = Boolean(out?.conditionResult);
+    const portId = isTrue ? 'right-top-port' : 'right-bottom-port';
+
+    // Paint only the matched connector visually
+    updateNodeStatus(this.diagram, node.id!, 'success', { restrictToSourcePortId: portId });
+
+    // Traverse only that port
+    const targets = findConnectedNodesFromPort(this.diagram as any, node.id!, portId);
+    await this.executeTargets(targets);
+  }
+
+  // --- Switch handler: read matchedPortId and traverse only that port (if any) ---
+  private async handleSwitchCaseNode(node: NodeModel): Promise<void> {
+    const out = (this.executionContext.results as Record<string, any>)[node.id!];
+    const portId: string | null = out?.matchedPortId ?? null;
+
+    updateNodeStatus(this.diagram, node.id!, 'success', portId ? { restrictToSourcePortId: portId } : undefined);
+
+    if (!portId) return; // No match and no default — end branch gracefully
+    const targets = findConnectedNodesFromPort(this.diagram as any, node.id!, portId);
+    await this.executeTargets(targets);
+  }
+
+  // --- Default traversal for non-conditional nodes ---
+  private async handleDefaultTraversal(node: NodeModel): Promise<void> {
+    updateNodeStatus(this.diagram, node.id!, 'success');
+    const targets = findConnectedNodes(this.diagram as any, node.id!);
+    await this.executeTargets(targets);
+  }
+
+  //  execute next nodes
+  private async executeTargets(targets: NodeModel[]): Promise<void> {
+    for (const nxt of targets) {
+      await this.checkExecutionCancelled();
+      const ok = await this.executeBranchWithErrorHandling(nxt);
+      if (!ok && !this.options.enableDebug) throw new Error('Branch execution failed');
+    }
   }
 
   /**

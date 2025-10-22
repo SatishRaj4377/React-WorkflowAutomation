@@ -114,27 +114,6 @@ export const getAvailableVariablesForNode = (
     .map((pid) => getNodeOutputAsVariableGroup(pid, diagram, context))
     .filter(Boolean) as VariableGroup[];
 
-  // If a loop is active, expose the current item as its own variable group for easy picking
-  const curItem = (context as any)?.variables?.currentLoopItem;
-  const curSchema = (context as any)?.variables?.currentLoopItemSchema;
-  // Prefer live item when executing, otherwise fall back to last schema sample produced by the Loop node
-  const loopSource = curItem ?? curSchema;
-  if (loopSource !== undefined) {
-    groups.unshift({
-      nodeId: '__current_loop__',
-      nodeType: 'Loop Context',
-      nodeName: 'Current Loop Item',
-      variables: flattenJsonToVariables(loopSource, 'currentLoopItem', '$.currentLoopItem'),
-    });
-  }
-
-  // Debug once; remove in production if noisy
-  console.debug('[getAvailableVariablesForNode]', {
-    nodeId,
-    predecessors: Array.from(predecessors),
-    groups: groups.map((g) => g.nodeId),
-  });
-
   return groups;
 };
 

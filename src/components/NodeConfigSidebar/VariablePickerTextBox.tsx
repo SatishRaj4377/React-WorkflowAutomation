@@ -187,92 +187,65 @@ export const VariablePickerPopup: React.FC<PickerPopupProps> = ({
 
         {/* Render only JsonVisualizer per group */}
         {!loading &&
-          (() => {
-            // If loop context is present, show a short tip banner once
-            const hasLoop = variableGroups.some((x) => x.nodeId.startsWith("loop"));
-            return (
-              <>
-                {hasLoop && (
-                  <div style={{
-                    margin: '.25rem .25rem .5rem',
-                    padding: '.4rem .5rem',
-                    border: '1px dashed var(--border-color)',
-                    borderRadius: 8,
-                    fontSize: '.8rem',
-                    color: 'var(--text-secondary)'
-                  }}>
-                    <b>Tip:</b> You are inside a Loop. Use $.currentLoopItem.&lt;field&gt;, $.currentLoopIndex and $.currentLoopCount.
-                  </div>
-                )}
-                {variableGroups.map((g) => (
-                  <div key={g.nodeId} className="vp-group" style={{ paddingBottom: '.5rem' }}>
-                    <div
-                      className="vp-group-title"
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '.5rem',
-                        padding: '.25rem .5rem',
-                        margin: '.25rem 0 .35rem',
-                        backgroundColor: 'var(--border-color)',
-                        color: 'var(--text-secondary)',
-                        fontSize: '.75rem',
-                        textTransform: 'uppercase',
-                        letterSpacing: '.03em',
-                        borderRadius: 6,
-                      }}
-                    >
-                      <span
-                        className="vp-node-type"
-                        style={{
-                          background: 'var(--background-color)',
-                          border: '1px solid var(--border-color)',
-                          borderRadius: 999,
-                          padding: '0 .4rem',
-                          fontSize: '.7rem',
-                        }}
-                      >
-                        {g.nodeType}
-                      </span>
-                      {g.nodeName}
-                    </div>
-                    <div
-                      style={{
-                        border: '1px solid var(--border-color)',
-                        borderRadius: 8,
-                        padding: '.4rem',
-                        background: 'var(--surface-color)',
-                      }}
-                    >
-                      <JsonVisualizer
-                        data={buildJsonFromVariables(g.variables)}
-                        collapsed={false}
-                        onKeyClick={(path) => {
-                          // Special-case Loop group: the path is already correct (e.g., $.currentLoopItem.name)
-                          if (g.nodeId === '__current_loop__') {
-                            const p = String(path);
-                            const v: Variable = { key: p, path: p } as any;
-                            onPick(v);
-                            return;
-                          }
-                          // Default: build a readable node-qualified path using only node name: $.<NodeName>.<relativePath>
-                          const relative = String(path).replace(/^\$\./, '');
-                          const qualifiedPath = `$.${g.nodeName}.${relative}`;
-                          const fakeVar = {
-                            key: qualifiedPath,
-                            path: qualifiedPath,
-                            type: 'any',
-                            preview: undefined,
-                          } as unknown as Variable;
-                          onPick(fakeVar);
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </>
-            );
-          })()}
+          variableGroups.map((g) => (
+            <div key={g.nodeId} className="vp-group" style={{ paddingBottom: '.5rem' }}>
+              <div
+                className="vp-group-title"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '.5rem',
+                  padding: '.25rem .5rem',
+                  margin: '.25rem 0 .35rem',
+                  backgroundColor: 'var(--border-color)',
+                  color: 'var(--text-secondary)',
+                  fontSize: '.75rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '.03em',
+                  borderRadius: 6,
+                }}
+              >
+                <span
+                  className="vp-node-type"
+                  style={{
+                    background: 'var(--background-color)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: 999,
+                    padding: '0 .4rem',
+                    fontSize: '.7rem',
+                  }}
+                >
+                  {g.nodeType}
+                </span>
+                {g.nodeName}
+              </div>
+              <div
+                style={{
+                  border: '1px solid var(--border-color)',
+                  borderRadius: 8,
+                  padding: '.4rem',
+                  background: 'var(--surface-color)',
+                }}
+              >
+                <JsonVisualizer
+                  data={buildJsonFromVariables(g.variables)}
+                  collapsed={false}
+                  onKeyClick={(path) => {
+                    // Build a readable node-qualified path using only node name: $.<NodeName>.<relativePath>
+                    const relative = String(path).replace(/^\$\./, '');
+                    const qualifiedPath = `$.${g.nodeName}.${relative}`;
+                    const fakeVar = {
+                      key: qualifiedPath,
+                      path: qualifiedPath,
+                      type: 'any',
+                      preview: undefined,
+                    } as unknown as Variable;
+                    onPick(fakeVar);
+                  }}
+                />
+              </div>
+            </div>
+          ))}
       </div>
     </div>,
     ensurePortalRoot()
