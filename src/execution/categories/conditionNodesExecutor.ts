@@ -11,8 +11,10 @@ import {
   parsePairValues,
   compareValues
 } from '../../helper/conditionUtils';
+import { NodeModel } from '@syncfusion/ej2-react-diagrams';
 
 export async function executeConditionCategory(
+  _node: NodeModel,
   nodeConfig: NodeConfig,
   context: ExecutionContext
 ): Promise<NodeExecutionResult> {
@@ -25,7 +27,7 @@ export async function executeConditionCategory(
     case 'Filter':
       return executeFilterNode(nodeConfig, context);
     case 'Loop':
-      return executeLoopNode(nodeConfig, context);
+      return executeLoopNode(_node, nodeConfig, context);
     default:
       return { success: false, error: `Unsupported condition node type: ${nodeConfig.nodeType}` };
   }
@@ -354,11 +356,14 @@ async function executeFilterNode(nodeConfig: NodeConfig, context: ExecutionConte
 }
 
 // ---------------- Loop ----------------
-async function executeLoopNode(nodeConfig: NodeConfig, context: ExecutionContext): Promise<NodeExecutionResult> {
+export async function executeLoopNode(
+  node: NodeModel,
+  nodeConfig: NodeConfig,
+  context: ExecutionContext,
+): Promise<NodeExecutionResult> {
   try {
     const gen = nodeConfig.settings?.general ?? {};
 
-    // Validate input expression
     const inputExpr = String(gen.input ?? '').trim();
     if (!inputExpr) {
       const msg = 'Loop: Please provide the Items (list) input.';
@@ -374,10 +379,40 @@ async function executeLoopNode(nodeConfig: NodeConfig, context: ExecutionContext
       return { success: false, error: msg };
     }
 
-    // Return items; per-item execution handled by WorkflowExecutionService
     const items = resolved as any[];
-    return { success: true, data: { items, count: items.length } };
+    const total = items.length;
+    const nodeId = node.id as string;
+
+    const rt: any = (context as any).__runtime ?? ((context as any).__runtime = {});
+    const loops: Record<string, any[]> = rt.loopItems ?? (rt.loopItems = {});
+    loops[nodeId] = items;
+
+    (context.results as any)[nodeId] = {
+      currentloopitem: total > 0 ? items[0] : {},     // object to expose the key even when empty
+      currentLoopIndex: total > 0 ? 0 : null,         // 0-based
+      currentLoopIteration: total > 0 ? 1 : null,     // 1-based
+      currentLoopCount: total,
+      currentLoopNodeId: nodeId,
+      currentLoopIsFirst: total > 0 ? true : null,
+      currentLoopIsLast:  total > 0 ? (total === 1) : null,
+    };
+
+    return {
+      success: true,
+      data: {
+        items,
+        count: total,
+        currentloopitem: total > 0 ? items[0] : {},
+        currentLoopIndex: total > 0 ? 0 : null,
+        currentLoopIteration: total > 0 ? 1 : null,
+        currentLoopCount: total,
+        currentLoopNodeId: nodeId,
+        currentLoopIsFirst: total > 0 ? true : null,
+        currentLoopIsLast:  total > 0 ? (total === 1) : null,
+      },
+    };
   } catch (error: any) {
     return { success: false, error: `Loop execution failed: ${error?.message ?? String(error)}` };
   }
 }
+

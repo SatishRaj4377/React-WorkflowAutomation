@@ -233,7 +233,7 @@ export const VariablePickerPopup: React.FC<PickerPopupProps> = ({
                   onKeyClick={(path) => {
                     // Build a readable node-qualified path using only node name: $.<NodeName>.<relativePath>
                     const relative = String(path).replace(/^\$\./, '');
-                    const qualifiedPath = `$.${g.nodeName}.${relative}`;
+                    const qualifiedPath = `$.${g.nodeType}.${relative}`;
                     const fakeVar = {
                       key: qualifiedPath,
                       path: qualifiedPath,

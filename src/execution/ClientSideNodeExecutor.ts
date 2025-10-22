@@ -37,7 +37,7 @@ export class ClientSideNodeExecutor extends BaseNodeExecutor {
       case 'ai-agent':
         return executeAiAgentCategory(node, nodeConfig, context);
       case 'condition':
-        return executeConditionCategory(nodeConfig, context);
+        return executeConditionCategory(node, nodeConfig, context);
       case 'action':
       case 'tool':
         return executeActionOrToolCategory(node, nodeConfig, context);
