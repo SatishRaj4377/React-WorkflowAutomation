@@ -65,37 +65,37 @@ export function findConnectedNodes(diagram: any, nodeId: string) {
   return targets;
 }
 
-// Port-specific traversal (e.g., IF true/false flows)
-export function findConnectedNodesFromPort(diagram: any, nodeId: string, sourcePortId: string) {
-  const src = diagram?.getObject(nodeId);
-  if (!src) return [];
-  return (diagram.connectors ?? [])
-    .filter((c: any) => c.sourceID === nodeId && c.sourcePortID === sourcePortId)
-    .map((c: any) => diagram.getObject(c.targetID))
-    .filter((node: any) => {
-      const cfg = (node?.addInfo as any)?.nodeConfig;
-      return isToolNode(cfg);
+/**
+ * Get downstream targets connected from a specific port on a node.
+ * Handles:
+ *  - Exact port match
+ *  - Missing sourcePortID (treated as main flow if requestedPort === 'right-port')
+ *
+ * @param diagram EJ2 diagram instance
+ * @param nodeId  Source node ID
+ * @param requestedPort Port ID to match (e.g., 'right-port', 'right-top-port', 'right-bottom-port')
+ */
+export function getTargetsByPort(diagram: any, nodeId: string, requestedPort: string): NodeModel[] {
+  const connectors = (diagram?.connectors ?? []) as any[];
+
+  const targets = connectors
+    .filter(c => {
+      if (c.sourceID !== nodeId) return false;
+
+      // If connector has a sourcePortID, match it
+      if (c.sourcePortID) return c.sourcePortID === requestedPort;
+
+      // If no sourcePortID and requestedPort is main flow, accept it
+      return requestedPort === 'right-port';
+    })
+    .map(c => diagram.getObject(c.targetID))
+    .filter((n: any) => {
+      const nc = (n?.addInfo as any)?.nodeConfig;
+      return nc?.category !== 'tool';
     });
+
+  return targets;
 }
-
-
-export function resolveTargetsFromRightPortSafe(diagram: any, nodeId: string): NodeModel[] {
-  let targets = findConnectedNodesFromPort(diagram as any, nodeId, 'right-port');
-  if (targets.length > 0) return targets;
-
-  // Fallback: include connectors missing sourcePortID (some templates do not stamp it)
-  const connectors = ((diagram as any)?.connectors ?? []) as any[];
-  const rawTargets = connectors
-    .filter(c => c.sourceID === nodeId && (!c.sourcePortID || c.sourcePortID === 'right-port'))
-    .map(c => (diagram as any).getObject(c.targetID));
-
-  return rawTargets.filter((n: any) => {
-    const cfg = (n?.addInfo as any)?.nodeConfig;
-    return cfg?.category !== 'tool';
-  });
-}
-
-
 
 /**
  * Update the visual state of a node during/after execution

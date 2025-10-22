@@ -1,7 +1,7 @@
 import { DiagramComponent } from '@syncfusion/ej2-react-diagrams';
 import { NodeModel } from '@syncfusion/ej2-diagrams';
 import { ExecutionContext, NodeConfig, NodeExecutionResult, WorkflowExecutionOptions, WorkflowExecutionStatus } from '../types';
-import { findTriggerNodes, findConnectedNodes, updateNodeStatus, resetExecutionStates, findConnectedNodesFromPort, resolveTargetsFromRightPortSafe } from '../helper/workflowExecution';
+import { findTriggerNodes, findConnectedNodes, updateNodeStatus, resetExecutionStates, getTargetsByPort } from '../helper/workflowExecution';
 import { showErrorToast, showSuccessToast } from '../components/Toast';
 import { globalExecutorRegistry } from './ExecutorRegistry';
 import { ServerNodeExecutor } from './ServerNodeExecutor';
@@ -269,8 +269,8 @@ export class WorkflowExecutionService {
     // 2) If no items, nothing to execute downstream
     if (total === 0) return;
 
-    // 3) Resolve downstream targets from right-port (robust)
-    const targets = resolveTargetsFromRightPortSafe(this.diagram, nodeId);
+    // 3) Resolve downstream targets from right-port
+    const targets = getTargetsByPort(this.diagram, node.id!, 'right-port');
 
     // 4) Iterate and publish LIVE frame (still no 'items' in context)
     for (let i = 0; i < total; i++) {
@@ -302,30 +302,25 @@ export class WorkflowExecutionService {
     this.notifyContextUpdate();
   }
 
-
-  // --- IF handler: read outcome and traverse the chosen port only ---
+  // IF: traverse only the chosen port (top=true, bottom=false)
   private async handleIfConditionNode(node: NodeModel): Promise<void> {
     const out = (this.executionContext.results as Record<string, any>)[node.id!];
     const isTrue = Boolean(out?.conditionResult);
-    const portId = isTrue ? 'right-top-port' : 'right-bottom-port';
 
-    // Paint only the matched connector visually
-    updateNodeStatus(this.diagram, node.id!, 'success', { restrictToSourcePortId: portId });
+    const desiredPort = isTrue ? 'right-top-port' : 'right-bottom-port';
+    const targets = getTargetsByPort(this.diagram, node.id!, desiredPort);
 
-    // Traverse only that port
-    const targets = findConnectedNodesFromPort(this.diagram as any, node.id!, portId);
     await this.executeTargets(targets);
   }
 
-  // --- Switch handler: read matchedPortId and traverse only that port (if any) ---
+  // SWITCH: traverse only the matched port (or none)
   private async handleSwitchCaseNode(node: NodeModel): Promise<void> {
     const out = (this.executionContext.results as Record<string, any>)[node.id!];
     const portId: string | null = out?.matchedPortId ?? null;
 
-    updateNodeStatus(this.diagram, node.id!, 'success', portId ? { restrictToSourcePortId: portId } : undefined);
+    if (!portId) return; // no match → stop branch
 
-    if (!portId) return; // No match and no default — end branch gracefully
-    const targets = findConnectedNodesFromPort(this.diagram as any, node.id!, portId);
+    const targets = getTargetsByPort(this.diagram, node.id!, portId);
     await this.executeTargets(targets);
   }
 
