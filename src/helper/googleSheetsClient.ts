@@ -111,7 +111,12 @@ async function getSheetIdByTitle(spreadsheetId: string, title: string, accessTok
   return map.get(title)!;
 }
 
-export async function sheetsCreateSheet(spreadsheetId: string, title: string, accessToken: string) {
+export async function sheetsCreateSheet(
+  spreadsheetId: string,
+  title: string,
+  accessToken: string,
+  headers?: string[]
+) {
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}:batchUpdate`;
   const body = { requests: [{ addSheet: { properties: { title } } }] };
   const r = await fetch(url, {
@@ -120,7 +125,65 @@ export async function sheetsCreateSheet(spreadsheetId: string, title: string, ac
     body: JSON.stringify(body),
   });
   if (!r.ok) throw new Error(await r.text());
+
+  // If no headers provided, we are don
+  if (!Array.isArray(headers) || headers.length === 0) {
+    return r.json();
+  }
+
+  // Write headers into row 1 (A1 range "<title>!1:1")
+  const a1 = encodeURIComponent(`${title}!1:1`);
+  const putUrl = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(
+    spreadsheetId
+  )}/values/${a1}?valueInputOption=USER_ENTERED`;
+  const row = headers.map(h => String(h ?? '').trim());
+  const put = await fetch(putUrl, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ values: [row] }),
+  });
+  if (!put.ok) {
+    const txt = await (async () => {
+      try { return await put.text(); } catch { return `Sheets header write error: ${put.status}`; }
+    })();
+    throw new Error(txt);
+  }
+
   return r.json();
+}
+
+/**
+ * Write the given headers to row 1 of an EXISTING sheet, only if row 1 has no headers.
+ * @returns true if headers were written, false if headers were already present or not provided.
+ */
+export async function sheetsWriteHeadersIfMissing(
+  spreadsheetId: string,
+  sheetTitle: string,
+  headers: string[] | undefined,
+  accessToken: string
+): Promise<boolean> {
+  // Nothing to do if no headers provided
+  if (!Array.isArray(headers) || headers.length === 0) return false;
+
+  // Check existing headers in row 1
+  const existing = await sheetsGetHeaderRow(spreadsheetId, sheetTitle, accessToken); // returns [] if empty / no headers
+  if (Array.isArray(existing) && existing.length > 0) return false; // already has headers → no write
+
+  // Write row 1 with provided headers
+  const a1 = encodeURIComponent(`${sheetTitle}!1:1`);
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(
+    spreadsheetId
+  )}/values/${a1}?valueInputOption=USER_ENTERED`;
+
+  const body = { values: [headers.map(h => String(h ?? '').trim())] };
+  const r = await fetch(url, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!r.ok) throw new Error(await (async () => { try { return await r.text(); } catch { return `Sheets header write error: ${r.status}`; } })());
+
+  return true;
 }
 
 export async function sheetsDeleteSheetByTitle(spreadsheetId: string, title: string, accessToken: string) {

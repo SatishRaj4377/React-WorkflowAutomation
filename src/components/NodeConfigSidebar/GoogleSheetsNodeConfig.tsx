@@ -354,21 +354,74 @@ const GoogleSheetsNodeConfig: React.FC<Props> = ({
 
 
     // ---------- Operation-specific renders ----------
-    const renderCreateSheet = () => (
-        <>
+    const renderCreateSheet = () => {
+        const create = settings.create ?? {};
+        const headers: string[] = Array.isArray(create.headers) ? create.headers : [];
+
+        const setCreate = (p: any) => patch({ create: { ...(settings.create ?? {}), ...p } });
+        const addHeader = () => setCreate({ headers: [...headers, ''] });
+        const updateHeader = (i: number, val: string) => {
+            const next = headers.slice();
+            next[i] = val;
+            setCreate({ headers: next });
+        };
+        const removeHeader = (i: number) => setCreate({ headers: headers.filter((_, idx) => idx !== i) });
+
+        return (
+            <>
             {renderDocPicker()}
-            {/* Per your requirement: do NOT show sheet or URL for Create */}
             <div className="config-section">
                 <label className="config-label">Title</label>
                 <TextBoxComponent
-                    value={settings.title ?? ''}
-                    placeholder="New sheet title"
-                    change={(e: any) => patch({ title: e.value })}
-                    cssClass="config-input"
+                value={settings.title ?? ''}
+                placeholder="New sheet title"
+                change={(e: any) => patch({ title: e.value })}
+                cssClass="config-input"
                 />
             </div>
-        </>
-    );
+
+            {/* Optional Column headers, shown BELOW the Title input */}
+            <div className="config-section">
+                <div className="config-row" style={{ alignItems: 'center', gap: 8 }}>
+                    <label className="config-label">Column headers <em>(optional)</em></label>
+                    <TooltipComponent content="If provided, these will be written into row&nbsp;1 of the new sheet (left to right).">
+                        <span className="e-icons e-circle-info help-icon"></span>
+                    </TooltipComponent>
+                </div>
+
+                {headers.length === 0 ? (
+                <div className="textbox-info">No headers added. Click “Add header” to add one.</div>
+                ) : (
+                <div className="columns-grid">
+                    {headers.map((h, i) => (
+                    <div
+                        key={i}
+                        style={{ display: 'flex', gap: 8, alignItems: 'center' }}
+                    >
+                        <TextBoxComponent
+                        value={h}
+                        placeholder={`Header ${i + 1}`}
+                        change={(e: any) => updateHeader(i, String(e.value ?? ''))}
+                        cssClass="config-input"
+                        />
+                        <ButtonComponent
+                        cssClass="flat-btn e-flat"
+                        iconCss="e-icons e-trash"
+                        onClick={() => removeHeader(i)}
+                        title="Remove header"
+                        />
+                    </div>
+                    ))}
+                </div>
+                )}
+
+                <ButtonComponent className="add-field-btn" iconCss="e-icons e-plus" onClick={addHeader}>
+                Add header
+                </ButtonComponent>
+            </div>
+            </>
+        );
+    };
 
     const renderDeleteSheet = () => (
         <>
@@ -666,6 +719,7 @@ const GoogleSheetsNodeConfig: React.FC<Props> = ({
                             update: undefined,
                             delete: undefined,
                             getRows: undefined,
+                            create: undefined,
                         });
                     }}
                     popupHeight="260px"

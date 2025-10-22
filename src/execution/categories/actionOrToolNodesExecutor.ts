@@ -1,6 +1,6 @@
 import emailjs from '@emailjs/browser';
 import { getGmailTokenCached, gmailSendRaw, toBase64Url } from '../../helper/googleGmailClient';
-import { extractSpreadsheetIdFromUrl, getSheetsTokenCached, sheetsAppendRowByHeaders, sheetsCreateSheet, sheetsDeleteDimension, sheetsDeleteSheetByTitle, sheetsGetAllRows, sheetsGetHeaderRow, sheetsGetRowsWithFilters, sheetsUpdateRowByMatch } from '../../helper/googleSheetsClient';
+import { extractSpreadsheetIdFromUrl, getSheetsTokenCached, sheetsAppendRowByHeaders, sheetsCreateSheet, sheetsDeleteDimension, sheetsDeleteSheetByTitle, sheetsGetAllRows, sheetsGetHeaderRow, sheetsGetRowsWithFilters, sheetsUpdateRowByMatch, sheetsWriteHeadersIfMissing } from '../../helper/googleSheetsClient';
 import { ExecutionContext, NodeConfig, NodeExecutionResult } from '../../types';
 import { NodeModel } from '@syncfusion/ej2-react-diagrams';
 import { showErrorToast, showInfoToast } from '../../components/Toast';
@@ -213,21 +213,51 @@ async function executeEmailJsNode(nodeConfig: NodeConfig, context: ExecutionCont
             showErrorToast('Sheets Missing Fields', msg);
             return { success: false, error: msg };
           }
+          
+          // read optional headers
+          const headers: string[] | undefined =
+            Array.isArray((gen.create ?? {}).headers) ? (gen.create.headers as string[]) : undefined;
 
           // Try to Create sheet
           try {
-            const created = await sheetsCreateSheet(docId, title, token);
-            return { success: true, data: { created, documentId: docId, title, createdNew: true } };
-          } catch (e: any) {
-            // Handle if sheets already exists and mark as success
+            const created = await sheetsCreateSheet(docId, title, token, headers);
+            return { success: true, data: { created, documentId: docId, title, createdNew: true, headersApplied: Array.isArray(headers) && headers.length > 0 } };
+          } 
+          // Handle if sheets already exists, check if need to update the header and mark as success
+          catch (e: any) {
             const msg = (e?.message ?? String(e)).toString();
-            // Google API typically returns a 400 with a message containing "already exists"
+
             if (/already\s+exists/i.test(msg)) {
-              // Treat as success: nothing to create
-              showInfoToast('Google Sheets', `Sheet "${title}" already exists — skipped creation.`);
+              // Try to add headers only if provided and missing
+              const headers: string[] | undefined =
+                Array.isArray((gen.create ?? {}).headers) ? (gen.create.headers as string[]) : undefined;
+
+              let headersApplied = false;
+              try {
+                if (headers && headers.length > 0) {
+                  headersApplied = await sheetsWriteHeadersIfMissing(docId, title, headers, token);
+                }
+              } catch {
+                // Swallow header write errors per requirement; treat as non-blocking
+                headersApplied = false;
+              }
+
+              // Toasts (informational) and success result
+              if (headersApplied) {
+                showInfoToast('Google Sheets', `Sheet "${title}" already exists — added headers to row 1.`);
+              } else {
+                showInfoToast('Google Sheets', `Sheet "${title}" already exists — skipped creation.`);
+              }
+
               return {
                 success: true,
-                data: { createdNew: false, reason: 'already-exists', documentId: docId, title }
+                data: {
+                  createdNew: false,
+                  reason: 'already-exists',
+                  documentId: docId,
+                  title,
+                  headersApplied
+                }
               };
             }
             throw e;
