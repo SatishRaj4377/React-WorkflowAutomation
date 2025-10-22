@@ -171,7 +171,7 @@ const ConditionNodeConfig: React.FC<ConditionNodeConfigProps> = ({
         })}
 
         <ButtonComponent className="add-field-btn" iconCss="e-icons e-plus" onClick={addRow}>
-          Add condition
+          Add {!showJoiners ? "Case" : "Condition"}
         </ButtonComponent>
       </div>
     </>

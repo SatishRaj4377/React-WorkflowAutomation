@@ -571,7 +571,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
             />
 
             {/* Enable default port */}
-            <div className="config-section" style={{ marginTop: 8 }}>
+            {/* <div className="config-section" style={{ marginTop: 8 }}>
               <label className="config-label">Default Port</label>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <input
@@ -582,7 +582,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
                 />
                 <label htmlFor="switch-default-port">Enable default port (executes if no case matches)</label>
               </div>
-            </div>
+            </div> */}
           </>
         );
       }
