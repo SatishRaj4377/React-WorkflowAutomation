@@ -288,7 +288,17 @@ export class WorkflowExecutionService {
       };
       this.notifyContextUpdate();
 
-      await this.executeTargets(targets);
+      try {
+        // Critical: abort whole workflow on first error in this loop
+        await this.executeTargets(targets, { abortOnError: true });
+      } catch (err) {
+        // If we threw because abortController was tripped, stop looping quietly
+        if (this.abortController.signal.aborted) {
+          return;
+        }
+        throw err;
+      }
+
     }
 
     // 5) After loop: keep a small default (first item only)
@@ -332,11 +342,22 @@ export class WorkflowExecutionService {
   }
 
   //  execute next nodes
-  private async executeTargets(targets: NodeModel[]): Promise<void> {
+  private async executeTargets(
+    targets: NodeModel[],
+    opts?: { abortOnError?: boolean }
+  ): Promise<void> {
     for (const nxt of targets) {
+      // Respect global cancellation (user cancel or programmatic abort)
       await this.checkExecutionCancelled();
+
       const ok = await this.executeBranchWithErrorHandling(nxt);
-      if (!ok && !this.options.enableDebug) throw new Error('Branch execution failed');
+
+      if (!ok) {
+        // abort the whole workflow immediately when requested
+        if (opts?.abortOnError) {
+          this.abortController.abort();                 // cancels everything in-flight
+        }
+      }
     }
   }
 
