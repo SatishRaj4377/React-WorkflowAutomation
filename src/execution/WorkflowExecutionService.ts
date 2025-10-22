@@ -361,6 +361,73 @@ export class WorkflowExecutionService {
     }
   }
 
+
+  // success painter for single-node runs ---
+  private paintSingleNodeSuccess(node: NodeModel): void {
+    const cfg = getNodeConfig(node);
+    if (!cfg) return;
+
+    if (isIfConditionNode(cfg)) {
+      // Read outcome set by the IF executor
+      const out = (this.executionContext.results as Record<string, any>)[node.id!];
+      const isTrue = Boolean(out?.conditionResult);
+      const portId = isTrue ? 'right-top-port' : 'right-bottom-port';
+      // Paint ONLY the chosen connector (like your branch logic)
+      updateNodeStatus(this.diagram, node.id!, 'success', { restrictToSourcePortId: portId });
+      return;
+    }
+
+    if (isSwitchNode(cfg)) {
+      const out = (this.executionContext.results as Record<string, any>)[node.id!];
+      const portId: string | null = out?.matchedPortId ?? null;
+      updateNodeStatus(this.diagram, node.id!, 'success', portId ? { restrictToSourcePortId: portId } : undefined);
+      return;
+    }
+
+    // Default: just mark the node as success
+    updateNodeStatus(this.diagram, node.id!, 'success');
+  }
+
+  /**
+   * Execute ONLY the selected node (no upstream/downstream traversal).
+   * - Intended for design-time "Execute step" to quickly see a node's output & context.
+   * - If inputs are missing, the node's executor shows toasts (as implemented already).
+   * - For AI Agent nodes, the executor itself will locate connected model/tools via ports,
+   *   as long as `context.diagram` is present.
+   */
+  public async executeSingleNode(nodeId: string): Promise<{ success: boolean; error?: string; output?: any }> {
+    try {
+      const node = (this.diagram as any)?.getObject?.(nodeId) as NodeModel | null;
+      if (!node) return { success: false, error: `Node ${nodeId} not found` };
+
+      (this.executionContext as any).diagram = this.diagram;
+
+      // Paint "running" for the node only (no connectors).
+      updateNodeStatus(this.diagram, nodeId, 'running');
+
+      // Reuse the existing node execution (same timeout & error path as full run).
+      const result = await this.executeNodeWithTimeout(node);
+
+      if (!result.success) {
+        // Mirror your existing error handling for a single node
+        this.handleNodeError(nodeId, result.error);
+        return { success: false, error: result.error };
+      }
+
+      // On success, paint like in executeBranch (IF/Switch painting; else just success)
+      this.paintSingleNodeSuccess(node);
+
+      // Notify consumers (variable picker / side panels) that context changed
+      this.notifyContextUpdate();
+
+      return { success: true, output: result.data };
+    } catch (err: any) {
+      const message = err?.message ?? String(err);
+      this.handleNodeError(nodeId, message);
+      return { success: false, error: message };
+    }
+  }
+
   /**
    * Get appropriate executor for node type
    */

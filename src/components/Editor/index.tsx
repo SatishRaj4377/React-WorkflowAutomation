@@ -13,7 +13,7 @@ import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosit
 import WorkflowProjectService from '../../services/WorkflowProjectService';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
 import { calculateNewNodePosition, createConnector, createNodeFromTemplate, generateOptimizedThumbnail, getDefaultDiagramSettings, getNodeConfig, getNodePortById } from '../../helper/utilities';
-import { diagramHasChatTrigger, findTriggerNodes, resetExecutionStates } from '../../helper/workflowExecution';
+import { diagramHasChatTrigger, resetExecutionStates } from '../../helper/workflowExecution';
 import { handleEditorKeyDown } from '../../helper/keyboardShortcuts';
 import { WorkflowExecutionService } from '../../execution/WorkflowExecutionService';
 import { ChatPopup } from '../ChatPopup';
@@ -112,6 +112,19 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     setSelectedNodeId(nodeId);
     setNodeConfigPanelOpen(true);
     setNodePaletteSidebarOpen(false);
+  };
+
+  const handleSingleNodeExecute = async (nodeId: string) => {
+    const svc = workflowExecutionRef.current;
+    if (!svc) { return; }
+
+    try {
+      const res = await svc.executeSingleNode(nodeId);
+      if (res?.success) {
+        showSuccessToast('Node executed', 'Output captured in execution context.');
+        return;
+      }
+    } catch (err) {}
   };
 
   const handleNodeConfigChange = (nodeId: string, config: NodeConfig) => {
@@ -711,6 +724,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
               setNodePaletteSidebarOpen(false);
               setNodeConfigPanelOpen(false);
             }}
+            onSingleNodeExecute={handleSingleNodeExecute}
           />
         </div>
         

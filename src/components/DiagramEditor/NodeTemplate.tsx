@@ -33,6 +33,7 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo, onNodeToolbarA
       <div className={`node-template ${isRightPortOnly ? 'trigger-node' : portConfig.topPort ? 'tool-node' : ''}`} data-node-id={`${id}`} >
         {/* Show Node actions toolbar on hover */}
         <div className="node-hover-toolbar">
+          <ButtonComponent title='Execute this node' iconCss='e-icons e-play' className="node-toolbar-btn" onClick={() => onNodeToolbarAction?.(id, 'execute-step')} />
           <ButtonComponent title='Edit' iconCss='e-icons e-edit' className="node-toolbar-btn" onClick={() => onNodeToolbarAction?.(id, 'edit')} />
           <ButtonComponent title='Delete' iconCss='e-icons e-trash' className="node-toolbar-btn" onClick={() => onNodeToolbarAction?.(id, 'delete')} />
         </div>

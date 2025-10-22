@@ -46,6 +46,7 @@ interface DiagramEditorProps {
   onInitialAddClick?: () => void;
   onNodeAddedFirstTime?: () => void;
   onCanvasClick?: () => void;
+  onSingleNodeExecute: (nodeId: any) => void;
 }
 
 let isStickyNoteEditing = false;
@@ -67,7 +68,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   showInitialAddButton,
   onInitialAddClick,
   onNodeAddedFirstTime,
-  onCanvasClick
+  onCanvasClick,
+  onSingleNodeExecute
 }) => {
 
   const diagramRef = useRef<DiagramComponent>(null);
@@ -510,6 +512,11 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   const handleNodeToolbarAction = (nodeId: string, action: NodeToolbarAction) => {
     const diagram = diagramRef.current;
     switch (action) {
+      case 'execute-step': {
+        // Execute the selected node only
+        onSingleNodeExecute(nodeId);
+        break;
+      }
       case 'edit':
         // open the config panel
         onNodeDoubleClick(nodeId);
