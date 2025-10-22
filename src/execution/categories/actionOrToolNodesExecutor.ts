@@ -3,7 +3,7 @@ import { getGmailTokenCached, gmailSendRaw, toBase64Url } from '../../helper/goo
 import { extractSpreadsheetIdFromUrl, getSheetsTokenCached, sheetsAppendRowByHeaders, sheetsCreateSheet, sheetsDeleteDimension, sheetsDeleteSheetByTitle, sheetsGetAllRows, sheetsGetHeaderRow, sheetsGetRowsWithFilters, sheetsUpdateRowByMatch } from '../../helper/googleSheetsClient';
 import { ExecutionContext, NodeConfig, NodeExecutionResult } from '../../types';
 import { NodeModel } from '@syncfusion/ej2-react-diagrams';
-import { showErrorToast } from '../../components/Toast';
+import { showErrorToast, showInfoToast } from '../../components/Toast';
 import { resolveTemplate } from '../../helper/expression';
 import { GoogleAuth } from '../../helper/googleAuthClient';
 
@@ -214,8 +214,25 @@ async function executeEmailJsNode(nodeConfig: NodeConfig, context: ExecutionCont
             return { success: false, error: msg };
           }
 
-          const created = await sheetsCreateSheet(docId, title, token);
-          return { success: true, data: { created, documentId: docId, title } };
+          // Try to Create sheet
+          try {
+            const created = await sheetsCreateSheet(docId, title, token);
+            return { success: true, data: { created, documentId: docId, title, createdNew: true } };
+          } catch (e: any) {
+            // Handle if sheets already exists and mark as success
+            const msg = (e?.message ?? String(e)).toString();
+            // Google API typically returns a 400 with a message containing "already exists"
+            if (/already\s+exists/i.test(msg)) {
+              // Treat as success: nothing to create
+              showInfoToast('Google Sheets', `Sheet "${title}" already exists — skipped creation.`);
+              return {
+                success: true,
+                data: { createdNew: false, reason: 'already-exists', documentId: docId, title }
+              };
+            }
+            throw e;
+          }
+
         }
 
         // -------- 2) Delete Sheet --------
@@ -228,8 +245,27 @@ async function executeEmailJsNode(nodeConfig: NodeConfig, context: ExecutionCont
             return { success: false, error: msg };
           }
 
-          const removed = await sheetsDeleteSheetByTitle(docId, sheetName, token);
-          return { success: true, data: { deleted: removed, documentId: docId, sheetName } };
+
+          // Try to delete sheet
+          try {
+            const removed = await sheetsDeleteSheetByTitle(docId, sheetName, token);
+            return { success: true, data: { deleted: true, detail: removed, documentId: docId, sheetName } };
+          } catch (e: any) {
+            // Handle if sheet already exists, mark as success
+            const msg = (e?.message ?? String(e)).toString();
+            // Our client throws "Sheet "<title>" not found" when the sheet title is missing
+            if (/not\s+found/i.test(msg)) {
+              // Treat as success: nothing to delete
+              showInfoToast('Google Sheets', `Sheet "${sheetName}" not found — nothing to delete.`);
+              return {
+                success: true,
+                data: { deleted: false, reason: 'not-found', documentId: docId, sheetName }
+              };
+            }
+            // Any other error: keep existing behaviour
+            throw e;
+          }
+
         }
 
         // -------- 3) Append Row --------
