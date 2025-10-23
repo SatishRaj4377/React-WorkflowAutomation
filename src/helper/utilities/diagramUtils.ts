@@ -174,3 +174,16 @@ export const getConnectedSourceByTargetPort = (diagram: any, targetId: string, t
   );
   return conn ? diagram.getObject(conn.sourceID) : undefined;
 }
+
+/** Return ALL targets connected from a node's specific source port (includes tool nodes). */
+export const  getAllTargetsBySourcePortIncludingTools = (
+  diagram: any,
+  sourceId: string,
+  sourcePortId: string
+): NodeModel[]  => {
+  const connectors = (diagram?.connectors ?? []) as any[];
+  return connectors
+    .filter(c => c.sourceID === sourceId && c.sourcePortID === sourcePortId)
+    .map(c => diagram.getObject(c.targetID))
+    .filter(Boolean);
+}
