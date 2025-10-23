@@ -1,3 +1,5 @@
+import { NodeConfig } from "./interfaces";
+
 export type ToolbarAction = 'addNode' | 'execute' | 'cancel' | 'fitToPage' | 'zoomIn' | 'zoomOut' | 'resetZoom' | 'addSticky' | 'togglePan';
 
 export type NodeToolbarAction = 'edit' | 'delete' | 'execute-step';
@@ -123,3 +125,85 @@ export interface ConditionNodeOutput {
   conditionResult: boolean;     // final boolean outcome
   rowResults: boolean[];        // per-row outcomes (useful for debug/UX)
 }
+
+
+export type AzureChatConfig = {
+  endpoint: string;           // https://<resource>.openai.azure.com
+  key: string;                // Azure OpenAI API key
+  deploymentName: string;     // Model deployment name
+  temperature?: number;
+};
+
+/** Function tool definition for Chat Completions. */
+export type AzureTool = {
+  type: 'function';
+  function: {
+    name: string;
+    description: string;              // <= 1024 chars
+    parameters: Record<string, any>;  // JSON Schema
+  };
+};
+
+/** Messages allowed by Chat Completions with tool calling. */
+export type AgentMessage =
+  | { role: 'system' | 'user'; content: string }
+  | {
+    role: 'assistant';
+    content?: string | null;
+    tool_calls?: Array<{
+      id: string;
+      type: 'function';
+      function: { name: string; arguments: string };
+    }>;
+  }
+  | { role: 'tool'; tool_call_id: string; content: string };
+
+export type AgentTurnOptions = {
+  system?: string;
+  temperature?: number;
+  tools?: AzureTool[];
+  toolChoice?: 'auto' | { type: 'function'; function: { name: string } };
+  responseFormatJsonSchema?: { name: string; schema: any; strict?: boolean };
+  apiVersionOverride?: string;
+};
+
+export type AgentTurnResult = {
+  message: {
+    role: 'assistant';
+    content?: string | null;
+    tool_calls?: Array<{
+      id: string;
+      type: 'function';
+      function: { name: string; arguments: string };
+    }>;
+  };
+  raw: any;
+};
+
+
+/** What the agent returns so the runtime & UI can reason deterministically. */
+export type AgentExecutionPlan = {
+  intent: 'answer' | 'use_tools' | 'use_tools_and_answer' | 'clarify';
+  rationale?: string;
+  actions: Array<{
+    toolNodeId: string;
+    toolName: string;
+    reason?: string;
+    args?: Record<string, any>;
+    execute: boolean;
+  }>;
+  missingInfo: Array<{ toolNodeId: string; field: string; ask: string }>;
+  finalResponse?: string;
+  meta?: { iterations?: number; hasIntermediate?: boolean };
+};
+
+export type ToolDescriptor = {
+  toolNodeId: string;
+  toolName: string;                 // e.g., "google_sheets.read_range"
+  title: string;
+  description: string;              // keep concise (Azure limit)
+  parameters: Record<string, any>;  // JSON Schema
+  toAzureTool: () => AzureTool;
+  applyArgsToNodeConfig: (nodeConfig: NodeConfig, args: Record<string, any>) => NodeConfig;
+};
+
