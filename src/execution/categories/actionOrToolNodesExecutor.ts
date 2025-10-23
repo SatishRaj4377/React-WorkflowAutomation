@@ -14,10 +14,13 @@ export async function executeActionOrToolCategory(
 ): Promise<NodeExecutionResult> {
   switch (nodeConfig.nodeType) {
     case 'EmailJS':
+    case 'EmailJS Tool':
       return executeEmailJsNode(nodeConfig, context);
     case 'Gmail':
+    case 'Gmail Tool':
       return executeGmailNode(nodeConfig, context);
     case 'Google Sheets':
+    case 'Google Sheets Tool':
       return executeGoogleSheetsNode(nodeConfig, context);
       
     default:

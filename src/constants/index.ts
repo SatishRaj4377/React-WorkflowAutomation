@@ -111,7 +111,9 @@ export const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
 export const TIMEZONES = ['UTC', 'Asia/Kolkata', 'America/New_York', 'Europe/London', 'Asia/Tokyo'];
 export const AUTH_NODE_TYPES: NodeType[] = [
   'Gmail',
+  'Gmail Tool',
   'Google Sheets',
+  'Google Sheets Tool',
   'Google Calendar',
   'Google Docs',
   'Telegram',

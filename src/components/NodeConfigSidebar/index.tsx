@@ -472,7 +472,8 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
         );
       }
 
-      case 'Gmail': {
+      case 'Gmail':
+      case 'Gmail Tool': {
         return (
           <GmailNodeConfig
             settings={settings}
@@ -483,7 +484,8 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
         );
       }
 
-      case 'Google Sheets': {
+      case 'Google Sheets': 
+      case 'Google Sheets Tool': {
         const auth = (selectedNode?.settings?.authentication as any) ?? {};
         const connected = isGoogleConnectedFor('Google Sheets', auth);
         const GOOGLE_WEB_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID ?? '';
@@ -810,7 +812,8 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           );
 
 
-        case 'Gmail': {
+        case 'Gmail': 
+        case 'Gmail Tool': {
           const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID ?? '';
           return (
             <div className="config-tab-content">
@@ -825,7 +828,8 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           );
         }
 
-        case 'Google Sheets': {
+        case 'Google Sheets':
+        case 'Google Sheets Tool': {
           const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID ?? '';
           return (
             <div className="config-tab-content">
