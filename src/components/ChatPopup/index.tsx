@@ -20,19 +20,20 @@ export const ChatPopup: React.FC<ChatPopupProps> = ({
   promptSuggestions,
 }) => {
   const popupRef = useRef<HTMLDivElement>(null);
+  const popupHeightRef = useRef('0px');
   const dragRef = useRef<Draggable | null>(null);
   const aiViewRef = useRef<AIAssistViewComponent>(null);
-
   const [isMinimized, setIsMinimized] = useState(false);
-
+  
   const MessageIcon = IconRegistry['Message'];
-
+  
   const toggleMinimize = () => {
     if (!popupRef.current) return;
     if (popupRef.current.style.height === '0px'){
-      popupRef.current.style.height = '380px'; // Restore height
+      popupRef.current.style.height = popupHeightRef.current; // Restore height
       setIsMinimized(false);
     } else {
+      popupHeightRef.current = popupRef.current.style.height;
       popupRef.current.style.height = '0px'; // Minimize
       setIsMinimized(true);
     }
