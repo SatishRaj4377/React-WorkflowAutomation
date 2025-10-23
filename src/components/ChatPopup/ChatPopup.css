@@ -154,3 +154,14 @@
     color: var(--text-secondary);
     margin: 0 1rem 0 0;
 }
+
+/* update the html tags formatting */
+.chat-popup-body .e-aiassistview .e-views .e-content-body ol,
+.chat-popup-body .e-aiassistview .e-views .e-content-body ul {
+    padding: 0 0 0 2.4rem;
+}
+.chat-popup-body .e-aiassistview .e-views .e-content-body h1,  
+.chat-popup-body .e-aiassistview .e-views .e-content-body h2,  
+.chat-popup-body .e-aiassistview .e-views .e-content-body h3 {  
+    margin: 1rem 0 1rem 0;
+}
