@@ -488,7 +488,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
       case 'Google Sheets Tool': {
         const auth = (selectedNode?.settings?.authentication as any) ?? {};
         const connected = isGoogleConnectedFor('Google Sheets', auth);
-        const GOOGLE_WEB_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID ?? '';
+        const GOOGLE_WEB_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID ?? '200986169390-on3tgm86r3i88mj8gil2o3li0gdvlcel.apps.googleusercontent.com';
 
         return (
           <GoogleSheetsNodeConfig
@@ -814,7 +814,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
 
         case 'Gmail': 
         case 'Gmail Tool': {
-          const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID ?? '';
+          const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID ?? '200986169390-on3tgm86r3i88mj8gil2o3li0gdvlcel.apps.googleusercontent.com';
           return (
             <div className="config-tab-content">
               <GoogleAuthPanel
@@ -830,7 +830,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
 
         case 'Google Sheets':
         case 'Google Sheets Tool': {
-          const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID ?? '';
+          const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID ?? '200986169390-on3tgm86r3i88mj8gil2o3li0gdvlcel.apps.googleusercontent.com';
           return (
             <div className="config-tab-content">
               <GoogleAuthPanel
