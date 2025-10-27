@@ -153,6 +153,7 @@
     padding: .5rem 1rem;
     color: var(--text-secondary);
     margin: 0 1rem 0 0;
+    text-wrap-mode: wrap;
 }
 
 /* update the html tags formatting */
