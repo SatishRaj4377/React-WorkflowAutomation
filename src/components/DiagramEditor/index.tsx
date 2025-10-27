@@ -767,6 +767,17 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     };
   }, [isPanning, previousDiagramTool]);
 
+  // Load saved diagram data when component mounts and diagramRef is available
+  useEffect(() => {
+    if (diagramRef.current && project?.workflowData?.diagramString) {
+      diagramRef.current.loadDiagram(project.workflowData.diagramString);
+      if (!hasFirstNodeAdded) {
+        setHasFirstNodeAdded(true);
+        if (onNodeAddedFirstTime) onNodeAddedFirstTime();
+      }
+    }
+  }, [diagramRef.current, project?.workflowData?.diagramString]);
+
   // Update diagram when there is any change in the settings dialog
   useEffect(() => {
     if (diagramRef.current && diagramSettings) {
