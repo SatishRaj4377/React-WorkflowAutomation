@@ -10,7 +10,7 @@ interface NodeTemplateProps {
   onNodeToolbarAction?: (id: string, action: NodeToolbarAction) => void;
 }
 
-const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo, onNodeToolbarAction }) => {
+const NodeTemplate: React.FC<NodeTemplateProps> = React.memo(({ id, addInfo, onNodeToolbarAction }) => {
   // Destructure and validate nodeConfig
   const { nodeConfig } = addInfo;
   if (!nodeConfig || typeof nodeConfig !== 'object') {
@@ -89,6 +89,6 @@ const NodeTemplate: React.FC<NodeTemplateProps> = ({ id, addInfo, onNodeToolbarA
       )}
     </div>
   );
-};
-
+});
+ 
 export default NodeTemplate;

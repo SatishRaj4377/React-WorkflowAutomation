@@ -9,7 +9,7 @@ import NodePaletteSidebar from '../NodePaletteSidebar';
 import NodeConfigSidebar from '../NodeConfigSidebar';
 import { useTheme } from '../../contexts/ThemeContext';
 import ConfirmationDialog from '../ConfirmationDialog';
-import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosition, ToolbarAction, ExecutionContext } from '../../types';
+import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosition, ToolbarAction, ExecutionContext, NodeToolbarAction } from '../../types';
 import WorkflowProjectService from '../../services/WorkflowProjectService';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
 import { calculateNewNodePosition, createConnector, createNodeFromTemplate, generateOptimizedThumbnail, getDefaultDiagramSettings, getNodeConfig, getNodePortById } from '../../helper/utilities';
@@ -19,6 +19,8 @@ import { WorkflowExecutionService } from '../../execution/WorkflowExecutionServi
 import { ChatPopup } from '../ChatPopup';
 import { MessageComponent } from '@syncfusion/ej2-react-notifications';
 import './Editor.css';
+import { createRoot } from 'react-dom/client';
+import Template from '../DiagramEditor/NodeTemplate';
 
 interface EditorProps {
   project: ProjectData;
@@ -127,17 +129,45 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     } catch (err) {}
   };
 
+  const handleNodeToolbarAction = useCallback((nodeId: string, action: NodeToolbarAction) => {
+    if (!diagramRef) return;
+
+    switch (action) {
+      case 'execute-step':
+        handleSingleNodeExecute(nodeId);
+        break;
+      case 'edit':
+        handleNodeDoubleClick(nodeId);
+        break;
+      case 'delete':
+        diagramRef.remove(diagramRef.getObject(nodeId));
+        setIsDirty(true);
+        break;
+    }
+  }, [diagramRef]);
+
   const handleNodeConfigChange = (nodeId: string, config: NodeConfig) => {
     setSelectedNode(config);
     
-    // Update the node's addInfo in the diagram directly
+    // Update the node's addInfo and shape content in the diagram directly
     if (diagramRef) {
       const node = diagramRef.getObject(nodeId);
       if (node) {
-        node.addInfo = { nodeConfig: config };
-        diagramRef.refresh(); // refresh the diagram to update the changes
-        diagramRef.fitToPage();
-        setIsDirty(true); // Mark as dirty when node config changes
+        // Update addInfo
+        node.addInfo = { ...node.addInfo, nodeConfig: config };
+        // Update node template content
+        const container = document.getElementById(`nodeTemplate_${nodeId}`);
+        if (container) {
+          createRoot(container).render(
+            <Template 
+              id={nodeId} 
+              addInfo={{ nodeConfig: config }}
+              onNodeToolbarAction={handleNodeToolbarAction}
+            />
+          );
+        }
+        diagramRef.dataBind();
+        setIsDirty(true);
       }
     }
   };
@@ -724,7 +754,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
               setNodePaletteSidebarOpen(false);
               setNodeConfigPanelOpen(false);
             }}
-            onSingleNodeExecute={handleSingleNodeExecute}
+            onNodeToolbarAction={handleNodeToolbarAction}
           />
         </div>
         

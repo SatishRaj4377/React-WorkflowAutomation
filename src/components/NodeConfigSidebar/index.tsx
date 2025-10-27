@@ -215,30 +215,6 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           </>
         );
 
-      case 'Manual Click':
-        return (
-          <>
-            <div className="config-section">
-              <label className="config-label">Button Label</label>
-              <TextBoxComponent
-                value={settings.buttonLabel ?? 'Run'}
-                placeholder="Run"
-                change={(e: any) => handleConfigChange('buttonLabel', e.value)}
-                cssClass="config-input"
-              />
-            </div>
-            <div className="config-section">
-              <label className="config-label">Instruction</label>
-              <TextBoxComponent
-                value={settings.instruction ?? ''}
-                placeholder="Optional instruction for the operator"
-                change={(e: any) => handleConfigChange('instruction', e.value)}
-                cssClass="config-textarea"
-                multiline
-              />
-            </div>
-          </>
-        );
 
       case 'Chat': {
         const promptSuggestions: string[] = settings.promptSuggestions ?? [];

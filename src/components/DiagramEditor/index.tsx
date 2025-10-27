@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { createRoot } from 'react-dom/client';
 import {
   DiagramComponent,
   SnapSettingsModel,
@@ -46,7 +47,7 @@ interface DiagramEditorProps {
   onInitialAddClick?: () => void;
   onNodeAddedFirstTime?: () => void;
   onCanvasClick?: () => void;
-  onSingleNodeExecute: (nodeId: any) => void;
+  onNodeToolbarAction?: (nodeId: string, action: NodeToolbarAction) => void;
 }
 
 let isStickyNoteEditing = false;
@@ -69,7 +70,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   onInitialAddClick,
   onNodeAddedFirstTime,
   onCanvasClick,
-  onSingleNodeExecute
+  onNodeToolbarAction
 }) => {
 
   const diagramRef = useRef<DiagramComponent>(null);
@@ -146,7 +147,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       updateNodeConstraints(node);
 
       // Set up templates and ports
-      updateNodeTemplates(setUpStickyNote, node);
+      updateNodeTemplates(setUpStickyNote, node, handleNodeToolbarAction);
       prepareUserHandlePortData(node);
 
       // Position the node with stagger effect
@@ -510,26 +511,9 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
   // handle the node toolbar actions
   const handleNodeToolbarAction = (nodeId: string, action: NodeToolbarAction) => {
-    const diagram = diagramRef.current;
-    switch (action) {
-      case 'execute-step': {
-        // Execute the selected node only
-        onSingleNodeExecute(nodeId);
-        break;
-      }
-      case 'edit':
-        // open the config panel
-        onNodeDoubleClick(nodeId);
-        break;
-      case 'delete':
-        // handle delete
-        if (diagram) {
-          diagram.remove(diagram.getNodeObject(nodeId));
-        }
-        break;
-      default:
-        console.warn('Unknown action:', action);
-    }
+    if (onNodeToolbarAction) {
+      onNodeToolbarAction(nodeId, action);
+    } 
   };
 
   // handle conext menu click event
@@ -967,17 +951,36 @@ function updateNodePosition(obj: NodeModel, diagramRef: React.RefObject<DiagramC
 }
 
 // Sets the node template for nodes
-function updateNodeTemplates(setUpStickyNote: (stickyNode: NodeModel) => void, node: NodeModel) {
+function updateNodeTemplates(
+  setUpStickyNote: (stickyNode: NodeModel) => void, 
+  node: NodeModel,
+  onNodeToolbarAction: (nodeId: string, action: NodeToolbarAction) => void
+) {
   const nodeConfig = (node.addInfo as any)?.nodeConfig as NodeConfig;
   if (nodeConfig && isStickyNote(nodeConfig)) {
     // For sticky notes render annotation template
     setUpStickyNote(node);
   }
   else {
-    // Set HTML template for all other nodes
+    // Set HTML template for all other nodes with node-specific content
     node.shape = {
       type: "HTML",
+      content: `<div id="nodeTemplate_${node.id}"></div>`
     };
+
+    // Update node template content after render
+    setTimeout(() => {
+      const container = document.getElementById(`nodeTemplate_${node.id}`);
+      if (container && node.id) {
+        createRoot(container).render(
+          <NodeTemplate 
+            id={node.id} 
+            addInfo={node.addInfo as any}
+            onNodeToolbarAction={onNodeToolbarAction}
+          />
+        );
+      }
+    }, 0);
   }
 }
 
