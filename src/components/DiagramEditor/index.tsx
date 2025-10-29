@@ -309,6 +309,9 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     const diagram = diagramRef.current;
     if (!diagram) return;
 
+    // Update node template content after render
+    updateHtmlNodeTemplate(node, onNodeToolbarAction);
+
     const isOutOfView = isNodeOutOfViewport(diagram, node);
     const isFirstNode = !hasFirstNodeAdded && diagram.nodes?.length === 1;
 
@@ -910,6 +913,20 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
 export default DiagramEditor;
 
+function updateHtmlNodeTemplate(node: NodeModel, onNodeToolbarAction: ((nodeId: string, action: NodeToolbarAction) => void) | undefined) {
+  setTimeout(() => {
+    const container = document.getElementById(`nodeTemplate_${node.id}`);
+    if (container && node.id) {
+      createRoot(container).render(
+        <NodeTemplate
+          id={node.id}
+          addInfo={node.addInfo as any}
+          onNodeToolbarAction={onNodeToolbarAction} />
+      );
+    }
+  }, 0);
+}
+
 // Generate Userhandles based on the `OutConnect` ports
 function generatePortBasedUserHandles(node: NodeModel): UserHandleModel[] {
   const portHandlesInfo: Array<{ portId: string; direction: NodePortDirection; side?: any; offset?: number }> = (node.addInfo as any)?.userHandlesAtPorts ?? [];
@@ -980,18 +997,7 @@ function updateNodeTemplates(
     };
 
     // Update node template content after render
-    setTimeout(() => {
-      const container = document.getElementById(`nodeTemplate_${node.id}`);
-      if (container && node.id) {
-        createRoot(container).render(
-          <NodeTemplate 
-            id={node.id} 
-            addInfo={node.addInfo as any}
-            onNodeToolbarAction={onNodeToolbarAction}
-          />
-        );
-      }
-    }, 0);
+    updateHtmlNodeTemplate(node, onNodeToolbarAction);
   }
 }
 
