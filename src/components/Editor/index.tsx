@@ -225,7 +225,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     const connector = createConnector(
       selectedPortConnection.nodeId,
       newNode.id || '',
-      selectedPortConnection.portId
+      selectedPortConnection.portId,
+      nodeTemplate?.category === 'tool' ? 'top-port' : 'left-port'
     );
 
     // Add the new elements to the diagram
