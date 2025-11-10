@@ -51,6 +51,16 @@ const Toolbar: React.FC<ToolbarProps> = ({
       type: 'Separator',
     },
     {
+      prefixIcon: 'e-icons e-ai-chat',
+      tooltipText: 'Auto Align',
+      id: 'auto-align-tool',
+      click: () => onAction('autoAlign'),
+      overflow: 'Show',
+    },
+    {
+      type: 'Separator',
+    },
+    {
         prefixIcon: 'e-icons e-pan',
         tooltipText: 'Pan',
         id: 'pan-tool',
@@ -112,10 +122,13 @@ const Toolbar: React.FC<ToolbarProps> = ({
           'Add Nodes': 'Open Node Palette <kbd>Tab</kbd>',
           'Add Sticky Note': 'Add Sticky Note <kbd>Shift</kbd> <kbd>S</kbd>',
           'Pan': 'Pan <kbd>Space</kbd>',
+          'Auto Align': 'Auto Align <kbd>Shift</kbd> <kbd>A</kbd>',
           'Zoom In': 'Zoom In <kbd>Ctrl</kbd> <kbd>+</kbd>',
           'Zoom Out': 'Zoom Out <kbd>Ctrl</kbd> <kbd>-</kbd>',
           'Reset Zoom': 'Reset Zoom <kbd>Ctrl</kbd> <kbd>0</kbd>',
           'Fit to Page': 'Fit to Page <kbd>Ctrl</kbd> <kbd>1</kbd>',
+          'Execute Workflow': 'Execute <kbd>Ctrl</kbd> <kbd>Enter</kbd>',
+          'Cancel Execution': 'Cancel <kbd>Ctrl</kbd> <kbd>Enter</kbd>',
         };
         
         const content = shortcutMap[title];

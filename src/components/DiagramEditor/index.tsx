@@ -11,7 +11,6 @@ import {
   DiagramTools,
   UndoRedo,
   DataBinding,
-  HierarchicalTree,
   DiagramContextMenu,
   NodeConstraints,
   Keys,
@@ -25,6 +24,7 @@ import {
   DiagramConstraints,
   DiagramModel,
   Connector,
+  ComplexHierarchicalTree,
 } from '@syncfusion/ej2-react-diagrams';
 import { DiagramSettings, NodeConfig, NodePortDirection, NodeToolbarAction } from '../../types';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
@@ -152,6 +152,10 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
       // Position the node with stagger effect
       updateNodePosition(node, diagramRef);
+
+      if (nodeConfig.category === 'tool'){
+        node.excludeFromLayout = true;
+      }
     }
 
     return node;
@@ -638,6 +642,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     stickyNode.annotations = [
     {
       id: "annotation",
+      width: stickyNode.width,
+      height: stickyNode.height,
       template: diagramRef.current 
           ? getStickyNoteTemplate(diagramRef.current, stickyNode.id as string)
           : '<div>Loading sticky note...</div>'
@@ -858,12 +864,14 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         height="100%"
         nodes={[]}
         connectors={[]}
-        nodeTemplate={(props: any) => (
-          <NodeTemplate
-            {...props}
-            onNodeToolbarAction={handleNodeToolbarAction}
-          />
-        )}
+        layout={{ 
+          type: 'ComplexHierarchicalTree',
+          orientation: 'LeftToRight',
+          horizontalAlignment:'Center',
+          verticalAlignment: 'Center',
+          horizontalSpacing: 80,
+          verticalSpacing: 80,
+        }}
         getNodeDefaults={getNodeDefaults}
         getConnectorDefaults={getConnectorDefaults}
         elementDraw={removeDisConnectedConnectors}
@@ -885,7 +893,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         historyChange={onDiagramChange}
         loaded={handleDiagramLoaded}
       >
-        <Inject services={[UndoRedo, DataBinding, HierarchicalTree, DiagramContextMenu, Snapping ]} />
+        <Inject services={[UndoRedo, DataBinding, DiagramContextMenu, Snapping, ComplexHierarchicalTree  ]} />
       </DiagramComponent>
 
       {/* Overview Panel with integrated zoom percentage */}

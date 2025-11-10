@@ -12,15 +12,15 @@ import ConfirmationDialog from '../ConfirmationDialog';
 import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosition, ToolbarAction, ExecutionContext, NodeToolbarAction } from '../../types';
 import WorkflowProjectService from '../../services/WorkflowProjectService';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
-import { calculateNewNodePosition, createConnector, createNodeFromTemplate, generateOptimizedThumbnail, getDefaultDiagramSettings, getNodeConfig, getNodePortById } from '../../helper/utilities';
+import { calculateNewNodePosition, createConnector, createNodeFromTemplate, generateOptimizedThumbnail, getDefaultDiagramSettings, getNodeConfig, getNodePortById, isAiAgentNode, getNodeDimensions, findAiAgentBottomConnectedNodes, getAiAgentBottomNodePosition } from '../../helper/utilities';
 import { diagramHasChatTrigger, resetExecutionStates } from '../../helper/workflowExecution';
 import { handleEditorKeyDown } from '../../helper/keyboardShortcuts';
 import { WorkflowExecutionService } from '../../execution/WorkflowExecutionService';
 import { ChatPopup } from '../ChatPopup';
 import { MessageComponent } from '@syncfusion/ej2-react-notifications';
-import './Editor.css';
-import { createRoot } from 'react-dom/client';
 import Template from '../DiagramEditor/NodeTemplate';
+import { createRoot } from 'react-dom/client';
+import './Editor.css';
 
 interface EditorProps {
   project: ProjectData;
@@ -232,6 +232,15 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     // Add the new elements to the diagram
     diagramRef.add(newNode);
     diagramRef.add(connector);
+    // If the source node is an AI Agent and the user added a node from a bottom port,
+    // reposition that agent's bottom targets so they stay centered and spaced.
+    try {
+      const srcCfg = getNodeConfig(sourceNode as NodeModel);
+      if (srcCfg && isAiAgentNode(srcCfg) && selectedPortConnection.portId.toLowerCase().startsWith('bottom')) {
+        repositionAiAgentTargets(sourceNode as NodeModel);
+        diagramRef.dataBind();
+      }
+    } catch (err) {}
     diagramRef.clearSelection();
     diagramRef.tool = DiagramTools.Default; // Reset the diagram tool
 
@@ -251,6 +260,23 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     diagramRef.add(newNode);
   };
 
+  // reposition targets connected to an AI Agent bottom port (extracted so it can be reused)
+  const repositionAiAgentTargets = (agent: NodeModel) => {
+    if (!diagramRef || !agent) return;
+    
+    // Get all nodes connected to bottom ports
+    const targets: NodeModel[] = findAiAgentBottomConnectedNodes(agent, diagramRef);
+    if (targets.length === 0) return;
+
+    // Position each target node
+    targets.forEach((target: NodeModel, _: number) => {
+      // Place this target relative to all other targets
+      const position = getAiAgentBottomNodePosition(agent, 'bottom-port', diagramRef, target);
+      target.offsetX = position.offsetX;
+      target.offsetY = position.offsetY;
+    });
+  };
+
   const handleDiagramSettingsChange = (settings: DiagramSettings) => {
     setDiagramSettings(settings);
     setIsDirty(true);
@@ -268,6 +294,9 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         break;
       case 'cancel':
         handleCancelExecution();
+        break;
+      case 'autoAlign':
+        handleAutoAlign();
         break;
       case 'fitToPage':
         diagramRef?.fitToPage({
@@ -417,6 +446,28 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
 
       diagramRef.add(stickyNote);
     }
+  };
+  const handleAutoAlign = () => {
+    if (!diagramRef) return;
+
+    // Run default layout first
+    diagramRef.doLayout();
+
+    // Reuse existing utilities instead of scanning connectors manually
+    const nodes: any[] = (diagramRef.nodes && Array.isArray(diagramRef.nodes)) ? diagramRef.nodes : [];
+    nodes.forEach((n: NodeModel) => {
+      try {
+        const cfg = getNodeConfig(n);
+        if (cfg && isAiAgentNode(cfg)) {
+          const bottomTargets = findAiAgentBottomConnectedNodes(n, diagramRef);
+          if (bottomTargets.length > 0) {
+            repositionAiAgentTargets(n);
+          }
+        }
+      } catch (err) { /* ignore */ }
+    });
+
+    diagramRef.fitToPage();
   };
   // TOOLBAR HANDLERS - END
 

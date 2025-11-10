@@ -1,27 +1,77 @@
-import { Diagram } from '@syncfusion/ej2-react-diagrams';
 import { ToolbarAction } from '../types';
 
-type EditorKeyboardShortcuts = {
-    [key: string]: (onAction: (action: ToolbarAction) => void) => void;
+// Normalize and define shortcuts in a scalable way
+// Example normalized keys: "tab", "shift+s", "ctrl+0", "ctrl+1", "ctrl+enter"
+
+const normalizeShortcut = (e: KeyboardEvent): string => {
+    const key = e.key.toLowerCase();
+    const ctrl = e.ctrlKey || e.metaKey;
+    const shift = e.shiftKey;
+
+    let combo = '';
+    if (ctrl) combo += 'ctrl+';
+    if (shift) combo += 'shift+';
+    combo += key;
+    return combo;
 };
 
-const editorKeyboardShortcuts: EditorKeyboardShortcuts = {
-    // Add Node
-    'tab': (onAction) => onAction('addNode'),
-    // Add Sticky Note
-    'shift+s': (onAction) => onAction('addSticky'),
-    // Reset Zoom
-    'ctrl+0': (onAction) => onAction('resetZoom'),
-    // Fit to Page
-    'ctrl+1': (onAction) => onAction('fitToPage'),
+// Shortcut actions handled in a single, readable switch
+// Easy to add new shortcuts by extending the switch below
+type ShortcutContext = {
+    onAction: (action: ToolbarAction) => void;
+    isExecuting: boolean;
+    isDirty: boolean;
+    handleSave: () => Promise<void>;
+    showSuccessToast: (title: string, message: string) => void;
 };
 
-export const handleEditorKeyDown = (
+const performShortcutAction = async (e: KeyboardEvent, shortcut: string, ctx: ShortcutContext): Promise<boolean> => {
+    const { onAction, isExecuting, isDirty, handleSave, showSuccessToast } = ctx;
+    switch (shortcut) {
+        case 'tab':
+            onAction('addNode');
+            return true;
+        case 'shift+s':
+            onAction('addSticky');
+            return true;
+        case 'shift+a':
+            onAction('autoAlign');
+            return true;
+        case 'ctrl+0':
+            onAction('resetZoom');
+            return true;
+        case 'ctrl+1':
+            onAction('fitToPage');
+            return true;
+        case 'ctrl+s':
+            e.preventDefault();
+            if (isDirty) {
+                await handleSave();
+            } else {
+                showSuccessToast('No Changes', 'Workflow is already saved.');
+            }
+            return true;
+        case 'ctrl+enter':
+            if (isExecuting) {
+                onAction('cancel');
+            } else {
+                if (isDirty) {
+                    try { await handleSave(); } catch { /* ignore save error here */ }
+                }
+                onAction('execute');
+            }
+            return true;
+        default:
+            return false;
+    }
+};
+
+export const handleEditorKeyDown = async (
     e: KeyboardEvent,
     onAction: (action: ToolbarAction) => void,
     isExecuting: boolean,
     isDirty: boolean,
-    handleSave: () => void,
+    handleSave: () => Promise<void>,
     showSuccessToast: (title: string, message: string) => void
 ) => {
     // Prevent shortcuts firing if inside a text input
@@ -29,35 +79,19 @@ export const handleEditorKeyDown = (
     if (target.matches('input, textarea, [contenteditable="true"]')) {
         return;
     }
-
-    const key = e.key.toLowerCase();
-    const ctrl = e.ctrlKey || e.metaKey;
-    const shift = e.shiftKey;
     
-    let shortcut = '';
-    if (ctrl) shortcut += 'ctrl+';
-    if (shift) shortcut += 'shift+';
-    shortcut += key;
+    const shortcut = normalizeShortcut(e);
 
-    // Save shortcut (Ctrl+S)
-    if (shortcut === 'ctrl+s') {
+    const handled = await performShortcutAction(e, shortcut, {
+        onAction,
+        isExecuting,
+        isDirty,
+        handleSave,
+        showSuccessToast,
+    });
+
+    if (handled) {
         e.preventDefault();
-        if (isDirty) {
-            handleSave();
-        } else {
-            showSuccessToast('No Changes', 'Workflow is already saved.');
-        }
-        return;
-    }
-    
-    // Check for editor actions only if not executing
-    if (!isExecuting) {
-        // Find a matching shortcut from the map
-        const action = editorKeyboardShortcuts[shortcut];
-        if (action) {
-            e.preventDefault();
-            e.stopPropagation();
-            action(onAction);
-        }
+        e.stopPropagation();
     }
 };

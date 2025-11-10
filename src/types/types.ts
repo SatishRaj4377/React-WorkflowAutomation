@@ -1,6 +1,6 @@
 import { NodeConfig } from "./interfaces";
 
-export type ToolbarAction = 'addNode' | 'execute' | 'cancel' | 'fitToPage' | 'zoomIn' | 'zoomOut' | 'resetZoom' | 'addSticky' | 'togglePan';
+export type ToolbarAction = 'addNode' | 'execute' | 'cancel' | 'fitToPage' | 'zoomIn' | 'zoomOut' | 'resetZoom' | 'addSticky' | 'togglePan' | 'autoAlign';
 
 export type NodeToolbarAction = 'edit' | 'delete' | 'execute-step';
 
