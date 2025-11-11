@@ -1,37 +1,11 @@
+import './DiagramEditor.css';
 import React, { useRef, useEffect, useState } from 'react';
-import { createRoot } from 'react-dom/client';
-import {
-  DiagramComponent,
-  SnapSettingsModel,
-  OverviewComponent,
-  GridlinesModel,
-  Inject,
-  ConnectorModel,
-  NodeModel,
-  DiagramTools,
-  UndoRedo,
-  DataBinding,
-  DiagramContextMenu,
-  NodeConstraints,
-  Keys,
-  KeyModifiers,
-  CommandManagerModel,
-  UserHandleModel,
-  UserHandleEventsArgs,
-  SelectorConstraints,
-  ConnectorConstraints,
-  Snapping,
-  DiagramConstraints,
-  DiagramModel,
-  Connector,
-  ComplexHierarchicalTree,
-} from '@syncfusion/ej2-react-diagrams';
+import { DiagramComponent, SnapSettingsModel, OverviewComponent, GridlinesModel, Inject, ConnectorModel, NodeModel, DiagramTools, UndoRedo, DataBinding, DiagramContextMenu, NodeConstraints, Keys, KeyModifiers, CommandManagerModel, UserHandleModel, UserHandleEventsArgs, SelectorConstraints, ConnectorConstraints, Snapping, DiagramConstraints, DiagramModel, Connector, ComplexHierarchicalTree } from '@syncfusion/ej2-react-diagrams';
 import { DiagramSettings, NodeConfig, NodePortDirection, NodeToolbarAction } from '../../types';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
 import { bringConnectorsToFront, convertMarkdownToHtml, getConnectorCornerRadius, getConnectorType, getFirstSelectedNode, getGridColor, getGridType, getNodeConfig, getPortOffset, getPortSide, getSnapConstraints, getStickyNoteTemplate, initializeNodeDimensions, isConnectorBetweenAgentAndTool, isNodeOutOfViewport, isStickyNote, prepareUserHandlePortData, updateNodeConstraints } from '../../helper/utilities';
 import { DIAGRAM_MENU, NODE_MENU } from '../../constants';
-import NodeTemplate from './NodeTemplate';
-import './DiagramEditor.css';
+import { buildNodeHtml, attachNodeTemplateEvents } from '../../helper/utilities/nodeTemplateUtils';
 
 interface DiagramEditorProps {
   onAddNode?: () => void;
@@ -313,8 +287,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     const diagram = diagramRef.current;
     if (!diagram) return;
 
-    // Update node template content after render
-    updateHtmlNodeTemplate(node, onNodeToolbarAction);
+    // Attach toolbar actions after direct HTML render
+    attachNodeTemplateEvents(node, onNodeToolbarAction);
 
     const isOutOfView = isNodeOutOfViewport(diagram, node);
     const isFirstNode = !hasFirstNodeAdded && diagram.nodes?.length === 1;
@@ -921,20 +895,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
 export default DiagramEditor;
 
-function updateHtmlNodeTemplate(node: NodeModel, onNodeToolbarAction: ((nodeId: string, action: NodeToolbarAction) => void) | undefined) {
-  setTimeout(() => {
-    const container = document.getElementById(`nodeTemplate_${node.id}`);
-    if (container && node.id) {
-      createRoot(container).render(
-        <NodeTemplate
-          id={node.id}
-          addInfo={node.addInfo as any}
-          onNodeToolbarAction={onNodeToolbarAction} />
-      );
-    }
-  }, 0);
-}
-
 // Generate Userhandles based on the `OutConnect` ports
 function generatePortBasedUserHandles(node: NodeModel): UserHandleModel[] {
   const portHandlesInfo: Array<{ portId: string; direction: NodePortDirection; side?: any; offset?: number }> = (node.addInfo as any)?.userHandlesAtPorts ?? [];
@@ -998,14 +958,14 @@ function updateNodeTemplates(
     setUpStickyNote(node);
   }
   else {
-    // Set HTML template for all other nodes with node-specific content
+    // Set direct HTML template for all other nodes with node-specific content
     node.shape = {
-      type: "HTML",
-      content: `<div id="nodeTemplate_${node.id}"></div>`
+      type: 'HTML',
+      content: buildNodeHtml(node)
     };
 
-    // Update node template content after render
-    updateHtmlNodeTemplate(node, onNodeToolbarAction);
+    // After DOM mounts, wire toolbar actions
+    setTimeout(() => attachNodeTemplateEvents(node, onNodeToolbarAction), 0);
   }
 }
 

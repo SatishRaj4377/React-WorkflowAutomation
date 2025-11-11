@@ -1,3 +1,4 @@
+import './Editor.css';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useBlocker } from 'react-router';
 import { DiagramTools, NodeConstraints, NodeModel, PortConstraints, PortModel } from '@syncfusion/ej2-react-diagrams';
@@ -18,9 +19,7 @@ import { handleEditorKeyDown } from '../../helper/keyboardShortcuts';
 import { WorkflowExecutionService } from '../../execution/WorkflowExecutionService';
 import { ChatPopup } from '../ChatPopup';
 import { MessageComponent } from '@syncfusion/ej2-react-notifications';
-import Template from '../DiagramEditor/NodeTemplate';
-import { createRoot } from 'react-dom/client';
-import './Editor.css';
+import { refreshNodeTemplate } from '../../helper/utilities/nodeTemplateUtils';
 
 interface EditorProps {
   project: ProjectData;
@@ -149,24 +148,13 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const handleNodeConfigChange = (nodeId: string, config: NodeConfig) => {
     setSelectedNode(config);
     
-    // Update the node's addInfo and shape content in the diagram directly
+    // Update the node's addInfo and node's template
     if (diagramRef) {
       const node = diagramRef.getObject(nodeId);
       if (node) {
-        // Update addInfo
         node.addInfo = { ...node.addInfo, nodeConfig: config };
-        // Update node template content
-        const container = document.getElementById(`nodeTemplate_${nodeId}`);
-        if (container) {
-          createRoot(container).render(
-            <Template 
-              id={nodeId} 
-              addInfo={{ nodeConfig: config }}
-              onNodeToolbarAction={handleNodeToolbarAction}
-            />
-          );
-        }
-        diagramRef.dataBind();
+        // Rebuild the node HTML and reattach toolbar handlers
+        refreshNodeTemplate(diagramRef, nodeId, handleNodeToolbarAction);
         setIsDirty(true);
       }
     }

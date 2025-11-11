@@ -3,6 +3,7 @@ import { NodeCategories, NodeConfig, NodePortDirection, NodeType, PortConfigurat
 import { PORT_POSITIONS } from "../../constants";
 import { NODE_REGISTRY } from "../../constants/nodeRegistry";
 import { isAiAgentNode } from "./nodeUtils";
+import { refreshNodeTemplate } from "./nodeTemplateUtils";
 
 export const createPort = (
   id: string,
@@ -211,8 +212,5 @@ export function updateSwitchPorts(diagram: Diagram | null, nodeId: string, rules
   node.height = baseHeight + Math.max(0, totalPorts - 1) * extraPerRule;
 
   prepareUserHandlePortData(node);
-  try { 
-    (diagram as any).dataBind();
-    (diagram as any).refresh();
-  } catch { }
+  refreshNodeTemplate(diagram as any, nodeId);
 }
