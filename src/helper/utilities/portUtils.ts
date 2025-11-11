@@ -189,28 +189,83 @@ export function initializeSwitchCaseNodePorts(node: NodeModel, rulesCount: numbe
   prepareUserHandlePortData(node);
 }
 
-export function updateSwitchPorts(diagram: Diagram | null, nodeId: string, rulesCount: number, includeDefault: boolean = false) {
+/**
+ * Reconcile a node's ports with a desired set:
+ * - Remove ports that no longer exist
+ * - Add new ports
+ * - Update properties on ports that remain
+ */
+function reconcilePorts(diagram: Diagram, node: NodeModel, desiredPorts: PortModel[]) {
+  const existingPorts = Array.isArray(node.ports) ? node.ports : [];
+
+  // Index by id for quick membership checks
+  const existingById = new Map(existingPorts.map(port => [port.id, port]));
+  const desiredById  = new Map(desiredPorts.map(port  => [port.id, port]));
+
+  // Compute the delta
+  const portsToRemove = existingPorts.filter(port => !desiredById.has(port.id));
+  const portsToAdd    = desiredPorts.filter(port  => !existingById.has(port.id));
+
+  // Apply structural changes first so the collection matches the desired shape
+  if (portsToRemove.length) diagram.removePorts(node as any, portsToRemove as any);
+  if (portsToAdd.length)    diagram.addPorts(node as any, portsToAdd as any);
+
+  // For ports present in both sets, sync mutable properties (offset, constraints, size, style, etc.)
+  for (const desired of desiredPorts) {
+    const existing = existingById.get(desired.id);
+    if (existing) Object.assign(existing, desired);
+  }
+}
+
+export function updateSwitchPorts(
+  diagram: Diagram | null,
+  nodeId: string,
+  rulesCount: number,
+  includeDefault: boolean = false
+) {
   if (!diagram) return;
+
   const node = diagram.getObject(nodeId) as NodeModel | null;
   if (!node) return;
 
-  const count = Math.max(1, rulesCount);
-  node.ports = createSwitchCasePorts(count, includeDefault); // Update ports dynamically
+  // Ensure at least one case
+  const normalizedCount = Math.max(1, rulesCount);
 
-  // Store offsets for template rendering
-  const start = 0.2, end = 0.8;
-  const step = count > 1 ? (end - start) / (count - 1) : 0;
-  const offsets = Array.from({ length: count }, (_, i) => (count === 1 ? 0.5 : start + i * step));
+  // Build the desired switch-case ports for this node
+  const desiredPorts = createSwitchCasePorts(normalizedCount, includeDefault);
+
+  // Reconcile current ports with the desired set
+  reconcilePorts(diagram, node, desiredPorts);
+
+  // Update node template metadata
+  const verticalStart = 0.2;
+  const verticalEnd   = 0.8;
+  const step = normalizedCount > 1 ? (verticalEnd - verticalStart) / (normalizedCount - 1) : 0;
+
+  const caseOffsets = Array.from(
+    { length: normalizedCount },
+    (_, i) => (normalizedCount === 1 ? 0.5 : verticalStart + i * step)
+  );
+
   if (!node.addInfo) node.addInfo = {} as any;
-  (node.addInfo as any).dynamicCaseOffsets = includeDefault ? [...offsets, Math.min(0.95, (count === 1 ? 0.5 : end) + 0.08)] : offsets;
-  (node.addInfo as any).dynamicCaseCount = includeDefault ? (count + 1) : count;
 
-  // Adjust height to give space for handles visually
-  const baseHeight = 80;
-  const extraPerRule = 22;
-  const totalPorts = includeDefault ? (count + 1) : count;
-  node.height = baseHeight + Math.max(0, totalPorts - 1) * extraPerRule;
+  (node.addInfo as any).dynamicCaseOffsets = includeDefault
+    ? [...caseOffsets, Math.min(0.95, (normalizedCount === 1 ? 0.5 : verticalEnd) + 0.08)]
+    : caseOffsets;
 
+  (node.addInfo as any).dynamicCaseCount = includeDefault
+    ? (normalizedCount + 1)
+    : normalizedCount;
+
+  // Adjust node height so port handles have enough space
+  const baseHeightPx = 80;
+  const extraPerRulePx = 22;
+  const totalVisualPorts = includeDefault ? (normalizedCount + 1) : normalizedCount;
+  node.height = baseHeightPx + Math.max(0, totalVisualPorts - 1) * extraPerRulePx;
+
+  // Refresh user-handle metadata for your UI
   prepareUserHandlePortData(node);
+
+  // refresh the node template
   refreshNodeTemplate(diagram as any, nodeId);
 }
