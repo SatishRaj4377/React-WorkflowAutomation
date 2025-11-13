@@ -1,7 +1,7 @@
 import './Editor.css';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useBlocker } from 'react-router';
-import { DiagramTools, NodeConstraints, NodeModel, PortConstraints, PortModel } from '@syncfusion/ej2-react-diagrams';
+import { DiagramTools, NodeConstraints, NodeModel, PortConstraints, PortModel, ConnectorModel } from '@syncfusion/ej2-react-diagrams';
 import EditorHeader from '../Header/EditorHeader';
 import DiagramEditor from '../DiagramEditor';
 import Toolbar from '../Toolbar';
@@ -13,7 +13,7 @@ import ConfirmationDialog from '../ConfirmationDialog';
 import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosition, ToolbarAction, ExecutionContext, NodeToolbarAction } from '../../types';
 import WorkflowProjectService from '../../services/WorkflowProjectService';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
-import { calculateNewNodePosition, createConnector, createNodeFromTemplate, generateOptimizedThumbnail, getDefaultDiagramSettings, getNodeConfig, getNodePortById, isAiAgentNode, getNodeDimensions, findAiAgentBottomConnectedNodes, getAiAgentBottomNodePosition } from '../../helper/utilities';
+import { calculateNewNodePosition, createConnector, createNodeFromTemplate, generateOptimizedThumbnail, getDefaultDiagramSettings, getNodeConfig, getNodePortById, isAiAgentNode, getNodeDimensions, findAiAgentBottomConnectedNodes, getAiAgentBottomNodePosition, isAgentBottomToToolConnector } from '../../helper/utilities';
 import { diagramHasChatTrigger, resetExecutionStates } from '../../helper/workflowExecution';
 import { handleEditorKeyDown } from '../../helper/keyboardShortcuts';
 import { WorkflowExecutionService } from '../../execution/WorkflowExecutionService';
@@ -51,6 +51,9 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const [isUserhandleAddNodeSelectionMode, setUserhandleAddNodeSelectionMode] = useState(false);
   const [selectedPortConnection, setSelectedPortConnection] = useState<{nodeId: string, portId: string} | null>(null);
   const [selectedPortModel, setSelectedPortModel] = useState<PortModel | null>(null);
+  // Connector insertion (+ handle on connector)
+  const [isConnectorInsertSelectionMode, setConnectorInsertSelectionMode] = useState(false);
+  const [selectedConnectorForInsertion, setSelectedConnectorForInsertion] = useState<ConnectorModel | null>(null);
   const [showInitialAddButton, setShowInitialAddButton] = useState(
     !project.workflowData?.diagramString || project.workflowData.diagramString.trim() === ''
   );
@@ -188,6 +191,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const handleAddNode = (nodeTemplate: NodeTemplate) => {
     if (isUserhandleAddNodeSelectionMode) {
       addNodeFromPort(nodeTemplate);
+    } else if (isConnectorInsertSelectionMode) {
+      insertNodeBetweenSelectedConnector(nodeTemplate);
     } else {
       addNodeToDiagram(nodeTemplate);
     }
@@ -226,7 +231,6 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       const srcCfg = getNodeConfig(sourceNode as NodeModel);
       if (srcCfg && isAiAgentNode(srcCfg) && selectedPortConnection.portId.toLowerCase().startsWith('bottom')) {
         repositionAiAgentTargets(sourceNode as NodeModel);
-        diagramRef.dataBind();
       }
     } catch (err) {}
     diagramRef.clearSelection();
@@ -246,6 +250,96 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     // Create new node using utility function
     const newNode = createNodeFromTemplate(nodeTemplate);
     diagramRef.add(newNode);
+  };
+
+  // Insert a node between the currently selected connector's source and target
+  const insertNodeBetweenSelectedConnector = async (nodeTemplate: NodeTemplate) => {
+    if (!diagramRef || !selectedConnectorForInsertion) return;
+
+    const conn = selectedConnectorForInsertion as any;
+
+    // Restrict: do not allow inserting into AI Agent bottom* -> Tool connectors
+    try {
+      if (isAgentBottomToToolConnector(conn, diagramRef)) {
+        resetConnectorInsertMode();
+        setNodePaletteSidebarOpen(false);
+        return;
+      }
+    } catch {}
+
+    const sourceNode = diagramRef.getObject(conn.sourceID) as NodeModel | null;
+    const targetNode = diagramRef.getObject(conn.targetID) as NodeModel | null;
+    if (!sourceNode || !targetNode) {
+      addNodeToDiagram(nodeTemplate);
+      resetConnectorInsertMode();
+      return;
+    }
+
+    // Safely get node centers (wrapper fallback)
+    const getNodeCenter = (node: NodeModel) => {
+      const w = (node as any)?.wrapper;
+      const x = node.offsetX ?? w?.offsetX ?? 0;
+      const y = node.offsetY ?? w?.offsetY ?? 0;
+      return { x, y };
+    };
+
+    const sourceNodeCenterPoint = getNodeCenter(sourceNode);
+    const targetNodeCenterPoint = getNodeCenter(targetNode);
+
+    // Compute midpoint between source and target to place new node
+    const midX = (sourceNodeCenterPoint.x + targetNodeCenterPoint.x) / 2;
+    const midY = (sourceNodeCenterPoint.y + targetNodeCenterPoint.y) / 2;
+
+    // Add node
+    const newInsertedNode = createNodeFromTemplate(nodeTemplate, { x: midX, y: midY });
+    diagramRef.add(newInsertedNode);
+
+    // Remove existing connector
+    diagramRef.remove(conn);
+
+    // Helper to find first in/out port id on a node
+    const findFirstPortId = (node: NodeModel, wantOut: boolean): string => {
+      const ports = Array.isArray(node.ports) ? (node.ports as any) : [];
+      const match = ports.find((p: PortModel) => {
+        const c = p.constraints ?? 0;
+        return wantOut ? ((c & PortConstraints.OutConnect) !== 0 && (c & PortConstraints.Draw) !== 0)
+                       : ((c & PortConstraints.InConnect) !== 0);
+      });
+      return match?.id || (wantOut ? 'right-port' : 'left-port');
+    };
+
+    // Wire two new connectors
+    // Preserve the original sourcePortID and targetPortID from the split connector,
+    // and dynamically pick the first IN/OUT ports on the new node to avoid hardcoding
+    const newNodeInPortId = findFirstPortId(newInsertedNode as NodeModel, false);
+    const newIncomingConnector = createConnector(
+      conn.sourceID,
+      newInsertedNode.id || '',
+      conn.sourcePortID,
+      newNodeInPortId
+    );
+
+    const newNodeOutPortId = findFirstPortId(newInsertedNode as NodeModel, true);
+    const newOutgoingConnector = createConnector(
+      newInsertedNode.id || '',
+      conn.targetID,
+      newNodeOutPortId,
+      conn.targetPortID
+    );
+
+    diagramRef.add(newIncomingConnector);
+    diagramRef.add(newOutgoingConnector);
+
+    // Cleanup
+    diagramRef.clearSelection();
+
+    resetConnectorInsertMode();
+    setNodePaletteSidebarOpen(false);
+  };
+
+  const resetConnectorInsertMode = () => {
+    setConnectorInsertSelectionMode(false);
+    setSelectedConnectorForInsertion(null);
   };
 
   // reposition targets connected to an AI Agent bottom port (extracted so it can be reused)
@@ -781,6 +875,12 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
             onDiagramChange={handleDiagramChange}
             onAddStickyNote={handleAddStickyNote}
             onUserhandleAddNodeClick={handleUserhandleAddNodeClick}
+            onConnectorUserhandleAddNodeClick={(connector) => {
+              setSelectedConnectorForInsertion(connector as any);
+              setConnectorInsertSelectionMode(true);
+              setNodeConfigPanelOpen(false);
+              setNodePaletteSidebarOpen(true);
+            }}
             isUserHandleAddNodeEnabled= {isUserhandleAddNodeSelectionMode}
             diagramSettings={diagramSettings}
             showInitialAddButton={showInitialAddButton}
@@ -791,6 +891,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
             onNodeAddedFirstTime={() => setShowInitialAddButton(false)}
             onCanvasClick={() => {
               setUserhandleAddNodeSelectionMode(false)
+              resetConnectorInsertMode();
               setNodePaletteSidebarOpen(false);
               setNodeConfigPanelOpen(false);
             }}

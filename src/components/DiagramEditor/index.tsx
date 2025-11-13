@@ -4,6 +4,7 @@ import { DiagramComponent, SnapSettingsModel, OverviewComponent, GridlinesModel,
 import { DiagramSettings, NodeConfig, NodePortDirection, NodeToolbarAction } from '../../types';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
 import { bringConnectorsToFront, convertMarkdownToHtml, getConnectorCornerRadius, getConnectorType, getFirstSelectedNode, getGridColor, getGridType, getNodeConfig, getPortOffset, getPortSide, getSnapConstraints, getStickyNoteTemplate, initializeNodeDimensions, isConnectorBetweenAgentAndTool, isNodeOutOfViewport, isStickyNote, prepareUserHandlePortData, updateNodeConstraints, shouldShowUserHandleForPort } from '../../helper/utilities';
+import { isAgentBottomToToolConnector } from '../../helper/utilities/connectorUtils';
 import { DIAGRAM_MENU, NODE_MENU } from '../../constants';
 import { buildNodeHtml, attachNodeTemplateEvents } from '../../helper/utilities/nodeTemplateUtils';
 
@@ -15,6 +16,8 @@ interface DiagramEditorProps {
   onDiagramChange?: (args: any) => void;
   onAddStickyNote?: (position: { x: number; y: number }) => void;
   onUserhandleAddNodeClick?: (node: NodeModel, portId: string) => void;
+  // Triggered when user clicks the + handle on a connector to insert a node between its ends
+  onConnectorUserhandleAddNodeClick?: (connector: ConnectorModel) => void;
   isUserHandleAddNodeEnabled?: boolean;
   diagramSettings: DiagramSettings;
   showInitialAddButton?: boolean;
@@ -38,6 +41,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   onDiagramChange,
   onAddStickyNote,
   onUserhandleAddNodeClick,
+  onConnectorUserhandleAddNodeClick,
   isUserHandleAddNodeEnabled,
   diagramSettings,
   showInitialAddButton,
@@ -63,11 +67,28 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
   // User handles
   let userHandles: UserHandleModel[] = [
+    // Plus handle to insert a node in the middle of a connector
+    {
+      name: 'insertNodeOnConnector',
+      content: `
+        <g>
+          <rect x="1" y="1" width="14" height="14" rx="3" ry="3" fill="#9193a2ff" stroke="#9193a2ff" stroke-width="1.2"/>
+          <path d="M8 5 V11 M5 8 H11" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+        </g>
+      `,
+      offset: 0.46,
+      backgroundColor: GRAY_COLOR,
+      pathColor: '#f8fafc',
+      borderColor: GRAY_COLOR,
+      disableNodes: true,
+      size: 20,
+    },
+    // Delete handle for connector
     {
       name: 'deleteConnector',
       pathData:
         'M0.97,3.04 L12.78,3.04 L12.78,12.21 C12.78,12.64,12.59,13,12.2,13.3 C11.82,13.6,11.35,13.75,10.8,13.75 L2.95,13.75 C2.4,13.75,1.93,13.6,1.55,13.3 C1.16,13,0.97,12.64,0.97,12.21 Z M4.43,0 L9.32,0 L10.34,0.75 L13.75,0.75 L13.75,2.29 L0,2.29 L0,0.75 L3.41,0.75 Z',
-      offset: 0.5,
+      offset: 0.54,
       backgroundColor: GRAY_COLOR,
       pathColor: '#f8fafc',
       borderColor: GRAY_COLOR,
@@ -75,10 +96,20 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     },
   ];
   const firstSelectedNode = getFirstSelectedNode(diagramRef.current);
+  const selectedConnector = (diagramRef.current as any)?.selectedItems?.connectors?.[0];
+
+  // If a connector is selected and it's between AI Agent and Tool, hide the insert handle
+  if (selectedConnector && isAgentBottomToToolConnector(selectedConnector, diagramRef.current)) {
+    userHandles = userHandles.filter((h) => h.name !== 'insertNodeOnConnector');
+  }
+
   // show userhandle only if single node is selected
   if (firstSelectedNode && (diagramRef.current as any).selectedItems.nodes.length === 1) {
     const portBasedUserHandles = generatePortBasedUserHandles(firstSelectedNode, diagramRef.current);
     userHandles.push(...portBasedUserHandles);
+    (diagramRef.current as any).selectedItems.userHandles = userHandles;
+  } else if (selectedConnector) {
+    // Apply handles for connector selection (after any filtering)
     (diagramRef.current as any).selectedItems.userHandles = userHandles;
   }
 
@@ -161,25 +192,32 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   const handleUserHandleMouseDown = (args: UserHandleEventsArgs) => {
     const handleName = (args.element as UserHandleModel)?.name || '';
 
-    // Check if the handle is for adding a node
+    // Node port based add handle
     if (handleName.startsWith('add-node-from-port-')) {
-      // Parse the portId from the end of the handle's name
       const portId = handleName.substring('add-node-from-port-'.length);
       const selectedNode = diagramRef.current?.selectedItems?.nodes?.[0];
 
       if (selectedNode?.id && portId && onUserhandleAddNodeClick) {
-        // Enable the connector drawing
         (diagramRef.current as any).drawingObject = { type: "Straight", sourceID: selectedNode.id, sourcePortID: portId };
-        (diagramRef.current as DiagramModel).tool = DiagramTools.DrawOnce; 
-        // Trigger the callback to the parent to open the palette and add node programmatically
+        (diagramRef.current as DiagramModel).tool = DiagramTools.DrawOnce;
         onUserhandleAddNodeClick(selectedNode, portId);
       }
       return;
     }
 
-    // Check if delete Userhandle is clicked
+    // Connector: insert node handle
+    if (handleName === 'insertNodeOnConnector') {
+      const selectedConnector = diagramRef.current?.selectedItems?.connectors?.[0];
+      if (selectedConnector && onConnectorUserhandleAddNodeClick) {
+        onConnectorUserhandleAddNodeClick(selectedConnector);
+      }
+      return;
+    }
+
+    // Connector: delete handle
     if (args.element && handleName === 'deleteConnector') {
       (diagramRef.current as any).remove();
+      return;
     }
   };
 
