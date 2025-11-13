@@ -17,7 +17,7 @@ import { VariablePickerTextBox } from './VariablePickerTextBox';
 import { CopyableTextBox } from './CopyableTextBox';
 import { buildJsonFromVariables } from '../../helper/variablePickerUtils';
 import JsonVisualizer from './JsonVisualizer';
-import { AUTH_NODE_TYPES, HTTP_METHODS, TIMEZONES } from '../../constants';
+import { AUTH_NODE_TYPES, TIMEZONES } from '../../constants';
 import './NodeConfigSidebar.css';
 import GoogleAuthPanel from './GoogleAuthPanel';
 import { updateSwitchPorts } from '../../helper/utilities/portUtils';
@@ -319,6 +319,28 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
         );
 
       case 'HTTP Request':
+      case 'HTTP Request Tool': {
+        // Ensure defaults for GET-only implementation
+        const method = 'GET';
+        const queryParams: Array<{ key: string; value: string }> =
+          Array.isArray(settings.queryParams) && settings.queryParams.length
+            ? settings.queryParams
+            : [{ key: '', value: '' }];
+
+        const addQueryParam = () => {
+          const next = [...queryParams, { key: '', value: '' }];
+          handleConfigChange({ queryParams: next, method });
+        };
+        const updateQueryParam = (i: number, field: 'key' | 'value', val: string) => {
+          const next = queryParams.slice();
+          next[i] = { ...next[i], [field]: val };
+          handleConfigChange({ queryParams: next, method });
+        };
+        const removeQueryParam = (i: number) => {
+          const next = queryParams.filter((_, idx) => idx !== i);
+          handleConfigChange({ queryParams: next.length ? next : [{ key: '', value: '' }], method });
+        };
+
         return (
           <>
             <div className="config-section">
@@ -336,40 +358,72 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
             <div className="config-section">
               <label className="config-label">Method</label>
               <DropDownListComponent
-                value={settings.method ?? ''}
-                dataSource={HTTP_METHODS}
-                placeholder="Select method"
-                change={(e: any) => handleConfigChange('method', e.value)}
-                popupHeight="240px"
+                value={method}
+                dataSource={["GET"]}
+                placeholder="GET"
+                enabled={false}
+                popupHeight="200px"
                 zIndex={1000000}
               />
+            </div>
+
+            <div className="config-section">
+              <div className="config-row" style={{ alignItems: 'center', gap: 8 }}>
+                <label className="config-label">Query Parameters</label>
+                <TooltipComponent content="Add query params as name/value pairs. Values support variables using the picker.">
+                  <span className="e-icons e-circle-info help-icon"></span>
+                </TooltipComponent>
+              </div>
+
+              {queryParams.map((row, i) => (
+                <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+                  {/* Name */}
+                  <VariablePickerTextBox
+                    value={row.key}
+                    placeholder="name"
+                    onChange={(val) => updateQueryParam(i, 'key', val)}
+                    cssClass="config-input"
+                    variableGroups={availableVariables}
+                    variablesLoading={variablesLoading}
+                  />
+
+                  {/* Value */}
+                  <VariablePickerTextBox
+                    value={row.value}
+                    placeholder="value"
+                    onChange={(val) => updateQueryParam(i, 'value', val)}
+                    cssClass="config-input"
+                    variableGroups={availableVariables}
+                    variablesLoading={variablesLoading}
+                  />
+
+                  <ButtonComponent
+                    cssClass="flat-btn e-flat"
+                    iconCss="e-icons e-trash"
+                    onClick={() => removeQueryParam(i)}
+                    title="Remove"
+                  />
+                </div>
+              ))}
+
+              <ButtonComponent className="add-field-btn" iconCss="e-icons e-plus" onClick={addQueryParam}>
+                Add Query
+              </ButtonComponent>
             </div>
 
             <div className="config-section">
               <label className="config-label">Headers (JSON)</label>
               <TextBoxComponent
                 value={settings.headers ?? ''}
-                placeholder='{"Content-Type":"application/json"}'
+                placeholder='{"Authorization":"Bearer {{token}}"}'
                 change={(e: any) => handleConfigChange('headers', e.value)}
                 cssClass="config-textarea"
                 multiline
               />
             </div>
-
-            <div className="config-section">
-              <label className="config-label">Body</label>
-              <VariablePickerTextBox
-                value={settings.body ?? ''}
-                placeholder='{"key":"value"}'
-                onChange={(val) => handleConfigChange('body', val)}
-                cssClass="config-textarea"
-                multiline
-                variableGroups={availableVariables}
-                variablesLoading={variablesLoading}
-              />
-            </div>
           </>
         );
+      }
 
       case 'EmailJS': 
       case 'EmailJS Tool': {
@@ -464,7 +518,6 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
       case 'Google Sheets Tool': {
         const auth = (selectedNode?.settings?.authentication as any) ?? {};
         const connected = isGoogleConnectedFor('Google Sheets', auth);
-        const GOOGLE_WEB_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID ?? '200986169390-on3tgm86r3i88mj8gil2o3li0gdvlcel.apps.googleusercontent.com';
 
         return (
           <GoogleSheetsNodeConfig
@@ -515,7 +568,6 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
 
       case 'Switch Case': {
         const rules = (settings.rules ?? [{ left: '', comparator: 'is equal to', right: '' }]) as Array<{ left: string; comparator: string; right: string }>;
-        const enableDefault: boolean = !!settings.enableDefaultPort;
 
         // Map Switch rows <-> IfCondition rows (joiner is unused)
         const rows = rules.map(r => ({ left: r.left, comparator: r.comparator, right: r.right }));
@@ -529,13 +581,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           }
         };
 
-        const onToggleDefault = (checked: boolean) => {
-          handleConfigChange('enableDefaultPort', checked);
-          if (diagram && selectedNode) {
-            const count = Math.max(1, rules.length);
-            updateSwitchPorts(diagram as any, selectedNode.id, count, checked); // include default port when enabled
-          }
-        };
+        // Default port UI is currently disabled; keep logic minimal here.
 
         return (
           <>
