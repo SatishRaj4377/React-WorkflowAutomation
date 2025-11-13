@@ -72,6 +72,7 @@ export type VariableGroup = {
   nodeName: string;       // "Gmail 1" or "Webhook"
   nodeType: string;       // "Gmail" | "Google Sheets" | "Webhook" ...
   variables: Variable[];
+  raw?: any;              // full raw output for accurate preview/copy
 };
 
 export type VariablesProvider = (context?: {

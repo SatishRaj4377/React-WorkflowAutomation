@@ -147,15 +147,11 @@ function objectToArray(obj: Record<string, any>): any[] {
   return out;
 }
 
-/** Format a short preview for primitives */
+/** Format a preview for primitives (store full, untruncated) */
 function formatPreview(value: any): string | undefined {
   if (value === null) return 'null';
   if (value === undefined) return 'undefined';
-  if (typeof value === 'string') {
-    const trimmed = value.trim();
-    const q = JSON.stringify(trimmed);
-    return trimmed.length > 60 ? `${q.slice(0, 60)}…` : q;
-  }
+  if (typeof value === 'string') return value; // keep full string; UI will truncate visually
   if (typeof value === 'number' || typeof value === 'boolean') return String(value);
   return undefined; // containers previewed at parent level
 }

@@ -4,6 +4,7 @@ import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { Variable, VariableGroup } from '../../types';
 import { buildJsonFromVariables, ensurePortalRoot, findNativeInput, insertAtCaret } from '../../helper/variablePickerUtils';
 import JsonVisualizer from './JsonVisualizer';
+import ValuePeekPanel, { PeekInfo } from './ValuePeekPanel';
 import { Draggable } from '@syncfusion/ej2-base';
 
 /* -----------------------------------------------------------------------------
@@ -31,6 +32,7 @@ export const VariablePickerPopup: React.FC<PickerPopupProps> = ({
 }) => {
   const popupRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<Draggable | null>(null);
+  const [peek, setPeek] = useState<PeekInfo>(null);
 
    const GAP = 8;
    const [pos, setPos] = useState<{ top: number; left: number; maxHeight: number }>({
@@ -90,8 +92,13 @@ export const VariablePickerPopup: React.FC<PickerPopupProps> = ({
   }, [open]);
 
 
+  const handleClose = useCallback(() => {
+    setPeek(null);
+    onClose();
+  }, [onClose]);
+
   // Close on outside click
-  useOutsideClick([popupRef], onClose, open);
+  useOutsideClick([popupRef], handleClose, open);
   
   // Close handler when clicking outside a set of refs
   function useOutsideClick<T extends HTMLElement>(
@@ -133,6 +140,8 @@ export const VariablePickerPopup: React.FC<PickerPopupProps> = ({
         boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
         overflow: 'hidden',
         userSelect: 'none',
+        display: 'flex',
+        flexDirection: 'column'
       }}
       onMouseDown={(e) => e.preventDefault()} // keep focus in textbox
     >
@@ -154,7 +163,7 @@ export const VariablePickerPopup: React.FC<PickerPopupProps> = ({
         </div>
         <button
           className="vp-close"
-          onClick={onClose}
+          onClick={handleClose}
           style={{
             background: 'transparent',
             border: 'none',
@@ -171,7 +180,7 @@ export const VariablePickerPopup: React.FC<PickerPopupProps> = ({
       {/* Body */}
       <div
         className="vp-body"
-        style={{ maxHeight: Math.max(120, pos.maxHeight - 42), overflow: 'auto', padding: '.35rem .5rem .6rem' }}
+        style={{ flex: '1 1 auto', overflow: 'auto', padding: '.35rem .5rem .6rem' }}
       >
         {loading && (
           <div className="vp-loading" style={{ padding: '.75rem', fontSize: '.85rem' }}>
@@ -230,6 +239,7 @@ export const VariablePickerPopup: React.FC<PickerPopupProps> = ({
                 <JsonVisualizer
                   data={buildJsonFromVariables(g.variables)}
                   collapsed={false}
+                  onValuePeek={(info) => setPeek(info)}
                   onKeyClick={(path) => {
                     // Build a readable node-qualified path using only node name: $.<NodeName>.<relativePath>
                     const relative = String(path).replace(/^\$\./, '');
@@ -247,6 +257,11 @@ export const VariablePickerPopup: React.FC<PickerPopupProps> = ({
             </div>
           ))}
       </div>
+
+      <ValuePeekPanel
+        peek={peek}
+        onClose={() => setPeek(null)}
+      />
     </div>,
     ensurePortalRoot()
   );

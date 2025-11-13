@@ -17,6 +17,7 @@ import { VariablePickerTextBox } from './VariablePickerTextBox';
 import { CopyableTextBox } from './CopyableTextBox';
 import { buildJsonFromVariables } from '../../helper/variablePickerUtils';
 import JsonVisualizer from './JsonVisualizer';
+import ValuePeekPanel, { PeekInfo } from './ValuePeekPanel';
 import { AUTH_NODE_TYPES, TIMEZONES } from '../../constants';
 import './NodeConfigSidebar.css';
 import GoogleAuthPanel from './GoogleAuthPanel';
@@ -54,6 +55,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   const [availableVariables, setAvailableVariables] = useState<any[]>([]);
   const [nodeOutput, setNodeOutput] = useState<any>(null);
   const [variablesLoading, setVariablesLoading] = useState(true);
+  const [peek, setPeek] = useState<PeekInfo>(null);
 
   const nodeIconSrc = selectedNode?.icon ? IconRegistry[selectedNode.icon] : null;
   const MessageIcon = IconRegistry['Message'];
@@ -721,13 +723,20 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
             borderRadius: 8,
             padding: '.4rem',
             background: 'var(--surface-color)',
+            display: 'flex',
+            flexDirection: 'column'
           }}
         >
-          <JsonVisualizer data={outputJson} collapsed={false} />
+          <JsonVisualizer
+            data={outputJson}
+            collapsed={false}
+            onValuePeek={(info) => setPeek(info)}
+          />
+          <ValuePeekPanel peek={peek} onClose={() => setPeek(null)} />
         </div>
       </div>
     );
-  }, [ nodeOutput ]);
+  }, [ nodeOutput, peek ]);
 
   /** Authentication tab */
   const renderAuthenticationTab = useCallback(() => {

@@ -441,6 +441,10 @@
   padding-left: .15rem;
 }
 
+.e-btn.e-close.custom-font-size {
+  font-size: .85rem !important;
+}
+
 /* Scrollbar (match your panel style) */
 .vp-body::-webkit-scrollbar {
   width: 6px;

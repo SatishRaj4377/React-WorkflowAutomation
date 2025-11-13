@@ -4,6 +4,7 @@ import { IconRegistry } from '../../assets/icons';
 export interface JsonVisualizerProps {
   data: any;                          // JSON object or array
   onKeyClick?: (path: string) => void; // Called when a key is clicked
+  onValuePeek?: (info: { path: string; value: any }) => void; // Called when a value preview is requested
   basePath?: string;                  // Used for recursive rendering
   collapsed?: boolean;                // Whether to start collapsed
   className?: string;                 // Optional wrapper class
@@ -142,8 +143,9 @@ const TreeNode: React.FC<{
   path: string;
   depth: number;
   onKeyClick?: (path: string) => void;
+  onValuePeek?: (info: { path: string; value: any }) => void;
   initialCollapsed: boolean;
-}> = ({ name, value, path, depth, onKeyClick, initialCollapsed }) => {
+}> = ({ name, value, path, depth, onKeyClick, onValuePeek, initialCollapsed }) => {
   const container = isObject(value) || isArray(value);
   const count = isArray(value)
     ? value.length
@@ -190,7 +192,8 @@ const TreeNode: React.FC<{
         />
         <span
           className="vp-preview"
-          title={isPrimitive(value) ? String(value) : undefined}
+          title={isPrimitive(value) ? 'Click to preview and copy' : undefined}
+          onClick={() => onValuePeek?.({ path, value })}
           style={{
             marginLeft: 6,
             flex: '1 1 auto',
@@ -200,13 +203,14 @@ const TreeNode: React.FC<{
             whiteSpace: 'nowrap',
             color: 'var(--text-secondary)',
             fontSize: '.8rem',
+            cursor: onValuePeek ? 'pointer' : 'default',
           }}
         >
           {preview}
         </span>
         <TypeBadge text={typeText} />
       </Row>
-    );  const count = isArray(value)
+    );
   }
 
   // Objects / Arrays
@@ -252,6 +256,7 @@ const TreeNode: React.FC<{
                   path={joinPath(path, idx)}
                   depth={depth + 1}
                   onKeyClick={onKeyClick}
+                  onValuePeek={onValuePeek}
                   initialCollapsed={initialCollapsed || idx >= EXPAND_LIMIT}
                 />
               ))
@@ -263,6 +268,7 @@ const TreeNode: React.FC<{
                   path={joinPath(path, k)}
                   depth={depth + 1}
                   onKeyClick={onKeyClick}
+                  onValuePeek={onValuePeek}
                   initialCollapsed={initialCollapsed || idx >= EXPAND_LIMIT}
                 />
               ))}
@@ -276,6 +282,7 @@ const TreeNode: React.FC<{
 const JsonVisualizer: React.FC<JsonVisualizerProps> = ({
   data,
   onKeyClick,
+  onValuePeek,
   basePath = '$',
   collapsed = false,
   className,
@@ -295,6 +302,7 @@ const JsonVisualizer: React.FC<JsonVisualizerProps> = ({
         path={basePath}
         depth={0}
         onKeyClick={onKeyClick}
+        onValuePeek={onValuePeek}
         initialCollapsed={collapsed}
       />
     </div>
