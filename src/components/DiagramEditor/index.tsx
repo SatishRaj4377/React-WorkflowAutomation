@@ -3,7 +3,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { DiagramComponent, SnapSettingsModel, OverviewComponent, GridlinesModel, Inject, ConnectorModel, NodeModel, DiagramTools, UndoRedo, DataBinding, DiagramContextMenu, NodeConstraints, Keys, KeyModifiers, CommandManagerModel, UserHandleModel, UserHandleEventsArgs, SelectorConstraints, ConnectorConstraints, Snapping, DiagramConstraints, DiagramModel, Connector, ComplexHierarchicalTree } from '@syncfusion/ej2-react-diagrams';
 import { DiagramSettings, NodeConfig, NodePortDirection, NodeToolbarAction } from '../../types';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
-import { bringConnectorsToFront, convertMarkdownToHtml, getConnectorCornerRadius, getConnectorType, getFirstSelectedNode, getGridColor, getGridType, getNodeConfig, getPortOffset, getPortSide, getSnapConstraints, getStickyNoteTemplate, initializeNodeDimensions, isConnectorBetweenAgentAndTool, isNodeOutOfViewport, isStickyNote, prepareUserHandlePortData, updateNodeConstraints } from '../../helper/utilities';
+import { bringConnectorsToFront, convertMarkdownToHtml, getConnectorCornerRadius, getConnectorType, getFirstSelectedNode, getGridColor, getGridType, getNodeConfig, getPortOffset, getPortSide, getSnapConstraints, getStickyNoteTemplate, initializeNodeDimensions, isConnectorBetweenAgentAndTool, isNodeOutOfViewport, isStickyNote, prepareUserHandlePortData, updateNodeConstraints, shouldShowUserHandleForPort } from '../../helper/utilities';
 import { DIAGRAM_MENU, NODE_MENU } from '../../constants';
 import { buildNodeHtml, attachNodeTemplateEvents } from '../../helper/utilities/nodeTemplateUtils';
 
@@ -77,7 +77,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   const firstSelectedNode = getFirstSelectedNode(diagramRef.current);
   // show userhandle only if single node is selected
   if (firstSelectedNode && (diagramRef.current as any).selectedItems.nodes.length === 1) {
-    const portBasedUserHandles = generatePortBasedUserHandles(firstSelectedNode);
+    const portBasedUserHandles = generatePortBasedUserHandles(firstSelectedNode, diagramRef.current);
     userHandles.push(...portBasedUserHandles);
     (diagramRef.current as any).selectedItems.userHandles = userHandles;
   }
@@ -896,9 +896,13 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 export default DiagramEditor;
 
 // Generate Userhandles based on the `OutConnect` ports
-function generatePortBasedUserHandles(node: NodeModel): UserHandleModel[] {
+function generatePortBasedUserHandles(node: NodeModel, diagram?: DiagramComponent | null): UserHandleModel[] {
+  // All out-connectable ports prepared during node initialization
   const portHandlesInfo: Array<{ portId: string; direction: NodePortDirection; side?: any; offset?: number }> = (node.addInfo as any)?.userHandlesAtPorts ?? [];
-  return portHandlesInfo.map(({ portId, direction, side, offset }) => ({
+
+  const availablePorts = portHandlesInfo.filter(({ portId }) => shouldShowUserHandleForPort(node, portId, diagram));
+
+  return availablePorts.map(({ portId, direction, side, offset }) => ({
     name: `add-node-from-port-${portId}`,
     content: `
       <g>

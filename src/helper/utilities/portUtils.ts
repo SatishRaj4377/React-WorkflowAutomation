@@ -1,8 +1,8 @@
-import { NodeModel, Point, PointPortModel, PortConstraints, PortModel, PortVisibility, Diagram } from "@syncfusion/ej2-react-diagrams";
+import { NodeModel, Point, PointPortModel, PortConstraints, PortModel, PortVisibility, Diagram, ConnectorModel } from "@syncfusion/ej2-react-diagrams";
 import { NodeCategories, NodeConfig, NodePortDirection, NodeType, PortConfiguration, PortSide } from "../../types";
 import { PORT_POSITIONS } from "../../constants";
 import { NODE_REGISTRY } from "../../constants/nodeRegistry";
-import { isAiAgentNode } from "./nodeUtils";
+import { getNodeConfig, isAiAgentNode } from "./nodeUtils";
 import { refreshNodeTemplate } from "./nodeTemplateUtils";
 
 export const createPort = (
@@ -149,6 +149,38 @@ export function prepareUserHandlePortData(node: NodeModel): void {
     if (!node.addInfo) node.addInfo = {};
     (node.addInfo as any).userHandlesAtPorts = connectablePorts;
   }
+}
+
+/**
+ * Determines whether we should render the add-node userhandle for a given port on a node.
+ * Rules:
+ * - If a completed connector already exists from the node using that port, hide the handle
+ * - EXCEPTION: For AI Agent nodes, on the 'bottom-right-port' allow multiple tool connections,
+ *   so we always show the handle for that specific port
+ */
+export function shouldShowUserHandleForPort(node: any, portId: string, diagramInstance: any): boolean {
+  if (!node || !portId || !diagramInstance) return true;
+
+  const nodeConfig = getNodeConfig(node);
+  // Exception: AI Agent bottom-right port supports multiple connections
+  if (nodeConfig && isAiAgentNode(nodeConfig) && portId === 'bottom-right-port') {
+    return true;
+  }
+
+  const connectors: ConnectorModel[] = Array.isArray(diagramInstance.connectors)
+    ? (diagramInstance.connectors as any)
+    : [];
+
+  // A port is considered used only if the connector is fully connected
+  const hasCompletedConnectionFromPort = connectors.some((c: any) =>
+    c &&
+    c.sourceID === node.id &&
+    c.sourcePortID === portId &&
+    typeof c.targetID === 'string' &&
+    c.targetID.length > 0
+  );
+
+  return !hasCompletedConnectionFromPort;
 }
 
 // Get the appropriate port rendering configuration for a node in the template
