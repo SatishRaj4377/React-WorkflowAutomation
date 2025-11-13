@@ -113,6 +113,7 @@ async function executeEmailJsNode(nodeConfig: NodeConfig, context: ExecutionCont
 
 // ---------------- HTTP Request ----------------
 async function executeHttpRequestNode(nodeConfig: NodeConfig, context: ExecutionContext): Promise<NodeExecutionResult> {
+  debugger
   try {
     const general = (nodeConfig.settings?.general ?? {}) as any;
 

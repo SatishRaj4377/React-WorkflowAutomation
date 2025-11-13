@@ -47,7 +47,7 @@ export function findConnectedNodes(diagram: any, nodeId: string) {
   if (type === 'ai agent') {
     // AI Agent main flow → right-port only; exclude bottom-* (tools)
     allowedSourcePorts = ['right-port'];
-  } else if (type === 'if condition' || type === 'switch case') {
+  } else if (type === 'if condition' || type === 'switch case' || type === 'loop') {
     allowedSourcePorts = ['right-top-port', 'right-bottom-port'];
   } else {
     allowedSourcePorts = ['right-port'];
@@ -107,7 +107,7 @@ export const updateNodeStatus = (
   diagram: DiagramComponent,
   nodeId: string,
   status: NodeStatus,
-  opts?: { restrictToSourcePortId?: string }
+  opts?: { restrictToSourcePortId?: string; appendConnectorStatus?: boolean }
 ) => {
   // Find the node
   const node = diagram?.getObject(nodeId) as NodeModel;
@@ -160,9 +160,9 @@ export const updateNodeStatus = (
   if (status === 'success' || status === 'error') {
     const connectors = diagram?.connectors ?? [];
     
-    // If we are scoping to a specific source port (e.g., IF true/false),
-    // first remove success/error classes from ALL outgoing connectors of this node.
-    if (opts?.restrictToSourcePortId) {
+    // If scoping to a specific port and appendConnectorStatus is not set,
+    // clear existing status from all outgoing connectors first.
+    if (opts?.restrictToSourcePortId && !opts?.appendConnectorStatus) {
       connectors.forEach((conn) => {
         if (conn.sourceID !== nodeId) return;
         const pathEl = document.getElementById(`${conn.id}_path`);
@@ -180,11 +180,15 @@ export const updateNodeStatus = (
         const connectorPath = document.getElementById(`${conn.id}_path`);
         const connectorTargetDecorator = document.getElementById(`${conn.id}_tarDec`);
         if (connectorPath) {
-          connectorPath.classList.remove('workflow-connector-success', 'workflow-connector-error');
+          if (!opts?.appendConnectorStatus) {
+            connectorPath.classList.remove('workflow-connector-success', 'workflow-connector-error');
+          }
           connectorPath.classList.add(`workflow-connector-${status}`);
         }
         if (connectorTargetDecorator) {
-          connectorTargetDecorator.classList.remove('workflow-connector-targetDec-success', 'workflow-connector-targetDec-error');
+          if (!opts?.appendConnectorStatus) {
+            connectorTargetDecorator.classList.remove('workflow-connector-targetDec-success', 'workflow-connector-targetDec-error');
+          }
           connectorTargetDecorator.classList.add(`workflow-connector-targetDec-${status}`);
         }
       }

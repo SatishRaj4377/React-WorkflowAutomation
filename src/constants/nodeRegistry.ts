@@ -180,7 +180,7 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     label: 'Loop',
     description: 'Loop over array items',
     iconId: 'LoopIcon',
-    portConfig: { leftPort: true, rightPort: true },
+    portConfig: { leftPort: true, rightTopPort: true, rightBottomPort: true },
   },
   'Azure Chat Model Tool': {
     type: 'Azure Chat Model Tool',

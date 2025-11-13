@@ -283,39 +283,33 @@
   font-weight: 500;
   width: 60px;
 }
-.if-conditon-node-port-label {
-    opacity: 0;
+.conditon-node-port-label {
+    opacity: 1;
     color: var(--scrollbar-thumb-hover);
     position: absolute;
     right: -33px;
-    top: 11px;
+    top: 12px;
     border-radius: 4px;
     background: var(--background-color);
-    transform: translate(-80%, -100%) scale(0);
-    font-size: .6rem;
+    transform: translate(-50%, -100%) scale(1);
+    font-size: .67rem;
     font-weight: 500;
     width: 20px;
     text-align: left;
     transition: all 0.2s ease;
 }
 .switch-conditon-node-port-label {
-    opacity: 0;
     color: var(--surface-color);
     position: absolute;
     top: 13px;
     border-radius: 20%;
     background: var(--node-border-color);
-    transform: translate(-50%, -100%) scale(0);
+    transform: translate(-50%, -100%);
     font-size: .6rem;
     font-weight: 500;
     padding: 0.1rem .4rem;
     text-align: left;
     transition: all 0.1s ease-in;
-}
-.node-template-container :hover .if-conditon-node-port-label,
-.node-template-container :hover .switch-conditon-node-port-label {
-  opacity: 1;
-  transform: translate(-50%, -100%) scale(1);
 }
 
 /* Diagram Container Styles */

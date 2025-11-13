@@ -1,7 +1,7 @@
 import { DiagramComponent, NodeModel } from '@syncfusion/ej2-react-diagrams';
 import { NodeConfig, NodeToolbarAction } from '../../types';
 import { getNodePortConfiguration } from './portUtils';
-import { isAiAgentNode, isSwitchNode } from './nodeUtils';
+import { isAiAgentNode, isSwitchNode, isLoopNode } from './nodeUtils';
 import { IconRegistry } from '../../assets/icons';
 
 // Build node HTML content based on node type/config
@@ -13,6 +13,7 @@ export function buildNodeHtml(node: NodeModel): string {
   const portConfig = getNodePortConfiguration(nodeConfig);
   const isAgent = isAiAgentNode(nodeConfig);
   const isSwitch = isSwitchNode(nodeConfig);
+  const isLoop = isLoopNode(nodeConfig);
   const dynamicCaseOffsets: number[] = addInfo?.dynamicCaseOffsets || [];
   const iconKey: any = (nodeConfig as any).icon;
   const iconSrc: string | undefined = iconKey ? (IconRegistry as any)[iconKey] : undefined;
@@ -29,8 +30,8 @@ export function buildNodeHtml(node: NodeModel): string {
 
   const ifRightPorts = !isSwitch
     ? [
-      portConfig.rightTopPort ? "<div class=\"node-port-right-top\"><span class='if-conditon-node-port-label'>true</span></div>" : '',
-      portConfig.rightBottomPort ? "<div class=\"node-port-right-bottom\"><span class='if-conditon-node-port-label'>false</span></div>" : ''
+      portConfig.rightTopPort ? `<div class="node-port-right-top"><span class="conditon-node-port-label">${isLoop ? 'loop' : 'true'}</span></div>` : '',
+      portConfig.rightBottomPort ? `<div class="node-port-right-bottom"><span class="conditon-node-port-label">${isLoop ? 'done' : 'false'}</span></div>` : ''
     ].join('')
     : '';
 

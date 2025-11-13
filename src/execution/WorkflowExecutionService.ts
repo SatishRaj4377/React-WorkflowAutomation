@@ -163,6 +163,12 @@ export class WorkflowExecutionService {
         const portId: string | null = out?.matchedPortId ?? null;
         // Reset once and then paint only the matched connector
         updateNodeStatus(this.diagram, node.id!, 'success', portId ? { restrictToSourcePortId: portId } : undefined);
+      } else if (cfg && isLoopNode(cfg)) {
+        // For Loop on single step exec: only mark loop body connector now; 'done' will be painted after loop handler
+        const out = (this.executionContext.results as Record<string, any>)[node.id!];
+        const hasItems = Array.isArray(out?.items) && out.items.length > 0;
+        const portId = hasItems ? 'right-top-port' : 'right-bottom-port';
+        updateNodeStatus(this.diagram, node.id!, 'success', { restrictToSourcePortId: portId });
       } else {
         // Default: Mark success and continue with connected nodes
         updateNodeStatus(this.diagram, node.id, 'success');
@@ -266,11 +272,15 @@ export class WorkflowExecutionService {
     };
     this.notifyContextUpdate();
 
-    // 2) If no items, nothing to execute downstream
-    if (total === 0) return;
+    // 2) If no items, still attempt to continue via 'done' branch if connected
+    if (total === 0) {
+      const doneTargets = getTargetsByPort(this.diagram, node.id!, 'right-bottom-port');
+      await this.executeTargets(doneTargets);
+      return;
+    }
 
-    // 3) Resolve downstream targets from right-port
-    const targets = getTargetsByPort(this.diagram, node.id!, 'right-port');
+    // 3) Resolve downstream targets for loop body from right-top-port ("loop")
+    const loopTargets = getTargetsByPort(this.diagram, node.id!, 'right-top-port');
 
     // 4) Iterate and publish LIVE frame (still no 'items' in context)
     for (let i = 0; i < total; i++) {
@@ -290,7 +300,7 @@ export class WorkflowExecutionService {
 
       try {
         // Critical: abort whole workflow on first error in this loop
-        await this.executeTargets(targets, { abortOnError: true });
+        await this.executeTargets(loopTargets, { abortOnError: true });
       } catch (err) {
         // If we threw because abortController was tripped, stop looping quietly
         if (this.abortController.signal.aborted) {
@@ -298,10 +308,9 @@ export class WorkflowExecutionService {
         }
         throw err;
       }
-
     }
 
-    // 5) After loop: keep a small default (first item only)
+    // 5) After loop completes, keep a small default (first item only)
     (this.executionContext.results as any)[nodeId] = {
       currentloopitem: items[0],
       currentLoopIndex: 0,
@@ -310,6 +319,12 @@ export class WorkflowExecutionService {
       currentLoopNodeId: nodeId,
     };
     this.notifyContextUpdate();
+
+    // 6) Continue the workflow via the 'done' branch connected to right-bottom-port
+    const doneTargets = getTargetsByPort(this.diagram, node.id!, 'right-bottom-port');
+    // Paint 'done' connector now that loop is finished, without clearing earlier painted loop connectors
+    updateNodeStatus(this.diagram, node.id!, 'success', { restrictToSourcePortId: 'right-bottom-port', appendConnectorStatus: true });
+    await this.executeTargets(doneTargets);
   }
 
   // IF: traverse only the chosen port (top=true, bottom=false)
