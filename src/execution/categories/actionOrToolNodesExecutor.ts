@@ -129,17 +129,31 @@ async function executeHttpRequestNode(nodeConfig: NodeConfig, context: Execution
     const method = 'GET';
 
     // 3) Build query string from name/value pairs, both support VariablePicker
-    const qpArray: Array<{ key: string; value: string }> = Array.isArray(general.queryParams)
-      ? general.queryParams
-      : [];
+      const qpArray: Array<{ key: string; value: string }> = Array.isArray(general.queryParams)
+        ? general.queryParams
+        : [];
 
-    const urlObj = new URL(rawUrl, window.location.origin);
-    for (const row of qpArray) {
-      const name = resolveTemplate(String(row?.key ?? ''), { context }).trim();
-      if (!name) continue; // ignore empty keys
-      const value = resolveTemplate(String(row?.value ?? ''), { context });
-      urlObj.searchParams.append(name, String(value));
-    }
+      // Build a strict absolute URL (no implicit base). Throw if invalid.
+      let urlObj: URL;
+      try {
+        urlObj = new URL(rawUrl); // requires absolute URL like https://api.example.com
+      } catch {
+        const msg = 'HTTP Request: Invalid URL. Provide a valid absolute URL starting with http(s)://';
+        showErrorToast('HTTP Request Invalid URL', msg);
+        return { success: false, error: msg };
+      }
+      if (!/^https?:$/i.test(urlObj.protocol)) {
+        const msg = 'HTTP Request: Only http(s) URLs are supported.';
+        showErrorToast('HTTP Request Unsupported Protocol', msg);
+        return { success: false, error: msg };
+      }
+
+      for (const row of qpArray) {
+        const name = resolveTemplate(String(row?.key ?? ''), { context }).trim();
+        if (!name) continue; // ignore empty keys
+        const value = resolveTemplate(String(row?.value ?? ''), { context });
+        urlObj.searchParams.append(name, String(value));
+      }
 
     // 4) Resolve and parse headers JSON (optional)
     let headers: Record<string, string> | undefined = undefined;
