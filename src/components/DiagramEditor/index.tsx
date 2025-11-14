@@ -71,28 +71,44 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     {
       name: 'insertNodeOnConnector',
       content: `
-        <g>
-          <rect x="1" y="1" width="14" height="14" rx="3" ry="3" fill="#9193a2ff" stroke="#9193a2ff" stroke-width="1.2"/>
-          <path d="M8 5 V11 M5 8 H11" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+        <g class="insert-handle">
+          <rect class="bg" x="1" y="1" width="14" height="14" rx="3" ry="3" fill="${GRAY_COLOR}"/>
+          <path class="plus" d="M8 5 V11 M5 8 H11" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+          <style>
+            .insert-handle { cursor: pointer; }
+            .insert-handle:hover .bg { fill: ${HOVER_COLOR}; }
+          </style>
         </g>
       `,
-      offset: 0.46,
+      offset: 0.4,
       backgroundColor: GRAY_COLOR,
       pathColor: '#f8fafc',
       borderColor: GRAY_COLOR,
       disableNodes: true,
-      size: 20,
+      size: 24,
     },
     // Delete handle for connector
     {
       name: 'deleteConnector',
-      pathData:
-        'M0.97,3.04 L12.78,3.04 L12.78,12.21 C12.78,12.64,12.59,13,12.2,13.3 C11.82,13.6,11.35,13.75,10.8,13.75 L2.95,13.75 C2.4,13.75,1.93,13.6,1.55,13.3 C1.16,13,0.97,12.64,0.97,12.21 Z M4.43,0 L9.32,0 L10.34,0.75 L13.75,0.75 L13.75,2.29 L0,2.29 L0,0.75 L3.41,0.75 Z',
-      offset: 0.54,
+      content: `
+        <g class="delete-handle">
+                  <rect class="bg" x="-1.4" y="-1.4" width="16" height="16" rx="3" ry="3" fill="${GRAY_COLOR}" />
+          <g class="icon" transform="translate(2.4,2.4) scale(0.6)">
+            <path d="M0.97,3.04 L12.78,3.04 L12.78,12.21 C12.78,12.64,12.59,13,12.2,13.3 C11.82,13.6,11.35,13.75,10.8,13.75 L2.95,13.75 C2.4,13.75,1.93,13.6,1.55,13.3 C1.16,13,0.97,12.64,0.97,12.21 Z M4.43,0 L9.32,0 L10.34,0.75 L13.75,0.75 L13.75,2.29 L0,2.29 L0,0.75 L3.41,0.75 Z" fill="#f8fafc"/>
+          </g>
+          <style>
+            .delete-handle { cursor: pointer; }
+            .delete-handle:hover .bg { fill: ${HOVER_COLOR}; stroke: ${HOVER_COLOR}; }
+            .delete-handle:hover .icon path { fill: #ffffff; }
+          </style>
+        </g>
+      `,
+      offset: 0.6,
       backgroundColor: GRAY_COLOR,
       pathColor: '#f8fafc',
       borderColor: GRAY_COLOR,
       disableNodes: true,
+      size: 25,
     },
   ];
   const firstSelectedNode = getFirstSelectedNode(diagramRef.current);
