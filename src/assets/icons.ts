@@ -13,6 +13,7 @@ import SwitchConditionIcon from '../assets/images/svg-icons/switch-condition.svg
 import TelegramIcon from '../assets/images/svg-icons/telegram.svg';
 import TwilioIcon from '../assets/images/svg-icons/twilio.svg';
 import WebhookIcon from '../assets/images/svg-icons/webhook.svg';
+import FormIcon from '../assets/images/svg-icons/form.svg';
 import ManualClickIcon from '../assets/images/svg-icons/manual-click.svg';
 import EmailJSIcon from '../assets/images/svg-icons/email-js.svg';
 import LoopIcon from '../assets/images/svg-icons/loop.svg';
@@ -56,6 +57,7 @@ export const IconRegistry: { [key: string]: string | React.ElementType } = {
   TelegramIcon,
   TwilioIcon,
   WebhookIcon,
+  FormIcon,
   ManualClickIcon,
   EmailJSIcon,
   LoopIcon,

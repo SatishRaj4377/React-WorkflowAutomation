@@ -13,6 +13,16 @@ export interface NodeRegistryEntry {
 }
 
 export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
+  'Form': {
+    type: 'Form',
+    category: 'trigger',
+    paletteCategory: 'Triggers',
+    isServerExecuted: false,
+    label: 'Form',
+    description: 'Trigger workflow on form submission.',
+    iconId: 'FormIcon',
+    portConfig: { rightPort: true },
+  },
   'Webhook': {
     type: 'Webhook',
     category: 'trigger',

@@ -41,6 +41,7 @@ export type GridStyle = 'lines' | 'dotted' | 'none';
 export type ConnectorType = 'Bezier' | 'Orthogonal' | 'Straight';
 
 export type NodeType = 
+  | 'Form'
   | 'Webhook'
   | 'Schedule'
   | 'Manual Click'
