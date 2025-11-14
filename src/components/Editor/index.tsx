@@ -337,6 +337,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       target.offsetX = position.offsetX;
       target.offsetY = position.offsetY;
     });
+
+    diagramRef.dataBind();
   };
 
   const handleDiagramSettingsChange = (settings: DiagramSettings) => {
@@ -528,6 +530,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         }
       } catch (err) { /* ignore */ }
     });
+    diagramRef.dataBind();
     diagramRef.reset();
     diagramRef.fitToPage();
   };
