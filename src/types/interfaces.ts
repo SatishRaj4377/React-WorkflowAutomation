@@ -1,5 +1,5 @@
 import { NodeModel } from "@syncfusion/ej2-react-diagrams";
-import { ConnectorType, GridStyle, NodeCategories, NodeStatus, NodeType, PaletteCategoryLabel, SnappingSettings, ToastType } from "./types";
+import { ConnectorType, GridStyle, NodeCategories, NodeStatus, NodeType, PaletteCategoryLabel, PaletteFilterMode, SnappingSettings, ToastType } from "./types";
 
 export interface NodeConfig {
   id: string;
@@ -50,7 +50,18 @@ export interface ProjectData {
 export interface PaletteCategory {
   name: PaletteCategoryLabel;
   nodes: NodeTemplate[];
-  collapsed: boolean;
+}
+
+export interface PaletteFilterContext {
+  mode: PaletteFilterMode;
+}
+export interface PaletteNodeItem {
+  id: string;
+  name: string;
+  iconId?: string;
+  category: 'trigger' | 'core' | 'flow' | 'tool' | string;
+  nodeType: string;
+  description: string;
 }
 
 export interface NodeTemplate {

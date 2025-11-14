@@ -7,11 +7,11 @@ import {
 } from "@syncfusion/ej2-react-navigations";
 import { ButtonComponent } from "@syncfusion/ej2-react-buttons";
 import { TextBoxComponent } from "@syncfusion/ej2-react-inputs";
-import type { NodeTemplate } from "../../types";
-import type { PortModel } from '@syncfusion/ej2-react-diagrams';
+import type { NodeTemplate, PaletteCategory, PaletteFilterContext } from "../../types";
+
 import { getNodesByPaletteCategory } from "../../constants/nodeRegistry";
 import { IconRegistry } from "../../assets/icons";
-import { getFilteredCategories, PaletteFilterContext, PaletteCategory } from "../../helper/utilities/paletteFilter";
+import { getFilteredCategories } from "../../helper/utilities/paletteFilter";
 import "./NodePaletteSidebar.css";
 
 interface SidebarProps {
@@ -45,7 +45,6 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
   const nodeCategories: PaletteCategory[] = useMemo(() => ([
     {
       name: "Triggers",
-      collapsed: false,
       nodes: getNodesByPaletteCategory('Triggers').map(node => ({
         id: `${node.type.toLowerCase()}-trigger`,
         name: node.label,
@@ -57,7 +56,6 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
     },
     {
       name: "Core",
-      collapsed: true,
       nodes: [
         ...getNodesByPaletteCategory('Core').map(node => ({
           id: node.type.toLowerCase().replace(/\s+/g, '-'),
@@ -71,7 +69,6 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
     },
     {
       name: "Flow",
-      collapsed: true,
       nodes: getNodesByPaletteCategory('Flow').map(node => ({
         id: node.type.toLowerCase().replace(/\s+/g, '-'),
         name: node.label,
@@ -83,7 +80,6 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
     },
     {
       name: "Tools",
-      collapsed: true,
       nodes: getNodesByPaletteCategory('Tools').map(node => ({
         id: node.type.toLowerCase().replace(/\s+/g, '-'),
         name: node.label,
@@ -203,13 +199,13 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
             <AccordionComponent
               ref={accordionRef}
               className="custom-accordion"
-              expandMode="Single"
+              expandMode="Multiple"
             >
               <AccordionItemsDirective>
                 {filteredCategories.map((category) => (
                   <AccordionItemDirective
                     key={category.name}
-                    expanded={!category.collapsed}
+                    expanded={true}
                     header={createCategoryHeader(category)}
                     content={() => createCategoryContent(category)}
                   />

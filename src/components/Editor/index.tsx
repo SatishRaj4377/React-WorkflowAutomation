@@ -1,7 +1,7 @@
 import './Editor.css';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useBlocker } from 'react-router';
-import { DiagramTools, NodeConstraints, NodeModel, PortConstraints, PortModel, ConnectorModel } from '@syncfusion/ej2-react-diagrams';
+import { DiagramTools, NodeConstraints, NodeModel, PortConstraints, ConnectorModel } from '@syncfusion/ej2-react-diagrams';
 import EditorHeader from '../Header/EditorHeader';
 import DiagramEditor from '../DiagramEditor';
 import Toolbar from '../Toolbar';
@@ -10,7 +10,7 @@ import NodePaletteSidebar from '../NodePaletteSidebar';
 import NodeConfigSidebar from '../NodeConfigSidebar';
 import { useTheme } from '../../contexts/ThemeContext';
 import ConfirmationDialog from '../ConfirmationDialog';
-import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosition, ToolbarAction, ExecutionContext, NodeToolbarAction } from '../../types';
+import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosition, ToolbarAction, ExecutionContext, NodeToolbarAction, PaletteFilterContext } from '../../types';
 import WorkflowProjectService from '../../services/WorkflowProjectService';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
 import { calculateNewNodePosition, createConnector, createNodeFromTemplate, generateOptimizedThumbnail, getDefaultDiagramSettings, getNodeConfig, getNodePortById, isAiAgentNode, getNodeDimensions, findAiAgentBottomConnectedNodes, getAiAgentBottomNodePosition, isAgentBottomToToolConnector, getNodeCenter, findFirstPortId, adjustNodesSpacing } from '../../helper/utilities';
@@ -20,7 +20,6 @@ import { WorkflowExecutionService } from '../../execution/WorkflowExecutionServi
 import { ChatPopup } from '../ChatPopup';
 import { MessageComponent } from '@syncfusion/ej2-react-notifications';
 import { refreshNodeTemplate } from '../../helper/utilities/nodeTemplateUtils';
-import type { PaletteFilterContext } from '../../helper/utilities/paletteFilter';
 
 interface EditorProps {
   project: ProjectData;
@@ -887,7 +886,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
             showInitialAddButton={showInitialAddButton}
             onInitialAddClick={() => {
               setNodeConfigPanelOpen(false);
-              setPaletteFilterContext({ mode: 'default' });
+              setPaletteFilterContext({ mode: 'initial-add' });
               setNodePaletteSidebarOpen(true);
             }}
             onNodeAddedFirstTime={() => setShowInitialAddButton(false)}

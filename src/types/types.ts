@@ -29,6 +29,13 @@ export type NodeCategories = 'trigger' | 'action' | 'sticky' | 'condition' | 'ai
 
 export type PaletteCategoryLabel = 'Triggers' | 'Core' | 'Flow' | 'Tools';
 
+export type PaletteFilterMode =
+  | 'default'                 // show all sections
+  | 'initial-add'             // show trigger section only
+  | 'port-core-flow'          // opened from a node port (generic) → only Core & Flow
+  | 'port-agent-bottom'       // opened from AI Agent bottom port → show only Tools
+  | 'connector-insert';       // opened from connector insert handle → show only Core & Flow
+
 export type GridStyle = 'lines' | 'dotted' | 'none';
 
 export type ConnectorType = 'Bezier' | 'Orthogonal' | 'Straight';
