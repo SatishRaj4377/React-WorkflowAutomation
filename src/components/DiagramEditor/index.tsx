@@ -120,6 +120,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     const portBasedUserHandles = generatePortBasedUserHandles(firstSelectedNode, diagramRef.current);
     userHandles.push(...portBasedUserHandles);
     (diagramRef.current as any).selectedItems.userHandles = userHandles;
+    (diagramRef.current as any).dataBind();
   } else if (selectedConnector) {
     // Adjust offsets/sizes for connector handles via utility
     const length = computeConnectorLength(selectedConnector);
@@ -127,6 +128,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
 
     // Apply handles for connector selection (after any filtering)
     (diagramRef.current as any).selectedItems.userHandles = userHandles;
+    (diagramRef.current as any).dataBind();
+
   }
 
   // Context Menu Items for the diagram

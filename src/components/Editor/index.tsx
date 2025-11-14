@@ -20,6 +20,7 @@ import { WorkflowExecutionService } from '../../execution/WorkflowExecutionServi
 import { ChatPopup } from '../ChatPopup';
 import { MessageComponent } from '@syncfusion/ej2-react-notifications';
 import { refreshNodeTemplate } from '../../helper/utilities/nodeTemplateUtils';
+import type { PaletteFilterContext } from '../../helper/utilities/paletteFilter';
 
 interface EditorProps {
   project: ProjectData;
@@ -50,10 +51,10 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   const [isUserhandleAddNodeSelectionMode, setUserhandleAddNodeSelectionMode] = useState(false);
   const [selectedPortConnection, setSelectedPortConnection] = useState<{nodeId: string, portId: string} | null>(null);
-  const [selectedPortModel, setSelectedPortModel] = useState<PortModel | null>(null);
   // Connector insertion (+ handle on connector)
   const [isConnectorInsertSelectionMode, setConnectorInsertSelectionMode] = useState(false);
   const [selectedConnectorForInsertion, setSelectedConnectorForInsertion] = useState<ConnectorModel | null>(null);
+  const [paletteFilterContext, setPaletteFilterContext] = useState<PaletteFilterContext>({ mode: 'default' });
   const [showInitialAddButton, setShowInitialAddButton] = useState(
     !project.workflowData?.diagramString || project.workflowData.diagramString.trim() === ''
   );
@@ -175,16 +176,32 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
 
     if (isConnectable) {
       setSelectedPortConnection({ nodeId: node?.id as string, portId });
-      setSelectedPortModel(port);
       setUserhandleAddNodeSelectionMode(true);
       setNodeConfigPanelOpen(false);
+
+      // Determine palette filter context
+      try {
+        const cfg = getNodeConfig(node);
+        const isAgent = cfg ? isAiAgentNode(cfg) : false;
+        const isBottomPort = (portId || '').toLowerCase().startsWith('bottom');
+
+        if (isAgent && isBottomPort) {
+          setPaletteFilterContext({ mode: 'port-agent-bottom' });
+        } else {
+          // Generic from any node port (core/flow/trigger) → show only Core & Flow
+          setPaletteFilterContext({ mode: 'port-core-flow' });
+        }
+      } catch {
+        setPaletteFilterContext({ mode: 'port-core-flow' });
+      }
+
       setNodePaletteSidebarOpen(true);
     } else {
       // Not connectable, do nothing
       setUserhandleAddNodeSelectionMode(false);
       setSelectedPortConnection(null);
-      setSelectedPortModel(null);
       setNodePaletteSidebarOpen(false);
+      setPaletteFilterContext({ mode: 'default' });
     }
   };
 
@@ -238,7 +255,6 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     // Reset the component's state after connection
     setUserhandleAddNodeSelectionMode(false);
     setSelectedPortConnection(null);
-    setSelectedPortModel(null);
     setNodePaletteSidebarOpen(false);
   };
 
@@ -842,7 +858,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
           isOpen={nodePaletteSidebarOpen}
           onClose={() => setNodePaletteSidebarOpen(false)}
           onAddNode={handleAddNode}
-          isUserHandleClicked={isUserhandleAddNodeSelectionMode ? selectedPortModel : null}
+          paletteFilterContext={paletteFilterContext}
         />
                 
         {/* Main Diagram Area */}
@@ -850,6 +866,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
           <DiagramEditor 
             onAddNode={() => {
               setNodeConfigPanelOpen(false);
+              setPaletteFilterContext({ mode: 'default' });
               setNodePaletteSidebarOpen(true);
             }}
             onNodeDoubleClick={handleNodeDoubleClick}
@@ -862,6 +879,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
               setSelectedConnectorForInsertion(connector as any);
               setConnectorInsertSelectionMode(true);
               setNodeConfigPanelOpen(false);
+              setPaletteFilterContext({ mode: 'connector-insert' });
               setNodePaletteSidebarOpen(true);
             }}
             isUserHandleAddNodeEnabled= {isUserhandleAddNodeSelectionMode}
@@ -869,6 +887,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
             showInitialAddButton={showInitialAddButton}
             onInitialAddClick={() => {
               setNodeConfigPanelOpen(false);
+              setPaletteFilterContext({ mode: 'default' });
               setNodePaletteSidebarOpen(true);
             }}
             onNodeAddedFirstTime={() => setShowInitialAddButton(false)}
@@ -877,6 +896,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
               resetConnectorInsertMode();
               setNodePaletteSidebarOpen(false);
               setNodeConfigPanelOpen(false);
+              setPaletteFilterContext({ mode: 'default' });
             }}
             onNodeToolbarAction={handleNodeToolbarAction}
           />

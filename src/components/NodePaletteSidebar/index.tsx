@@ -7,24 +7,25 @@ import {
 } from "@syncfusion/ej2-react-navigations";
 import { ButtonComponent } from "@syncfusion/ej2-react-buttons";
 import { TextBoxComponent } from "@syncfusion/ej2-react-inputs";
-import { NodeTemplate, PaletteCategory } from "../../types";
-import { PortModel } from '@syncfusion/ej2-react-diagrams';
+import type { NodeTemplate } from "../../types";
+import type { PortModel } from '@syncfusion/ej2-react-diagrams';
 import { getNodesByPaletteCategory } from "../../constants/nodeRegistry";
-import {IconRegistry} from "../../assets/icons";
+import { IconRegistry } from "../../assets/icons";
+import { getFilteredCategories, PaletteFilterContext, PaletteCategory } from "../../helper/utilities/paletteFilter";
 import "./NodePaletteSidebar.css";
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
   onAddNode?: (nodeTemplate: NodeTemplate) => void;
-  isUserHandleClicked?: PortModel | null;
+  paletteFilterContext?: PaletteFilterContext;
 }
 
 const NodePaletteSidebar: React.FC<SidebarProps> = ({
   isOpen,
   onClose,
   onAddNode,
-  isUserHandleClicked,
+  paletteFilterContext,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const searchRef = useRef<TextBoxComponent>(null);
@@ -94,19 +95,11 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
     }
   ]), []);
 
-  const filteredCategories = nodeCategories
-    .map((category) => ({
-      ...category,
-      nodes: category.nodes.filter((node) => {
-        // Hide trigger nodes if connecting from a port
-        if (isUserHandleClicked && node.category === 'trigger') return false;
-        return (
-          node.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          node.description.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-      }),
-    }))
-    .filter((category) => category.nodes.length > 0);
+  const filteredCategories = getFilteredCategories(
+    nodeCategories,
+    searchTerm,
+    paletteFilterContext || { mode: 'default' }
+  );
 
   const handleNodeClick = (nodeTemplate: NodeTemplate) => {
     // Remove icon property if present, ensure icon is used
