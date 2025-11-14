@@ -1,4 +1,4 @@
-import { ConnectorModel } from "@syncfusion/ej2-react-diagrams";
+import { ConnectorModel, UserHandleModel } from "@syncfusion/ej2-react-diagrams";
 import { getNodeConfig } from "./nodeUtils";
 
 // Creates a connector between two nodes
@@ -45,4 +45,45 @@ export const isAgentBottomToToolConnector = (connector: any, diagramInstance: an
 
   // Block only when source is AI Agent using a bottom* port and target is a Tool
   return sourceCategory === 'ai-agent' && targetCategory === 'tool' && sourcePortId.startsWith('bottom');
+};
+
+// Computes an approximate connector length in pixels using available points/wrapper size
+export const computeConnectorLength = (connector: any): number => {
+  try {
+    const p1 = connector?.sourcePoint ?? connector?.sourceWrapper?.offset ?? null;
+    const p2 = connector?.targetPoint ?? connector?.targetWrapper?.offset ?? null;
+    if (p1 && p2 && typeof p1.x === 'number' && typeof p2.x === 'number') {
+      return Math.hypot(p2.x - p1.x, p2.y - p1.y);
+    }
+    const size = connector?.wrapper?.actualSize;
+    if (size && typeof size.width === 'number') {
+      return Math.hypot(size.width, size.height ?? 0);
+    }
+  } catch {}
+  return Infinity;
+};
+
+// Returns adjusted user handles (offset and size) for a given connector length
+export const adjustUserHandlesForConnectorLength = (
+  userHandles: UserHandleModel[],
+  length: number
+): UserHandleModel[] => {
+  // desired pixel gap between handles (approx). Keep small and clamp.
+  const desiredGapPx = 25;
+  let insertOffset = 0.4;
+  let deleteOffset = 0.6;
+
+  if (isFinite(length) && length > 0) {
+    const maxFraction = 0.3; // don't push handles beyond reasonable bounds
+    const frac = Math.min(maxFraction, desiredGapPx / length);
+    const mid = 0.5;
+    insertOffset = Math.max(0.1, mid - frac / 2);
+    deleteOffset = Math.min(0.9, mid + frac / 2);
+  }
+
+  return userHandles.map((h) => {
+    if (h.name === 'insertNodeOnConnector') return { ...h, offset: insertOffset, size: length < 100 ? 20 : h.size } as UserHandleModel;
+    if (h.name === 'deleteConnector') return { ...h, offset: deleteOffset, size: length < 100 ? 21 : h.size } as UserHandleModel;
+    return h;
+  });
 };

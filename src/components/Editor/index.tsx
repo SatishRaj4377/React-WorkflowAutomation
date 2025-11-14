@@ -13,7 +13,7 @@ import ConfirmationDialog from '../ConfirmationDialog';
 import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosition, ToolbarAction, ExecutionContext, NodeToolbarAction } from '../../types';
 import WorkflowProjectService from '../../services/WorkflowProjectService';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
-import { calculateNewNodePosition, createConnector, createNodeFromTemplate, generateOptimizedThumbnail, getDefaultDiagramSettings, getNodeConfig, getNodePortById, isAiAgentNode, getNodeDimensions, findAiAgentBottomConnectedNodes, getAiAgentBottomNodePosition, isAgentBottomToToolConnector } from '../../helper/utilities';
+import { calculateNewNodePosition, createConnector, createNodeFromTemplate, generateOptimizedThumbnail, getDefaultDiagramSettings, getNodeConfig, getNodePortById, isAiAgentNode, getNodeDimensions, findAiAgentBottomConnectedNodes, getAiAgentBottomNodePosition, isAgentBottomToToolConnector, getNodeCenter, findFirstPortId, adjustNodesSpacing } from '../../helper/utilities';
 import { diagramHasChatTrigger, resetExecutionStates } from '../../helper/workflowExecution';
 import { handleEditorKeyDown } from '../../helper/keyboardShortcuts';
 import { WorkflowExecutionService } from '../../execution/WorkflowExecutionService';
@@ -233,7 +233,6 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         repositionAiAgentTargets(sourceNode as NodeModel);
       }
     } catch (err) {}
-    diagramRef.clearSelection();
     diagramRef.tool = DiagramTools.Default; // Reset the diagram tool
 
     // Reset the component's state after connection
@@ -275,14 +274,6 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       return;
     }
 
-    // Safely get node centers (wrapper fallback)
-    const getNodeCenter = (node: NodeModel) => {
-      const w = (node as any)?.wrapper;
-      const x = node.offsetX ?? w?.offsetX ?? 0;
-      const y = node.offsetY ?? w?.offsetY ?? 0;
-      return { x, y };
-    };
-
     const sourceNodeCenterPoint = getNodeCenter(sourceNode);
     const targetNodeCenterPoint = getNodeCenter(targetNode);
 
@@ -297,16 +288,6 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     // Remove existing connector
     diagramRef.remove(conn);
 
-    // Helper to find first in/out port id on a node
-    const findFirstPortId = (node: NodeModel, wantOut: boolean): string => {
-      const ports = Array.isArray(node.ports) ? (node.ports as any) : [];
-      const match = ports.find((p: PortModel) => {
-        const c = p.constraints ?? 0;
-        return wantOut ? ((c & PortConstraints.OutConnect) !== 0 && (c & PortConstraints.Draw) !== 0)
-                       : ((c & PortConstraints.InConnect) !== 0);
-      });
-      return match?.id || (wantOut ? 'right-port' : 'left-port');
-    };
 
     // Wire two new connectors
     // Preserve the original sourcePortID and targetPortID from the split connector,
@@ -330,9 +311,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     diagramRef.add(newIncomingConnector);
     diagramRef.add(newOutgoingConnector);
 
-    // Cleanup
-    diagramRef.clearSelection();
-
+    // Source and Target node adjustment to avoid overlapping
+    adjustNodesSpacing(sourceNode, targetNode, 250);
     resetConnectorInsertMode();
     setNodePaletteSidebarOpen(false);
   };
@@ -548,7 +528,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         }
       } catch (err) { /* ignore */ }
     });
-
+    diagramRef.reset();
     diagramRef.fitToPage();
   };
   // TOOLBAR HANDLERS - END

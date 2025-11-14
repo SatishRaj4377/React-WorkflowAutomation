@@ -203,6 +203,46 @@ export const hasValidPosition = (node: NodeModel): boolean => {
   );
 };
 
+// Get the visual center of a node, with wrapper fallback
+export const getNodeCenter = (node: NodeModel): { x: number; y: number } => {
+  const w = (node as any)?.wrapper;
+  const x = typeof node.offsetX === 'number' ? node.offsetX : (w?.offsetX ?? 0);
+  const y = typeof node.offsetY === 'number' ? node.offsetY : (w?.offsetY ?? 0);
+  return { x, y };
+};
+
+// Adjust spacing between two nodes by pushing them apart to meet a minimum distance.
+// Uses safe center calculations and avoids unsafe offset property reuse.
+export const adjustNodesSpacing = (
+  sourceNode: NodeModel,
+  targetNode: NodeModel,
+  minSpacing: number = 250
+): void => {
+  const s = getNodeCenter(sourceNode);
+  const t = getNodeCenter(targetNode);
+
+  const dx = t.x - s.x;
+  const dy = t.y - s.y;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+  if (distance >= minSpacing || distance === 0) return;
+
+  const adjustAmount = (minSpacing - distance) / 2;
+  const angle = Math.atan2(dy, dx);
+  const moveX = Math.cos(angle) * adjustAmount;
+  const moveY = Math.sin(angle) * adjustAmount;
+
+  // Safely set new offsets without casting hacks
+  const srcX = typeof sourceNode.offsetX === 'number' ? sourceNode.offsetX : s.x;
+  const srcY = typeof sourceNode.offsetY === 'number' ? sourceNode.offsetY : s.y;
+  const tgtX = typeof targetNode.offsetX === 'number' ? targetNode.offsetX : t.x;
+  const tgtY = typeof targetNode.offsetY === 'number' ? targetNode.offsetY : t.y;
+
+  sourceNode.offsetX = srcX - moveX;
+  sourceNode.offsetY = srcY - moveY;
+  targetNode.offsetX = tgtX + moveX;
+  targetNode.offsetY = tgtY + moveY;
+};
+
 
 // Check if a node is valid and has proper configuration
 export const isValidNode = (node: NodeModel | null | undefined): boolean => {

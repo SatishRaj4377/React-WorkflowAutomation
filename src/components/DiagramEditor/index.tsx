@@ -4,7 +4,7 @@ import { DiagramComponent, SnapSettingsModel, OverviewComponent, GridlinesModel,
 import { DiagramSettings, NodeConfig, NodePortDirection, NodeToolbarAction } from '../../types';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
 import { bringConnectorsToFront, convertMarkdownToHtml, getConnectorCornerRadius, getConnectorType, getFirstSelectedNode, getGridColor, getGridType, getNodeConfig, getPortOffset, getPortSide, getSnapConstraints, getStickyNoteTemplate, initializeNodeDimensions, isConnectorBetweenAgentAndTool, isNodeOutOfViewport, isStickyNote, prepareUserHandlePortData, updateNodeConstraints, shouldShowUserHandleForPort } from '../../helper/utilities';
-import { isAgentBottomToToolConnector } from '../../helper/utilities/connectorUtils';
+import { isAgentBottomToToolConnector, computeConnectorLength, adjustUserHandlesForConnectorLength } from '../../helper/utilities/connectorUtils';
 import { DIAGRAM_MENU, NODE_MENU } from '../../constants';
 import { buildNodeHtml, attachNodeTemplateEvents } from '../../helper/utilities/nodeTemplateUtils';
 
@@ -81,9 +81,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         </g>
       `,
       offset: 0.4,
-      backgroundColor: GRAY_COLOR,
-      pathColor: '#f8fafc',
-      borderColor: GRAY_COLOR,
+      tooltip: {content: "Insert Node"},
       disableNodes: true,
       size: 24,
     },
@@ -104,9 +102,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         </g>
       `,
       offset: 0.6,
-      backgroundColor: GRAY_COLOR,
-      pathColor: '#f8fafc',
-      borderColor: GRAY_COLOR,
+      tooltip: {content: "Delete Connector", position: 'TopRight'},
       disableNodes: true,
       size: 25,
     },
@@ -125,6 +121,10 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     userHandles.push(...portBasedUserHandles);
     (diagramRef.current as any).selectedItems.userHandles = userHandles;
   } else if (selectedConnector) {
+    // Adjust offsets/sizes for connector handles via utility
+    const length = computeConnectorLength(selectedConnector);
+    userHandles = adjustUserHandlesForConnectorLength(userHandles, length);
+
     // Apply handles for connector selection (after any filtering)
     (diagramRef.current as any).selectedItems.userHandles = userHandles;
   }

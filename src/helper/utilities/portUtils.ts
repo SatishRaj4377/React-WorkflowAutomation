@@ -5,6 +5,18 @@ import { NODE_REGISTRY } from "../../constants/nodeRegistry";
 import { getNodeConfig, isAiAgentNode } from "./nodeUtils";
 import { refreshNodeTemplate } from "./nodeTemplateUtils";
 
+// Helper to find first IN/OUT port id on a node
+export const findFirstPortId = (node: NodeModel, wantOut: boolean): string => {
+  const ports = Array.isArray(node.ports) ? (node.ports as any) : [];
+  const match = ports.find((p: PortModel) => {
+    const c = p.constraints ?? 0;
+    return wantOut
+      ? ((c & PortConstraints.OutConnect) !== 0 && (c & PortConstraints.Draw) !== 0)
+      : ((c & PortConstraints.InConnect) !== 0);
+  });
+  return match?.id || (wantOut ? 'right-port' : 'left-port');
+};
+
 export const createPort = (
   id: string,
   offset: { x: number; y: number },
