@@ -69,7 +69,7 @@ export const adjustUserHandlesForConnectorLength = (
   length: number
 ): UserHandleModel[] => {
   // desired pixel gap between handles (approx). Keep small and clamp.
-  const desiredGapPx = 25;
+  const desiredGapPx = length < 100 ? 20 : 30;
   let insertOffset = 0.4;
   let deleteOffset = 0.6;
 
