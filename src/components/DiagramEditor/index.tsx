@@ -959,19 +959,21 @@ function generatePortBasedUserHandles(node: NodeModel, diagram?: DiagramComponen
   return availablePorts.map(({ portId, direction, side, offset }) => ({
     name: `add-node-from-port-${portId}`,
     content: `
-      <g>
-        <rect x="1" y="1" width="14" height="14" rx="3" ry="3" fill="#9193a2ff" stroke="#9193a2ff" stroke-width="1.2"/>
-        <path d="M8 5 V11 M5 8 H11" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
-      </g>
+        <g class="add-handle">
+          <rect class="bg" x="1" y="1" width="14" height="14" rx="3" ry="3" fill="${GRAY_COLOR}"/>
+          <path class="plus" d="M8 5 V11 M5 8 H11" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+          <style>
+            .add-handle { cursor: pointer; }
+            .add-handle:hover .bg { fill: var(--accent-color); }
+          </style>
+        </g>
     `,
     side: side ?? getPortSide(direction),
     offset: offset ?? getPortOffset(direction),
-    backgroundColor: GRAY_COLOR,
-    pathColor: '#f8fafc',
-    borderColor: GRAY_COLOR,
     disableConnectors: true,
-    size: 20,
+    size: 22,
     visible: true,
+    tooltip: {content: "Add Node", position: 'RightCenter'}
   }));
 }
 
