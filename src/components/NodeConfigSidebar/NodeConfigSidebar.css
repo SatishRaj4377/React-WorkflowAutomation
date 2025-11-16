@@ -2,7 +2,7 @@
   background: var(--surface-color);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
   height: 100%;
 }
 
@@ -11,9 +11,11 @@
   background: var(--surface-color);
   border-left: 1px solid var(--border-color);
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+  overflow: visible; /* ensure absolute children can overflow */
 }
 
 .config-panel-header {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -21,6 +23,43 @@
   background-color: var(--background-color);
   color: var(--text-secondary);
   border-bottom: 1px solid var(--border-color);
+}
+
+/* Floating Update button clipped at the right outer edge */
+.config-update-floating {
+  opacity: 0;
+  position: absolute;
+  right: 0px;
+  top: 50%;
+  transform: translate(100%, -50%);
+  z-index: 100001;
+  transition: all .3s ease;
+}
+.config-update-floating.show {
+  opacity: 1;
+  user-select: all;
+}
+.config-update-floating.hide {
+  opacity: 0;
+  user-select: none;
+}
+.config-update-floating .e-btn,
+.config-update-floating .e-btn:focus {
+  width: 46px;
+  height: 50px;
+  border-radius: 0 100% 100% 0;
+  box-shadow: 0 4px 12px var(--box-shadow);
+  transition: all .3s ease;
+}
+.config-update-floating .e-btn .e-btn-icon {
+  transition: all .3s ease;
+}
+.config-update-floating .e-btn:hover {
+  width: 70px;
+  height: 80px;
+}
+.config-update-floating .e-btn:hover .e-btn-icon {
+  font-size: 2rem !important;
 }
 
 .config-panel-title {
@@ -443,6 +482,9 @@
 
 .e-btn.e-close.custom-font-size {
   font-size: .85rem !important;
+}
+.config-row .e-checkbox-wrapper .e-label {
+  font-weight: 400 !important;
 }
 
 /* Scrollbar (match your panel style) */

@@ -27,6 +27,8 @@ import { getScopesForNode } from '../../helper/googleScopes';
 import { GoogleAuth } from '../../helper/googleAuthClient';
 import GmailNodeConfig from './GmailNodeConfig';
 import ConditionNodeConfig from './ConditionNodeConfig';
+import FormNodeConfig from './FormNodeConfig';
+import FormPreviewPopup from '../FormPreviewPopup';
 
 interface ConfigPanelProps {
   isOpen: boolean;
@@ -56,6 +58,14 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   const [nodeOutput, setNodeOutput] = useState<any>(null);
   const [variablesLoading, setVariablesLoading] = useState(true);
   const [peek, setPeek] = useState<PeekInfo>(null);
+  const [formPreviewOpen, setFormPreviewOpen] = useState(false);
+  const [formPreviewError, setFormPreviewError] = useState<string>('');
+
+  // Draft-only settings; will commit when user clicks Update
+  const [draftSettings, setDraftSettings] = useState<{ general: any; authentication: any; advanced: any }>({ general: {}, authentication: {}, advanced: {} });
+  const [hasDraftChanges, setHasDraftChanges] = useState(false);
+  const [showUpdateButton, setShowUpdateButton] = useState(false);
+  const [draftDisplayName, setDraftDisplayName] = useState<string>('');
 
   const nodeIconSrc = selectedNode?.icon ? IconRegistry[selectedNode.icon] : null;
   const MessageIcon = IconRegistry['Message'];
@@ -73,6 +83,22 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
     if (nodeType === 'Google Sheets') return !!auth?.googleSheetsConnected || !!auth?.googleAccountEmail;
     return false;
   };
+
+  // Sync draft when selected node changes
+  useEffect(() => {
+    const general = (selectedNode?.settings && (selectedNode.settings as any).general) || {};
+    const authentication = (selectedNode?.settings && (selectedNode.settings as any).authentication) || {};
+    const advanced = (selectedNode?.settings && (selectedNode.settings as any).advanced) || {};
+    setDraftSettings({ general, authentication, advanced });
+    setDraftDisplayName(selectedNode?.displayName ?? '');
+    setHasDraftChanges(false);
+  }, [selectedNode?.id]);
+
+  
+  useEffect(() => {
+    setShowUpdateButton(hasDraftChanges);
+  }, [hasDraftChanges]);
+
 
   // Fetch available variables and node output whenever the selected node or diagram changes.
   useEffect(() => {
@@ -131,47 +157,92 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
     }
   }, [selectedNode?.id, diagram, executionContext]);
 
-  /** Safely update settings */
+  /** Safely update settings (edit locally; commit via Update button) */
   const handleConfigChange = (
     fieldOrPatch: string | Record<string, any>,
     value?: any,
     section: 'general' | 'authentication' | 'advanced' = 'general'
   ) => {
     if (!selectedNode) return;
-    const prevSection = (selectedNode.settings && (selectedNode.settings as any)[section]) ?? {};
 
-    const nextSection =
-      typeof fieldOrPatch === 'object' && fieldOrPatch !== null
-        ? { ...prevSection, ...fieldOrPatch }
-        : { ...prevSection, [fieldOrPatch]: value };
+    setDraftSettings(prev => {
+      const prevSection = prev[section] || {};
+      const nextSection =
+        typeof fieldOrPatch === 'object' && fieldOrPatch !== null
+          ? { ...prevSection, ...fieldOrPatch }
+          : { ...prevSection, [fieldOrPatch]: value };
+      return { ...prev, [section]: nextSection };
+    });
+    setHasDraftChanges(true);
 
-    // make sure the editor only calls onNodeConfigChange when something actually changes
-    let same = true;
-    for (const k of Object.keys(nextSection)) {
-      if (prevSection[k] !== nextSection[k]) { same = false; break; }
+    // Collapse preview promptly on any form config edits
+    if (selectedNode.nodeType === 'Form' && formPreviewOpen) {
+      setFormPreviewOpen(false);
     }
-    if (same) return;
-
-
-    const updatedConfig: NodeConfig = {
-      ...selectedNode,
-      settings: {
-        ...selectedNode.settings,
-        [section]: nextSection,
-      },
-    };
-    onNodeConfigChange(selectedNode.id, updatedConfig);
   };
 
   const handleNameChange = (value: string) => {
-    if (!selectedNode) return;
-    const updatedConfig: NodeConfig = { ...selectedNode, displayName: value };
-    onNodeConfigChange(selectedNode.id, updatedConfig);
+    setDraftDisplayName(value);
+    setHasDraftChanges(true);
   };
 
   /** Node-specific fields inside the General tab */
   const renderNodeSpecificFields = (type: NodeType, settings: any) => {
     switch (type) {
+      case 'Form': {
+        const fields = (settings.formFields ?? [
+          { label: '', type: 'text', placeholder: '', required: false },
+        ]) as any[];
+
+        const onPreview = () => {
+          setFormPreviewError('');
+          const title = settings.formTitle?.trim?.() || '';
+          if (!title) {
+            setFormPreviewError('Please enter Form Title before preview.');
+            return;
+          }
+          // Validate fields
+          const invalid = fields.some((f: any) => {
+            if (!f || !f.type) return true;
+            if (!f.label || String(f.label).trim() === '') return true;
+            if (f.type === 'dropdown') {
+              const opts = Array.isArray(f.options) ? f.options.filter((o: any) => String(o).trim() !== '') : [];
+              if (opts.length === 0) return true;
+            }
+            return false;
+          });
+          if (invalid) {
+            setFormPreviewError('Please complete all fields. Ensure each field has a label and dropdowns have options.');
+            return;
+          }
+          setFormPreviewOpen(true);
+        };
+
+        return (
+          <>
+            <FormNodeConfig
+              title={settings.formTitle ?? ''}
+              description={settings.formDescription ?? ''}
+              value={fields}
+              onChange={(next) => handleConfigChange('formFields', next)}
+              onMetaChange={(patch) => handleConfigChange(patch)}
+            />
+
+            <div className="config-section" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
+              <ButtonComponent cssClass="e-flat" iconCss="e-icons e-eye" onClick={onPreview}>Preview</ButtonComponent>
+              {formPreviewError && <div style={{ color: 'var(--danger-color)' }}>{formPreviewError}</div>}
+            </div>
+
+            <FormPreviewPopup
+              open={formPreviewOpen}
+              onClose={() => setFormPreviewOpen(false)}
+              title={settings.formTitle ?? ''}
+              description={settings.formDescription ?? ''}
+              fields={fields}
+            />
+          </>
+        );
+      }
       case 'Webhook':
         const webhookUrl = `http://localhost:3001/webhook/${selectedNode?.id}`;
         return (
@@ -682,13 +753,13 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
 
   /** General tab */
   const renderGeneralTab = useCallback(() => {
-    const settings = (selectedNode?.settings && selectedNode.settings.general) || {};
+    const settings = draftSettings.general || {};
     return (
       <div className="config-tab-content">
         <div className="config-section">
           <label className="config-label">Node Name</label>
           <TextBoxComponent
-            value={selectedNode?.displayName ?? ''}
+            value={draftDisplayName}
             placeholder="Enter node name"
             change={(e: any) => handleNameChange(e.value)}
             cssClass="config-input"
@@ -698,7 +769,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
         {renderNodeSpecificFields(selectedNode!.nodeType, settings)}
       </div>
     );
-  }, [selectedNode, availableVariables, isChatOpen]);
+  }, [selectedNode, availableVariables, isChatOpen, formPreviewOpen, formPreviewError, draftSettings]);
 
   /** Output tab (shows when a node is executed) */
   const renderOutputTab = useCallback(() => {
@@ -742,7 +813,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   const renderAuthenticationTab = useCallback(() => {
     if (!selectedNode) return <div></div>;
 
-    const authSettings =(selectedNode?.settings && selectedNode.settings.authentication) || {};
+    const authSettings = draftSettings.authentication || {};
 
     // Render Azure Chat Model node specific authentication fields
     switch (selectedNode.nodeType) {
@@ -951,7 +1022,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
             </div>
           );
     }
-  }, [selectedNode]);
+  }, [selectedNode, draftSettings]);
 
 
   const requiresAuthTab = !!selectedNode && AUTH_NODE_TYPES.includes(selectedNode.nodeType);
@@ -964,7 +1035,13 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
       position="Left"
       type="Over"
       isOpen={isOpen}
-      close={onClose}
+      open={()=>{
+        if (hasDraftChanges) setShowUpdateButton(true)
+      }}
+      close={() => {
+        setShowUpdateButton(false);
+        onClose?.();
+      }}
       enableGestures={false}
       target=".editor-content"
     >
@@ -1009,8 +1086,28 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
               />
             </div>
           </div>
-          
-
+          {/* Floating update button at right outer edge */}
+            <div className={`config-update-floating ${showUpdateButton ? "show" : "hide"}`}>
+              <ButtonComponent
+                title="Update"
+                iconCss="e-icons e-check"
+                onClick={() => {
+                  if (!selectedNode) return;
+                  const updatedConfig: NodeConfig = {
+                    ...selectedNode,
+                    displayName: draftDisplayName,
+                    settings: {
+                      ...selectedNode.settings,
+                      general: draftSettings.general || {},
+                      authentication: draftSettings.authentication || {},
+                      advanced: draftSettings.advanced || {},
+                    },
+                  };
+                  onNodeConfigChange(selectedNode.id, updatedConfig);
+                  setHasDraftChanges(false);
+                }}
+              />
+            </div>
           {/* === Body === */}
           <div className="config-panel-content">
             <TabComponent

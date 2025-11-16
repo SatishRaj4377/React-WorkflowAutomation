@@ -45,6 +45,8 @@ body, .e-control, .e-card{
   --gradient-accent: linear-gradient(135deg, #2563eb 0%, #6366f1 100%);
   --danger-color: #d9534f; 
   --danger-accent: #c9302c; 
+  --form-header-bg: #eff6ff;
+  --form-body-bg: #ffffff;
 
   /* Node Colors */
   --node-selector-outline: #ccd5e2ad;
@@ -122,6 +124,8 @@ body, .e-control, .e-card{
   --gradient-primary: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #93c5fd 100%);
   --gradient-secondary: linear-gradient(135deg, #93c5fd 0%, #60a5fa 50%, #3b82f6 100%);
   --gradient-accent: linear-gradient(135deg, #60a5fa 0%, #5c83f6 100%);
+  --form-header-bg: #0b1627;
+  --form-body-bg: #0e1520;
 
   /* Node Colors */
   --node-selector-outline: #93a9ff3d;
