@@ -341,6 +341,10 @@
   align-items: center; 
 }
 
+/* Rich text editor */
+ .e-richtexteditor .e-rte-content .e-content {
+  padding: 0;
+}
 
 /* Variable Picker Styling */
 /* Popup shell */

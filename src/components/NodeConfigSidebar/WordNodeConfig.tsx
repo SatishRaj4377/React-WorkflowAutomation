@@ -3,7 +3,9 @@ import { DropDownListComponent } from '@syncfusion/ej2-react-dropdowns';
 import { ButtonComponent, CheckBoxComponent } from '@syncfusion/ej2-react-buttons';
 import { TooltipComponent } from '@syncfusion/ej2-react-popups';
 import { UploaderComponent, SelectedEventArgs } from '@syncfusion/ej2-react-inputs';
-import { VariablePickerTextBox } from './VariablePickerTextBox';
+import { RichTextEditorComponent, Inject, HtmlEditor, Toolbar, Image, Link, QuickToolbar, Table, PasteCleanup, ImportExport, Resize } from '@syncfusion/ej2-react-richtexteditor';
+import { VariablePickerTextBox, VariablePickerPopup } from './VariablePickerTextBox';
+import { insertAtCaret, buildJsonFromVariables } from '../../helper/variablePickerUtils';
 import './NodeConfigSidebar.css';
 
 // Import showcase default Word files
@@ -33,6 +35,31 @@ const WordNodeConfig: React.FC<Props> = ({ settings, onPatch, variableGroups, va
   // Detected placeholders from the selected doc (for Update Mapper)
   const [placeholders, setPlaceholders] = useState<string[]>([]);
   const [parsing, setParsing] = useState(false);
+  
+  // Variable picker popup state for RichTextEditor
+  const [rteVarPickerOpen, setRteVarPickerOpen] = useState(false);
+  const rteEditorRef = useRef<RichTextEditorComponent | null>(null);
+
+  // Handler for inserting variables into the RTE. Defined at component scope
+  // to comply with hook rules (avoid calling hooks inside nested functions).
+  const handleRteVariablePick = useCallback(
+    (variable: any) => {
+      const token = `{{ ${variable.path} }}`;
+
+      const rte = rteEditorRef.current as any;
+      const contentEl = (rte?.element?.querySelector?.('.e-rte-content') as HTMLElement) || (rte?.element as HTMLElement) || (document.querySelector('.e-rte-content') as HTMLElement | null);
+      if (contentEl) {
+        const { nextValue } = insertAtCaret(contentEl, token);
+        onPatch({ write: { ...(settings.write ?? {}), content: nextValue } });
+      } else {
+        // Fallback: append token to stored content
+        const currentContent = (settings?.write?.content as string) ?? '';
+        onPatch({ write: { ...(settings.write ?? {}), content: currentContent + token } });
+      }
+      setRteVarPickerOpen(false);
+    },
+    [settings, onPatch]
+  );
 
   const uploaderRef = useRef<UploaderComponent | null>(null);
 
@@ -300,12 +327,66 @@ const WordNodeConfig: React.FC<Props> = ({ settings, onPatch, variableGroups, va
 
   const renderWrite = () => {
     const write = settings.write ?? {};
+    
+    const toolbarItems = [
+      'Undo', 'Redo', '|',
+      'Bold', 'Italic', 'Underline', 'StrikeThrough', '|',
+      'FontName', 'FontSize', 'FontColor', 'BackgroundColor', '|',
+      'Formats', 'Alignments', 'Blockquote', '|', 'NumberFormatList', 'BulletFormatList',
+      '|', 'CreateLink', 'Image', 'CreateTable', '|', 'ClearFormat'
+    ];
+
+    // Uses component-level `handleRteVariablePick` defined outside to insert variables
+
     return (
       <div className="config-section">
-        <div className="textbox-info" style={{ marginBottom: 8 }}>
+        <div className="textbox-info" style={{ marginBottom: 12 }}>
           Warning: This operation will clear all existing content in the selected file and write fresh content.
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+
+        {/* Rich Text Editor for content input */}
+        <div className="config-row" style={{ alignItems: 'center', gap: 8, marginBottom: 8 }}>
+          <label className="config-label">Content to Write</label>
+          <TooltipComponent content="Enter formatted content to write into the document. Supports formatting, tables, images, variables, and paste from Word files with formatting preserved. Focus to open variable picker.">
+            <span className="e-icons e-circle-info help-icon"></span>
+          </TooltipComponent>
+        </div>
+        
+        {/* Resizable container with min height */}
+        <RichTextEditorComponent
+          ref={(ref: any) => {
+            if (ref) rteEditorRef.current = ref;
+          }}
+          id="word-write-editor"
+          value={write.content ?? ''}
+          enableResize={true}
+          change={(e: any) => patch({ write: { ...write, content: e.value } })}
+          height="400px"
+          toolbarSettings={{ items: toolbarItems as any }}
+          enableXhtml={true}
+          pasteCleanupSettings={{ 
+            deniedTags: ['script', 'style'],
+            keepFormat: true 
+          }}
+          focus={() => setRteVarPickerOpen(true)}
+        >
+          <Inject services={[Toolbar, HtmlEditor, Image, Link, QuickToolbar, Table, PasteCleanup, ImportExport, Resize]} />
+        </RichTextEditorComponent>
+  
+
+        {/* Variable Picker Popup for RTE */}
+        <VariablePickerPopup
+          anchorEl={rteEditorRef.current?.element ?? null}
+          open={rteVarPickerOpen}
+          onClose={() => setRteVarPickerOpen(false)}
+          onPick={handleRteVariablePick}
+          variableGroups={variableGroups}
+          loading={variablesLoading}
+          zIndex={1000020}
+        />
+
+        {/* Download option */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
           <CheckBoxComponent
             checked={!!write.downloadAfterWrite}
             label="Download the file after write"
@@ -361,21 +442,6 @@ const WordNodeConfig: React.FC<Props> = ({ settings, onPatch, variableGroups, va
               ))}
             </>
           )}
-        </div>
-
-        <div className="config-section">
-          <label className="config-label">Download option</label>
-          <DropDownListComponent
-            value={update.downloadMode ?? 'new-file'}
-            dataSource={[
-              { text: 'Download a new file with changes', value: 'new-file' },
-              { text: 'Overwrite the same file (replace content)', value: 'overwrite' },
-            ]}
-            fields={{ text: 'text', value: 'value' } as any}
-            change={(e: any) => patch({ update: { ...update, downloadMode: e.value } })}
-            popupHeight="200px"
-            zIndex={1000000}
-          />
         </div>
       </>
     );

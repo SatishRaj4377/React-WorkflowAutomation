@@ -331,14 +331,59 @@ function coerceLeafValue(v: Variable): any {
 
 // Insert text at caret for EJ2 input/textarea
 export function insertAtCaret(
-  el: HTMLInputElement | HTMLTextAreaElement,
+  el: HTMLInputElement | HTMLTextAreaElement | HTMLElement,
   text: string
 ): { nextValue: string; nextCaret: number } {
-  const start = el.selectionStart ?? el.value.length;
-  const end = el.selectionEnd ?? el.value.length;
-  const nextValue = el.value.slice(0, start) + text + el.value.slice(end);
-  const nextCaret = start + text.length;
-  return { nextValue, nextCaret };
+  // Input / textarea case
+  if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+    const start = el.selectionStart ?? el.value.length;
+    const end = el.selectionEnd ?? el.value.length;
+    const nextValue = el.value.slice(0, start) + text + el.value.slice(end);
+    const nextCaret = start + text.length;
+    return { nextValue, nextCaret };
+  }
+
+  // Contenteditable / generic HTMLElement case: insert text at caret inside the element
+  try {
+    const doc = (el.ownerDocument || document) as Document;
+    const selection = doc.getSelection ? doc.getSelection() : window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      let range = selection.getRangeAt(0);
+      // If current selection is not inside our element, move caret to end of element
+      if (!el.contains(range.commonAncestorContainer)) {
+        const r = doc.createRange();
+        r.selectNodeContents(el);
+        r.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(r);
+        range = r;
+      }
+
+      // Insert text node
+      const textNode = doc.createTextNode(text);
+      range.deleteContents();
+      range.insertNode(textNode);
+      // Move caret after inserted node
+      range.setStartAfter(textNode);
+      range.collapse(true);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    } else {
+      // No selection available — append to existing HTML to avoid creating new wrapper nodes
+      try {
+        // Preserve existing markup and simply append the token string
+        (el as HTMLElement).innerHTML = (el as HTMLElement).innerHTML + text;
+      } catch (e) {
+        // Fallback to node append if innerHTML assignment fails
+        el.appendChild(doc.createTextNode(text));
+      }
+    }
+  } catch (e) {
+    // ignore insertion errors
+  }
+
+  const nextValue = (el as HTMLElement).innerHTML ?? '';
+  return { nextValue, nextCaret: -1 };
 }
 
 // Find the native EJ2 input/textarea inside the TextBox wrapper

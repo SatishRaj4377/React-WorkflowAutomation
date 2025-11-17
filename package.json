@@ -15,6 +15,7 @@
     "@syncfusion/ej2-react-navigations": "*",
     "@syncfusion/ej2-react-notifications": "*",
     "@syncfusion/ej2-react-popups": "*",
+    "@syncfusion/ej2-react-richtexteditor": "^31.2.10",
     "@syncfusion/ej2-react-splitbuttons": "*",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
