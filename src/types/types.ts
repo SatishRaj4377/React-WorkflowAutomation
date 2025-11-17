@@ -51,6 +51,8 @@ export type NodeType =
   | 'EmailJS'
   | 'Gmail'
   | 'Google Sheets'
+  | 'Word'
+  | 'Excel'
   | 'Telegram'
   | 'Google Calendar'
   | 'Google Docs'

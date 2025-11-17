@@ -17,6 +17,8 @@ import FormIcon from '../assets/images/svg-icons/form.svg';
 import ManualClickIcon from '../assets/images/svg-icons/manual-click.svg';
 import EmailJSIcon from '../assets/images/svg-icons/email-js.svg';
 import LoopIcon from '../assets/images/svg-icons/loop.svg';
+import WordIcon from '../assets/images/svg-icons/word.svg';
+import ExcelIcon from '../assets/images/svg-icons/excel.svg';
 import NodeLoader from '../assets/images/svg-icons/node-loader.svg';
 
 import ApiIntegrationImage from '../assets/images/template-images/api-integration.jpg';
@@ -47,6 +49,8 @@ export const IconRegistry: { [key: string]: string | React.ElementType } = {
   ChatIcon,
   FilterIcon,
   GmailIcon,
+  WordIcon,
+  ExcelIcon,
   GoogleDocsIcon,
   GoogleCalendarIcon,
   GoogleSheetIcon,
