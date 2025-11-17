@@ -4,6 +4,7 @@ import { useBlocker } from 'react-router';
 import { DiagramTools, NodeConstraints, NodeModel, PortConstraints, ConnectorModel } from '@syncfusion/ej2-react-diagrams';
 import EditorHeader from '../Header/EditorHeader';
 import DiagramEditor from '../DiagramEditor';
+import FormPreviewPopup, { PreviewFormField } from '../FormPreviewPopup';
 import Toolbar from '../Toolbar';
 import Toast, { showSuccessToast, showErrorToast } from '../Toast';
 import NodePaletteSidebar from '../NodePaletteSidebar';
@@ -26,6 +27,61 @@ interface EditorProps {
   onSaveProject: (project: ProjectData) => void;
   onBackToHome: () => void;
 }
+
+// Lightweight host that listens for form trigger events and renders the popup
+const FormPortalHost: React.FC = () => {
+  const [open, setOpen] = React.useState(false);
+  const [title, setTitle] = React.useState('');
+  const [description, setDescription] = React.useState<string | undefined>('');
+  const [fields, setFields] = React.useState<PreviewFormField[]>([]);
+
+  React.useEffect(() => {
+    const onOpen = (e: Event) => {
+      const ce = e as CustomEvent<{ title?: string; description?: string; fields?: PreviewFormField[] }>;
+      setTitle(ce.detail?.title || 'Form');
+      setDescription(ce.detail?.description || '');
+      setFields(Array.isArray(ce.detail?.fields) ? ce.detail!.fields! : []);
+      setOpen(true);
+    };
+    const onClear = () => setOpen(false);
+
+    window.addEventListener('wf:form:open', onOpen as EventListener);
+    window.addEventListener('wf:trigger:clear', onClear as EventListener);
+    window.addEventListener('wf:trigger:resumed', onClear as EventListener);
+
+    return () => {
+      window.removeEventListener('wf:form:open', onOpen as EventListener);
+      window.removeEventListener('wf:trigger:clear', onClear as EventListener);
+      window.removeEventListener('wf:trigger:resumed', onClear as EventListener);
+    };
+  }, []);
+
+  const handleClose = () => {
+    setOpen(false);
+    window.dispatchEvent(new CustomEvent('wf:form:cancel'));
+  };
+
+  const handleSubmit = (payload: { values: string[]; fields: PreviewFormField[] }) => {
+    window.dispatchEvent(
+      new CustomEvent('wf:form:submitted', {
+        detail: { values: payload.values, at: new Date().toISOString() }
+      })
+    );
+    setOpen(false);
+  };
+
+  return (
+    <FormPreviewPopup
+      open={open}
+      onClose={handleClose}
+      title={title}
+      description={description}
+      fields={fields}
+      onSubmit={handleSubmit}
+      showPreviewBadge={false}
+    />
+  );
+};
 
 const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, }) => {
   const { theme } = useTheme();
@@ -851,6 +907,9 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
           onClose={() => setChatOpen(false)} 
           promptSuggestions={selectedNode?.settings?.general?.promptSuggestions}
         />
+
+        {/* Form Popup - opened by executor during Form trigger */}
+        <FormPortalHost />
 
         {/* Sidebar for Node Palette */}
         <NodePaletteSidebar 

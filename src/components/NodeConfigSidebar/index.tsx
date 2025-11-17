@@ -239,6 +239,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
               title={settings.formTitle ?? ''}
               description={settings.formDescription ?? ''}
               fields={fields}
+              showPreviewBadge={true}
             />
           </>
         );

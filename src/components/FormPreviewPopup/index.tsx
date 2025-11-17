@@ -19,13 +19,17 @@ interface FormPreviewPopupProps {
   title: string;
   description?: string;
   fields: PreviewFormField[];
+  onSubmit?: (payload: { values: string[]; fields: PreviewFormField[] }) => void;
+  showPreviewBadge?: boolean;
 }
 
 const emptyValFor = (t: PreviewFormField['type']) => (t === 'dropdown' ? '' : '');
 
-const FormPreviewPopup: React.FC<FormPreviewPopupProps> = ({ open, onClose, title, description, fields }) => {
+const FormPreviewPopup: React.FC<FormPreviewPopupProps> = ({ open, onClose, title, description, fields, onSubmit: onSubmitExternal, showPreviewBadge }) => {
   const popupRef = useRef<HTMLDivElement>(null);
+  const popupHeightRef = useRef('0px');
   const dragRef = useRef<Draggable | null>(null);
+  const [isMinimized, setIsMinimized] = useState(false);
 
   const initialValues = useMemo(() => fields.map(f => emptyValFor(f.type)), [fields]);
   const [values, setValues] = useState<string[]>(initialValues);
@@ -54,6 +58,18 @@ const FormPreviewPopup: React.FC<FormPreviewPopupProps> = ({ open, onClose, titl
       dragRef.current = null;
     };
   }, [open]);
+
+  const toggleMinimize = () => {
+    if (!popupRef.current) return;
+    if (popupRef.current.style.height === '0px'){
+      popupRef.current.style.height = popupHeightRef.current; // Restore
+      setIsMinimized(false);
+    } else {
+      popupHeightRef.current = popupRef.current.style.height || `${popupRef.current.getBoundingClientRect().height}px`;
+      popupRef.current.style.height = '0px';
+      setIsMinimized(true);
+    }
+  };
 
   if (!open) return null;
 
@@ -110,6 +126,10 @@ const FormPreviewPopup: React.FC<FormPreviewPopupProps> = ({ open, onClose, titl
   const onSubmit = (e?: any) => {
     e?.preventDefault?.();
     if (validateLocal()) {
+      if (onSubmitExternal) {
+        onSubmitExternal({ values, fields });
+        // Let the parent decide closing; still show success locally for preview usage
+      }
       setSubmitted(true);
     }
   };
@@ -117,8 +137,14 @@ const FormPreviewPopup: React.FC<FormPreviewPopupProps> = ({ open, onClose, titl
   return createPortal(
     <div ref={popupRef} className="form-preview-popup">
       <div className="form-preview-header">
-        <div className="badge">Preview</div>
+        {showPreviewBadge && <div className="badge">Preview</div>}
         <div className="spacer" />
+        <ButtonComponent
+          className="icon-btn"
+          title={isMinimized ? 'Maximize' : 'Minimize'}
+          iconCss={isMinimized ? 'e-icons e-expand' : 'e-icons e-collapse-2'}
+          onClick={toggleMinimize}
+        />
         <ButtonComponent className="icon-btn" iconCss='e-icons e-close' onClick={onClose} />
       </div>
       <div className="form-preview-body">

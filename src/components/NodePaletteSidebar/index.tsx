@@ -46,7 +46,7 @@ const NodePaletteSidebar: React.FC<SidebarProps> = ({
     {
       name: "Triggers",
       nodes: getNodesByPaletteCategory('Triggers').map(node => ({
-        id: `${node.type.toLowerCase()}-trigger`,
+        id: `${node.type.toLowerCase().replace(/\s+/g, '-')}-trigger`,
         name: node.label,
         iconId: node.iconId,
         category: node.category,
