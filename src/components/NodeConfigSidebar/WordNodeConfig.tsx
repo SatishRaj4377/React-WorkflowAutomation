@@ -384,15 +384,6 @@ const WordNodeConfig: React.FC<Props> = ({ settings, onPatch, variableGroups, va
           loading={variablesLoading}
           zIndex={1000020}
         />
-
-        {/* Download option */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
-          <CheckBoxComponent
-            checked={!!write.downloadAfterWrite}
-            label="Download the file after write"
-            change={(e: any) => patch({ write: { ...write, downloadAfterWrite: !!e.checked } })}
-          />
-        </div>
       </div>
     );
   };

@@ -6,6 +6,7 @@ import { NodeModel } from '@syncfusion/ej2-react-diagrams';
 import { showErrorToast, showInfoToast } from '../../components/Toast';
 import { resolveTemplate } from '../../helper/expression';
 import { GoogleAuth } from '../../helper/googleAuthClient';
+import { createDocxFromHtml, downloadBlob } from '../../helper/wordExecutionUtils';
 
 export async function executeActionOrToolCategory(
   _node: NodeModel,
@@ -25,6 +26,8 @@ export async function executeActionOrToolCategory(
     case 'HTTP Request':
     case 'HTTP Request Tool':
       return executeHttpRequestNode(nodeConfig, context);
+    case 'Word':
+      return executeWordNode(nodeConfig, context);
 
     default:
       return { success: false, error: `Unsupported trigger node type: ${nodeConfig.nodeType}` };
@@ -107,6 +110,184 @@ async function executeEmailJsNode(nodeConfig: NodeConfig, context: ExecutionCont
     // 7) Surface a clean error to the user
     const message = (err?.text || err?.message || `${err}`)?.toString();
     showErrorToast('EmailJS Send Failed', message);
+    return { success: false, error: message };
+  }
+}
+
+// ---------------- Word ----------------
+async function executeWordNode(nodeConfig: NodeConfig, context: ExecutionContext): Promise<NodeExecutionResult> {
+  try {
+    const gen = (nodeConfig.settings?.general ?? {}) as any;
+    const op = String(gen.operation ?? '').trim();
+
+    // Validate a file was selected in config
+    const fileSource = String(gen.fileSource ?? '').trim(); // 'default' | 'device'
+    const defaultFileKey = String(gen.defaultFileKey ?? '').trim();
+    const fileName = String(gen.fileName ?? '').trim();
+
+    if (!fileSource || (!defaultFileKey && fileSource === 'default') || (!fileName && fileSource === 'device')) {
+      const msg = 'Word: Please select a document (upload or choose a template) in the configuration panel.';
+      showErrorToast('Word: No document selected', msg);
+      return { success: false, error: msg };
+    }
+
+    if (!op) {
+      const msg = 'Word: Please choose an operation (Write, Read, or Update).';
+      showErrorToast('Word: Operation missing', msg);
+      return { success: false, error: msg };
+    }
+
+    // Helper: load the selected .docx as ArrayBuffer (default templates only for now)
+    const loadSelectedFile = async (): Promise<ArrayBuffer> => {
+      // For security, we can only re-load known default templates by key. Local device files aren't persisted.
+      if (fileSource === 'default') {
+        try {
+          // Map known demo keys → URLs (kept local to avoid coupling with UI state)
+          // If you add more defaults in WordNodeConfig, mirror the mapping here.
+          let url: string | null = null;
+          if (defaultFileKey === 'offer-letter') {
+            // Lazy import to keep bundle size in check
+            const mod = await import('../../data/Word Files/Syncfusion_Offer_Letter_Template_Doc.docx');
+            url = (mod as any).default || (mod as any);
+          }
+          if (!url) throw new Error('Unknown default template key');
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`Failed to load template (HTTP ${res.status})`);
+          return await res.arrayBuffer();
+        } catch (e: any) {
+          const message = e?.message || 'Unable to load the selected template.';
+          showErrorToast('Word: Load failed', message);
+          throw e;
+        }
+      }
+
+      // Local device uploads aren’t persisted in settings; prompt the user to reattach.
+      const msg = 'Word: Local file is not available at runtime. Reattach the file in the node settings and run again.';
+      showErrorToast('Word: Missing local file', msg);
+      throw new Error(msg);
+    };
+
+    // Dispatch by operation
+    switch (op) {
+      case 'Read': {
+        const buf = await loadSelectedFile();
+        // Extract plain text from all XML parts
+        const { default: PizZip } = await import('pizzip');
+        const zip = new PizZip(buf);
+        const keys = Object.keys(zip.files).filter(k => k.startsWith('word/') && k.endsWith('.xml'));
+        const pieces: string[] = [];
+        for (const k of keys) {
+          const xml = zip.file(k)?.asText() || '';
+          const text = xml.replace(/<[^>]+>/g, '');
+          pieces.push(text);
+        }
+        const fullText = pieces.join('\n').trim();
+        return { success: true, data: { fileName, source: fileSource, operation: 'Read', text: fullText, length: fullText.length } };
+      }
+
+      case 'Write': {
+        const write = (gen.write ?? {}) as any;
+        const rawHtml = String(write.content ?? '').trim();
+        
+        if (!rawHtml) {
+          const msg = 'Word Write: Enter content in the editor before running.';
+          showErrorToast('Word: No content', msg);
+          return { success: false, error: msg };
+        }
+
+        // Resolve {{variables}} in HTML
+        const resolvedHtml = resolveTemplate(rawHtml, { context });
+
+        // Always create and download DOCX with proper formatting
+        let downloaded = false;
+        try {
+          const docxBlob = await createDocxFromHtml(resolvedHtml);
+          const safeName = (fileName || 'Document')
+            .replace(/\.(docx?|DOCX?)$/, '')
+            .concat('-written.docx');
+          downloadBlob(docxBlob, safeName);
+          downloaded = true;
+        } catch (e: any) {
+          // Log but don't fail the operation; DOCX generation is optional
+          console.error('DOCX generation failed:', e);
+          showErrorToast('Word: DOCX export failed', e?.message || 'Could not generate file');
+        }
+
+        return {
+          success: true,
+          data: {
+            operation: 'Write',
+            html: rawHtml,
+            resolvedHtml,
+            downloaded,
+          },
+        };
+      }
+
+      case 'Update (Mapper)': {
+        const update = (gen.update ?? {}) as any;
+        const rawValues = (update.values ?? {}) as Record<string, any>;
+        const keys = Object.keys(rawValues || {});
+        if (keys.length === 0) {
+          const msg = 'Word Update: No placeholders provided to update the document.';
+          showErrorToast('Word: Missing placeholders', msg);
+          return { success: false, error: msg };
+        }
+
+        // Resolve each value through the template system
+        const dataMap: Record<string, any> = {};
+        for (const k of keys) {
+          const val = resolveTemplate(String(rawValues[k] ?? ''), { context });
+          if (val === undefined || val === null || String(val).length === 0) {
+            const msg = `Word Update: Value missing for placeholder "${k}".`;
+            showErrorToast('Word: Value missing', msg);
+            return { success: false, error: msg };
+          }
+          dataMap[k] = val;
+        }
+
+        const buf = await loadSelectedFile();
+        const [{ default: PizZip }, { default: Docxtemplater }] = await Promise.all([
+          import('pizzip'),
+          import('docxtemplater'),
+        ]);
+        try {
+          const zip = new PizZip(buf);
+          const doc = new (Docxtemplater as any)(zip, {
+            paragraphLoop: true,
+            linebreaks: true,
+            delimiters: { start: '{{', end: '}}' },
+            // Avoid MultiError on missing tags; render missing values as empty strings
+            nullGetter: () => '',
+          });
+          doc.setData(dataMap);
+          doc.render();
+          const out: Blob = doc.getZip().generate({ type: 'blob' });
+          const outName = (fileName || 'Document').replace(/\.(docx?|DOCX?)$/, '').concat('-updated.docx');
+          downloadBlob(out, outName);
+          return {
+            success: true,
+            data: { operation: 'Update', placeholders: Object.keys(dataMap), downloadedFile: outName },
+          };
+        } catch (e: any) {
+          // Surface meaningful docxtemplater MultiError details when available
+          const details = Array.isArray(e?.errors)
+            ? e.errors.map((er: any) => er?.properties?.explanation || er?.message).filter(Boolean).join('; ')
+            : '';
+          const message = details || e?.message || 'Template replacement failed.';
+          showErrorToast('Word Update Failed', message);
+          return { success: false, error: message };
+        }
+      }
+
+      default: {
+        const msg = 'Word: Unsupported or missing operation.';
+        showErrorToast('Word: Operation error', msg);
+        return { success: false, error: msg };
+      }
+    }
+  } catch (err: any) {
+    const message = (err?.message ?? `${err}`)?.toString();
     return { success: false, error: message };
   }
 }
