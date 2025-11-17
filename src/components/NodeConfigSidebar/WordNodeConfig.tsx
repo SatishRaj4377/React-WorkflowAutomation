@@ -8,9 +8,6 @@ import { VariablePickerTextBox, VariablePickerPopup } from './VariablePickerText
 import { insertAtCaret, buildJsonFromVariables } from '../../helper/variablePickerUtils';
 import './NodeConfigSidebar.css';
 
-// Import showcase default Word files
-import DefaultTemplate1 from '../../data/Word Files/Syncfusion_Offer_Letter_Template_Doc.docx';
-
 export type WordNodeOperation = 'Write' | 'Read' | 'Update (Mapper)';
 
 type Props = {
@@ -20,10 +17,26 @@ type Props = {
   variablesLoading: boolean;
 };
 
-// Showcase defaults list
-const DEFAULT_WORD_FILES: Array<{ key: string; name: string; url: string }> = [
-  { key: 'offer-letter', name: 'Syncfusion Offer Letter Template', url: DefaultTemplate1 },
-];
+// Build default files list dynamically from /data/Word Files/*.docx at bundle time (webpack)
+function loadDefaultWordFiles(): Array<{ key: string; name: string; url: string }> {
+  try {
+    // Require all .docx files under the folder
+    const ctx = (require as any).context('../../data/Word Files', false, /\.docx?$/i);
+    const keys = ctx.keys();
+    return keys.map((k: string) => {
+      const url: string = ctx(k)?.default || ctx(k);
+      const file = k.split('/').pop() || k;
+      const base = file.replace(/\.(docx?|DOCX?)$/, '');
+      // Humanized name: replace underscores/dashes with spaces
+      const name = base.replace(/[\-_]+/g, ' ').trim();
+      const key = base.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      return { key, name, url };
+    });
+  } catch {
+    return [];
+  }
+}
+const DEFAULT_WORD_FILES: Array<{ key: string; name: string; url: string }> = loadDefaultWordFiles();
 
 const OPERATIONS: WordNodeOperation[] = ['Write', 'Read', 'Update (Mapper)'];
 
@@ -269,14 +282,15 @@ const WordNodeConfig: React.FC<Props> = ({ settings, onPatch, variableGroups, va
 
       {/* Display selected file with remove option */}
       {(localFile || selectedDefault) && (
-        <div className="textbox-info" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 8 }}>
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
-            ✓ {chosenName}
-          </span>
+        <div className="textbox-info" style={{ marginTop: 8 }}>
+          <a onClick={onPreview} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+            {chosenName}
+          </a>
           <ButtonComponent 
-            cssClass="flat-btn e-flat" 
-            iconCss="e-icons e-close" 
+            cssClass="flat-btn e-flat e-small" 
+            iconCss="e-icons e-trash" 
             title="Remove file" 
+            style={{marginLeft: '10px'}}
             onClick={() => {
               onRemoveChosen();
               if (uploaderRef.current) {
@@ -284,20 +298,6 @@ const WordNodeConfig: React.FC<Props> = ({ settings, onPatch, variableGroups, va
               }
             }} 
           />
-        </div>
-      )}
-
-      {/* Preview button */}
-      {fileChosen && (
-        <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <ButtonComponent 
-            cssClass="e-flat" 
-            iconCss="e-icons e-eye" 
-            onClick={onPreview}
-          >
-            {`Open - ${chosenName}`}
-          </ButtonComponent>
-          {previewError && <div style={{ color: 'var(--danger-color)', fontSize: '0.85rem' }}>{previewError}</div>}
         </div>
       )}
     </div>
