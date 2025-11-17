@@ -282,15 +282,12 @@ const WordNodeConfig: React.FC<Props> = ({ settings, onPatch, variableGroups, va
 
       {/* Display selected file with remove option */}
       {(localFile || selectedDefault) && (
-        <div className="textbox-info" style={{ marginTop: 8 }}>
-          <a onClick={onPreview} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
-            {chosenName}
-          </a>
+        <div className="textbox-info" style={{ marginTop: 8 , display: 'flex', alignItems: 'center'}}>
           <ButtonComponent 
             cssClass="flat-btn e-flat e-small" 
             iconCss="e-icons e-trash" 
             title="Remove file" 
-            style={{marginLeft: '10px'}}
+            style={{marginRight: '10px'}}
             onClick={() => {
               onRemoveChosen();
               if (uploaderRef.current) {
@@ -298,6 +295,10 @@ const WordNodeConfig: React.FC<Props> = ({ settings, onPatch, variableGroups, va
               }
             }} 
           />
+          <a onClick={onPreview} title='Download document' style={{ display: 'block', maxWidth: '80%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {chosenName}
+          </a>
+
         </div>
       )}
     </div>
@@ -420,7 +421,7 @@ const WordNodeConfig: React.FC<Props> = ({ settings, onPatch, variableGroups, va
 
               {(placeholders || []).map((key) => (
                 <div key={key} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
-                  <div style={{ minWidth: 180 }} className="subtitle">{`{{${key}}}`}</div>
+                  <div style={{ minWidth: 180, fontSize: '.85rem'}} className="subtitle">{`{{${key}}}`}</div>
                   <VariablePickerTextBox
                     value={values[key] ?? ''}
                     onChange={(val) => patch({ update: { ...update, values: { ...(values || {}), [key]: val } } })}

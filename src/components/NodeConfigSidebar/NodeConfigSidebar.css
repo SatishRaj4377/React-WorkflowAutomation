@@ -225,6 +225,7 @@
 .config-section .flat-btn{
   min-width: 45px;
   color: var(--text-secondary);
+  transition: none !important;
 }
 
 .add-field-btn {
