@@ -23,6 +23,7 @@ import './NodeConfigSidebar.css';
 import GoogleAuthPanel from './GoogleAuthPanel';
 import { updateSwitchPorts } from '../../helper/utilities/portUtils';
 import GoogleSheetsNodeConfig from './GoogleSheetsNodeConfig';
+import WordNodeConfig from './WordNodeConfig';
 import { getScopesForNode } from '../../helper/googleScopes';
 import { GoogleAuth } from '../../helper/googleAuthClient';
 import GmailNodeConfig from './GmailNodeConfig';
@@ -597,6 +598,17 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           <GoogleSheetsNodeConfig
             settings={settings}
             authEmail={connected ? (auth.googleAccountEmail || '__connected__') : ''} 
+            onPatch={(patch) => handleConfigChange(patch, undefined, 'general')}
+            variableGroups={availableVariables}
+            variablesLoading={variablesLoading}
+          />
+        );
+      }
+
+      case 'Word': {
+        return (
+          <WordNodeConfig
+            settings={settings}
             onPatch={(patch) => handleConfigChange(patch, undefined, 'general')}
             variableGroups={availableVariables}
             variablesLoading={variablesLoading}
