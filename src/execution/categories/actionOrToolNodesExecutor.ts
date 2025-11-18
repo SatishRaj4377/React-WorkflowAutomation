@@ -155,7 +155,7 @@ async function executeWordNode(nodeConfig: NodeConfig, context: ExecutionContext
       }
     };
 
-    // Helper: load the selected .docx as ArrayBuffer (default templates only for now)
+    // Helper: load the selected .docx as ArrayBuffer
     const loadSelectedFile = async (): Promise<ArrayBuffer> => {
       if (fileSource === 'default') {
         try {
@@ -172,9 +172,27 @@ async function executeWordNode(nodeConfig: NodeConfig, context: ExecutionContext
         }
       }
 
-      // Local device uploads aren’t persisted in settings; prompt the user to reattach.
-      const msg = 'Word: Local file is not available at runtime. Reattach the file in the node settings and run again.';
-      showErrorToast('Word: Missing local file', msg);
+      // Handle device upload selected in the current session using blob URL persisted in settings
+      if (fileSource === 'device') {
+        const blobUrl = String((nodeConfig.settings?.general as any)?.deviceFileUrl || '').trim();
+        if (!blobUrl) {
+          const msg = 'Word: Local file is not available at runtime. Reattach the file in the node settings and run again.';
+          showErrorToast('Word: Missing local file', msg);
+          throw new Error(msg);
+        }
+        try {
+          const res = await fetch(blobUrl);
+          if (!res.ok) throw new Error(`Failed to access local file (HTTP ${res.status})`);
+          return await res.arrayBuffer();
+        } catch (e: any) {
+          const message = e?.message || 'Unable to read the local file. Please reattach it.';
+          showErrorToast('Word: Local file error', message);
+          throw e;
+        }
+      }
+
+      const msg = 'Word: Unknown file source.';
+      showErrorToast('Word: Load failed', msg);
       throw new Error(msg);
     };
 

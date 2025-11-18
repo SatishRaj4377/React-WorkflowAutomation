@@ -88,15 +88,11 @@ const WordNodeConfig: React.FC<Props> = ({ settings, onPatch, variableGroups, va
   const fields = useMemo(() => ({ text: 'name', value: 'key' }), []);
   const defaultFileOptions = useMemo(() => DEFAULT_WORD_FILES.map(({ key, name }) => ({ key, name })), []);
 
-  const fileChosen = !!selectedDefault || !!localFile;
-  const chosenName = localFile?.name || selectedDefault?.name || '';
-  const chosenUrl = localFileUrl || selectedDefault?.url || '';
+  const fileChosen = (settings?.fileSource === 'device' && !!(settings?.deviceFileUrl || localFile)) || !!selectedDefault;
+  const chosenName = (settings?.fileSource === 'device' ? (settings?.fileName || localFile?.name) : selectedDefault?.name) || '';
+  const chosenUrl = (settings?.fileSource === 'device' ? (settings?.deviceFileUrl || localFileUrl) : selectedDefault?.url) || '';
 
-  useEffect(() => {
-    return () => {
-      if (localFileUrl) URL.revokeObjectURL(localFileUrl);
-    };
-  }, [localFileUrl]);
+  // Do not revoke blob URL on unmount; we store it in settings and revoke only when replaced/removed
 
   const patch = (p: Record<string, any>) => onPatch(p);
 
@@ -112,40 +108,45 @@ const WordNodeConfig: React.FC<Props> = ({ settings, onPatch, variableGroups, va
       return;
     }
     
-    // Revoke old URL if exists
+    // Revoke old URL if exists (from settings or local)
+    if (settings?.deviceFileUrl) URL.revokeObjectURL(settings.deviceFileUrl);
     if (localFileUrl) URL.revokeObjectURL(localFileUrl);
-    
+
     // Create new blob URL and persist it
     const url = URL.createObjectURL(file);
     setLocalFile(file);
     setLocalFileUrl(url);
     setPreviewError('');
-    
-    // Update config without clearing
+
+    // Persist in node settings so it survives re-renders/mounts
     patch({ 
       defaultFileKey: undefined, 
       fileSource: 'device', 
-      fileName: file.name 
+      fileName: file.name,
+      deviceFileUrl: url,
+      deviceFileMeta: { name: file.name, size: file.size, type: file.type }
     });
     
     // Uploader file list is controlled via the `files` prop; no imperative clear required
-  }, [localFileUrl]);
+  }, [settings?.deviceFileUrl, localFileUrl]);
 
   const onUploaderRemoving = useCallback(() => {
     // Sync local state when user removes from the uploader list
+    if (settings?.deviceFileUrl) URL.revokeObjectURL(settings.deviceFileUrl);
     if (localFileUrl) URL.revokeObjectURL(localFileUrl);
     setLocalFile(null);
     setLocalFileUrl('');
-    patch({ fileSource: undefined, fileName: undefined, defaultFileKey: undefined });
-  }, [localFileUrl]);
+    patch({ fileSource: undefined, fileName: undefined, defaultFileKey: undefined, deviceFileUrl: undefined, deviceFileMeta: undefined });
+  }, [settings?.deviceFileUrl, localFileUrl]);
 
   const onRemoveChosen = useCallback(() => {
+    if (settings?.deviceFileUrl) URL.revokeObjectURL(settings.deviceFileUrl);
     if (localFileUrl) URL.revokeObjectURL(localFileUrl);
     setLocalFile(null);
     setLocalFileUrl('');
     // Clear any default selection too
-    patch({ fileSource: undefined, fileName: undefined, defaultFileKey: undefined });
-  }, [localFileUrl]);
+    patch({ fileSource: undefined, fileName: undefined, defaultFileKey: undefined, deviceFileUrl: undefined, deviceFileMeta: undefined });
+  }, [settings?.deviceFileUrl, localFileUrl]);
 
   const onSelectDefault = (e: any) => {
     if (!e?.value) return;
@@ -268,12 +269,17 @@ const WordNodeConfig: React.FC<Props> = ({ settings, onPatch, variableGroups, va
           removing={onUploaderRemoving}
           dropArea=".config-panel-content"
           showFileList={true}
-          files={localFile ? ([{ name: localFile.name, size: localFile.size, type: localFile.type }] as any) : ([] as any)}
+          cssClass="word-uploader"
+          files={
+            settings?.fileSource === 'device' && settings?.deviceFileMeta
+              ? ([{ name: settings.deviceFileMeta.name, size: settings.deviceFileMeta.size, type: settings.deviceFileMeta.type }] as any)
+              : (localFile ? ([{ name: localFile.name, size: localFile.size, type: localFile.type }] as any) : ([] as any))
+          }
         />
       )}
 
-      {/* Default file dropdown below - hide when a local file is selected */}
-      {!localFile && (
+      {/* Default file dropdown below - hide when a local/device file is selected */}
+      {!(settings?.fileSource === 'device' || !!localFile) && (
         <div style={{ marginTop: 10 }}>
           <DropDownListComponent
             value={selectedDefaultKey ?? ''}

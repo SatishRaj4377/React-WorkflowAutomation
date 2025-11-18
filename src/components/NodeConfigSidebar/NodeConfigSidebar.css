@@ -397,6 +397,11 @@
   cursor: pointer;
   transition: background .15s ease;
 }
+/* Hide Clear/Upload action bar for word uploader */
+.word-uploader .e-upload-actions {
+  display: none !important;
+}
+
 .vp-item:hover {
   background: rgba(102, 126, 234, 0.08); /* primary tint */
 }
