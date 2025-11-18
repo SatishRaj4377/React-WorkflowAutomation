@@ -20,6 +20,7 @@ import LoopIcon from '../assets/images/svg-icons/loop.svg';
 import WordIcon from '../assets/images/svg-icons/word.svg';
 import ExcelIcon from '../assets/images/svg-icons/excel.svg';
 import NodeLoader from '../assets/images/svg-icons/node-loader.svg';
+import StopIcon from '../assets/images/svg-icons/stop.svg';
 
 import ApiIntegrationImage from '../assets/images/template-images/api-integration.jpg';
 import DataProcessingImage from '../assets/images/template-images/data-processing.jpg';
@@ -66,6 +67,7 @@ export const IconRegistry: { [key: string]: string | React.ElementType } = {
   EmailJSIcon,
   LoopIcon,
   NodeLoader,
+  StopIcon,
   ChevronDown,
   Message
 };

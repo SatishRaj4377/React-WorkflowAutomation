@@ -61,6 +61,7 @@ export type NodeType =
   | 'Switch Case'
   | 'Filter'
   | 'Loop'
+  | 'Stop'
   | 'Azure Chat Model Tool'
   | 'EmailJS Tool'
   | 'Gmail Tool'

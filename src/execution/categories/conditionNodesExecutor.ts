@@ -28,9 +28,25 @@ export async function executeConditionCategory(
       return executeFilterNode(nodeConfig, context);
     case 'Loop':
       return executeLoopNode(_node, nodeConfig, context);
+    case 'Stop':
+      return executeStopNode();
     default:
       return { success: false, error: `Unsupported condition node type: ${nodeConfig.nodeType}` };
   }
+}
+
+// ---------------- Do Nothing / Stop ----------------
+function executeStopNode(): NodeExecutionResult {
+  // Mark success and signal the designer via output. Since Stop node has no outgoing ports,
+  // the branch ends naturally. If needed later, the engine can watch this flag to abort all branches.
+  return {
+    success: true,
+    data: {
+      stopped: true,
+      reason: 'Stop node executed',
+      at: new Date().toISOString(),
+    },
+  };
 }
 
 // ---------------- If Condition ----------------
