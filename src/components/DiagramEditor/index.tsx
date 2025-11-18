@@ -675,6 +675,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       id: "annotation",
       width: stickyNode.width,
       height: stickyNode.height,
+      horizontalAlignment: 'Stretch',
+      verticalAlignment: 'Stretch',
       template: diagramRef.current 
           ? getStickyNoteTemplate(diagramRef.current, stickyNode.id as string)
           : '<div>Loading sticky note...</div>'
