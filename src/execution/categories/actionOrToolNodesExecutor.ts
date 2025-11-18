@@ -6,7 +6,7 @@ import { NodeModel } from '@syncfusion/ej2-react-diagrams';
 import { showErrorToast, showInfoToast } from '../../components/Toast';
 import { resolveTemplate } from '../../helper/expression';
 import { GoogleAuth } from '../../helper/googleAuthClient';
-import { createDocxFromHtml, downloadBlob } from '../../helper/wordExecutionUtils';
+import { createDocxFromHtml, appendHtmlToDocx, downloadBlob } from '../../helper/wordExecutionUtils';
 
 export async function executeActionOrToolCategory(
   _node: NodeModel,
@@ -216,6 +216,7 @@ async function executeWordNode(nodeConfig: NodeConfig, context: ExecutionContext
 
       case 'Write': {
         const write = (gen.write ?? {}) as any;
+        const mode: 'Append' | 'Overwrite' = (write.mode === 'Overwrite' ? 'Overwrite' : 'Append');
         const rawHtml = String(write.content ?? '').trim();
         
         if (!rawHtml) {
@@ -227,17 +228,29 @@ async function executeWordNode(nodeConfig: NodeConfig, context: ExecutionContext
         // Resolve {{variables}} in HTML
         const resolvedHtml = resolveTemplate(rawHtml, { context });
 
-        // Always create and download DOCX with proper formatting
         let downloaded = false;
         try {
-          const docxBlob = await createDocxFromHtml(resolvedHtml);
-          const safeName = (fileName || 'Document')
-            .replace(/\.(docx?|DOCX?)$/, '')
-            .concat('-written.docx');
-          downloadBlob(docxBlob, safeName);
+          let outBlob: Blob;
+
+          if (mode === 'Append') {
+            try {
+              const originalBuf = await loadSelectedFile();
+              outBlob = await appendHtmlToDocx(originalBuf, resolvedHtml);
+            } catch {
+              // Fallback when original cannot be loaded
+              outBlob = await createDocxFromHtml(resolvedHtml);
+            }
+          } else {
+            // Overwrite
+            outBlob = await createDocxFromHtml(resolvedHtml);
+          }
+
+          const baseName = (fileName || 'Document').replace(/\.(docx?|DOCX?)$/, '');
+          const suffix = mode === 'Append' ? '-appended.docx' : '-overwritten.docx';
+          const safeName = baseName.concat(suffix);
+          downloadBlob(outBlob, safeName);
           downloaded = true;
         } catch (e: any) {
-          // Log but don't fail the operation; DOCX generation is optional
           console.error('DOCX generation failed:', e);
           showErrorToast('Word: DOCX export failed', e?.message || 'Could not generate file');
         }
@@ -246,6 +259,7 @@ async function executeWordNode(nodeConfig: NodeConfig, context: ExecutionContext
           success: true,
           data: {
             operation: 'Write',
+            mode,
             html: rawHtml,
             resolvedHtml,
             downloaded,

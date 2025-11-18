@@ -353,12 +353,26 @@ const WordNodeConfig: React.FC<Props> = ({ settings, onPatch, variableGroups, va
 
     return (
       <div className="config-section">
-        <div className="textbox-info" style={{ marginBottom: 12 }}>
-          Warning: This operation will clear all existing content in the selected file and write fresh content.
+        {/* Write mode picker */}
+        <div className="config-section">
+          <div className="config-row" style={{ alignItems: 'center', gap: 8 }}>
+            <label className="config-label">Write mode</label>
+            <TooltipComponent content="Choose whether to append the new content at the end of the document or overwrite existing content.">
+              <span className="e-icons e-circle-info help-icon"></span>
+            </TooltipComponent>
+          </div>
+          <DropDownListComponent
+            value={write.mode ?? 'Append'}
+            dataSource={['Append', 'Overwrite']}
+            placeholder="Select write mode"
+            change={(e: any) => patch({ write: { ...write, mode: e.value || 'Append' } })}
+            popupHeight="200px"
+            zIndex={1000000}
+          />
         </div>
 
         {/* Rich Text Editor for content input */}
-        <div className="config-row" style={{ alignItems: 'center', gap: 8, marginBottom: 8 }}>
+        <div className="config-row" style={{ alignItems: 'center', gap: 8 }}>
           <label className="config-label">Content to Write</label>
           <TooltipComponent content="Enter formatted content to write into the document. Supports formatting, tables, images, variables, and paste from Word files with formatting preserved. Focus to open variable picker.">
             <span className="e-icons e-circle-info help-icon"></span>
@@ -371,7 +385,7 @@ const WordNodeConfig: React.FC<Props> = ({ settings, onPatch, variableGroups, va
             if (ref) rteEditorRef.current = ref;
           }}
           id="word-write-editor"
-          value={write.content ?? ''}
+          value={(write.content ?? '')}
           enableResize={true}
           change={(e: any) => patch({ write: { ...write, content: e.value } })}
           height="400px"

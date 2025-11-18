@@ -4,7 +4,7 @@
  */
 export async function createDocxFromHtml(htmlContent: string): Promise<Blob> {
   const { default: PizZip } = await import('pizzip');
-  const { default: Docxtemplater } = await import('docxtemplater');
+  
 
   // Convert RTE HTML to Word-ML preserving formatting
   const wordML = htmlToWordML(htmlContent);
@@ -46,6 +46,36 @@ export async function createDocxFromHtml(htmlContent: string): Promise<Blob> {
 
   // Generate and return as Blob
   return zip.generate({ type: 'blob' });
+}
+
+/**
+ * Append HTML content to an existing DOCX while preserving the original formatting.
+ * Converts HTML to WordML and injects it at the end of word/document.xml inside w:body.
+ */
+export async function appendHtmlToDocx(existingDocx: ArrayBuffer, htmlContent: string): Promise<Blob> {
+  const { default: PizZip } = await import('pizzip');
+  try {
+    const zip = new PizZip(existingDocx);
+    const docFile = zip.file('word/document.xml');
+    if (!docFile) {
+      // Fallback to new doc if missing
+      return await createDocxFromHtml(htmlContent);
+    }
+    const xml = docFile.asText();
+
+    const newWordML = htmlToWordML(htmlContent);
+    const separator = '<w:p></w:p><w:p></w:p>';
+
+    const bodyCloseIdx = xml.lastIndexOf('</w:body>');
+    if (bodyCloseIdx === -1) {
+      return await createDocxFromHtml(htmlContent);
+    }
+    const updatedXml = xml.slice(0, bodyCloseIdx) + separator + newWordML + xml.slice(bodyCloseIdx);
+    zip.folder('word')!.file('document.xml', updatedXml);
+    return zip.generate({ type: 'blob' });
+  } catch {
+    return await createDocxFromHtml(htmlContent);
+  }
 }
 
 /**
