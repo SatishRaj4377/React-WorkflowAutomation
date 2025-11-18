@@ -28,6 +28,8 @@ export async function executeActionOrToolCategory(
       return executeHttpRequestNode(nodeConfig, context);
     case 'Word':
       return executeWordNode(nodeConfig, context);
+    case 'Excel':
+      return executeExcelNode(nodeConfig, context);
 
     default:
       return { success: false, error: `Unsupported trigger node type: ${nodeConfig.nodeType}` };
@@ -326,6 +328,347 @@ async function executeWordNode(nodeConfig: NodeConfig, context: ExecutionContext
       default: {
         const msg = 'Word: Unsupported or missing operation.';
         showErrorToast('Word: Operation error', msg);
+        return { success: false, error: msg };
+      }
+    }
+  } catch (err: any) {
+    const message = (err?.message ?? `${err}`)?.toString();
+    return { success: false, error: message };
+  }
+}
+
+// ---------------- Excel ----------------
+async function executeExcelNode(nodeConfig: NodeConfig, context: ExecutionContext): Promise<NodeExecutionResult> {
+  try {
+    const gen = (nodeConfig.settings?.general ?? {}) as any;
+    const op = String(gen.operation ?? '').trim();
+
+    // Validate a file was selected in config (device or default)
+    const fileSource = String(gen.fileSource ?? '').trim(); // 'default' | 'device'
+    const defaultFileKey = String(gen.defaultFileKey ?? '').trim();
+    const fileName = String(gen.fileName ?? '').trim();
+
+    if (!fileSource || (!defaultFileKey && fileSource === 'default') || (!fileName && fileSource === 'device')) {
+      const msg = 'Excel: Please select a document (upload or choose a template) in the configuration panel.';
+      showErrorToast('Excel: No document selected', msg);
+      return { success: false, error: msg };
+    }
+
+    if (!op) {
+      const msg = 'Excel: Please choose an operation.';
+      showErrorToast('Excel: Operation missing', msg);
+      return { success: false, error: msg };
+    }
+
+    // Mirror UI: discover default Excel files from assets folder
+    const loadDefaultExcelFiles = (): Array<{ key: string; name: string; url: string }> => {
+      try {
+        const ctx = (require as any).context('../../data/Excel Files', false, /\.(xlsx?|XLSX?)$/i);
+        const keys = ctx.keys();
+        return keys.map((k: string) => {
+          const url: string = ctx(k)?.default || ctx(k);
+          const file = k.split('/').pop() || k;
+          const base = file.replace(/\.(xlsx?|XLSX?)$/, '');
+          const name = base.replace(/[\-_]+/g, ' ').trim();
+          const key = base.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+          return { key, name, url };
+        });
+      } catch {
+        return [];
+      }
+    };
+
+    // Helper: load selected Excel file as ArrayBuffer
+    const loadSelectedFile = async (): Promise<ArrayBuffer> => {
+      if (fileSource === 'default') {
+        const files = loadDefaultExcelFiles();
+        const match = files.find((f) => f.key === defaultFileKey);
+        if (!match) {
+          const msg = 'Excel: Unknown default template key';
+          showErrorToast('Excel: Load failed', msg);
+          throw new Error(msg);
+        }
+        const res = await fetch(match.url);
+        if (!res.ok) throw new Error(`Failed to load template (HTTP ${res.status})`);
+        return await res.arrayBuffer();
+      }
+      if (fileSource === 'device') {
+        const blobUrl = String(gen.deviceFileUrl || '').trim();
+        if (!blobUrl) {
+          const msg = 'Excel: Local file is not available at runtime. Reattach the file and run again.';
+          showErrorToast('Excel: Missing local file', msg);
+          throw new Error(msg);
+        }
+        const res = await fetch(blobUrl);
+        if (!res.ok) throw new Error(`Failed to access local file (HTTP ${res.status})`);
+        return await res.arrayBuffer();
+      }
+      const msg = 'Excel: Unknown file source.';
+      showErrorToast('Excel: Load failed', msg);
+      throw new Error(msg);
+    };
+
+    // Helper: download workbook with suffix
+    const saveWorkbook = async (wb: any, suffix: string) => {
+      const XLSX = (await import('xlsx')).default || (await import('xlsx'));
+      const out = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
+      const blob = new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const baseName = (fileName || 'Workbook').replace(/\.(xlsx?|XLSX?)$/, '');
+      const outName = `${baseName}${suffix}.xlsx`;
+      downloadBlob(blob, outName);
+      return outName;
+    };
+
+    const XLSX = (await import('xlsx')).default || (await import('xlsx'));
+
+    // Dispatch by operation
+    switch (op) {
+      // -------- Create Sheet --------
+      case 'Create Sheet': {
+        const title = resolveTemplate(String(gen.title ?? ''), { context }).trim();
+        if (!title) {
+          const msg = 'Create Sheet: Please provide a Title.';
+          showErrorToast('Excel Missing Fields', msg);
+          return { success: false, error: msg };
+        }
+
+        // Optional headers
+        const headers: string[] = Array.isArray(gen.create?.headers) ? gen.create.headers : [];
+
+        let wb;
+        try {
+          const buf = await loadSelectedFile();
+          wb = XLSX.read(buf, { type: 'array' });
+        } catch {
+          // If failing to read, start a new workbook
+          wb = XLSX.utils.book_new();
+        }
+
+        // If sheet exists, we still proceed but mark createdNew=false
+        const exists = (wb.SheetNames || []).includes(title);
+        const ws = XLSX.utils.aoa_to_sheet(headers && headers.length ? [headers] : [['']]);
+        if (exists) {
+          // Replace existing sheet content with (optionally) headers
+          wb.Sheets[title] = ws;
+        } else {
+          XLSX.utils.book_append_sheet(wb, ws, title);
+        }
+
+        const outName = await saveWorkbook(wb, exists ? '-sheet-updated' : '-sheet-created');
+        return {
+          success: true,
+          data: { createdNew: !exists, sheetName: title, headersApplied: headers.length > 0, downloadedFile: outName },
+        };
+      }
+
+      // -------- Delete Sheet --------
+      case 'Delete Sheet': {
+        const sheetName = resolveTemplate(String(gen.sheetName ?? ''), { context }).trim();
+        if (!sheetName) {
+          const msg = 'Delete Sheet: Select a sheet to delete.';
+          showErrorToast('Excel Missing Fields', msg);
+          return { success: false, error: msg };
+        }
+        const buf = await loadSelectedFile();
+        const wb = XLSX.read(buf, { type: 'array' });
+        const idx = wb.SheetNames.indexOf(sheetName);
+        if (idx === -1) {
+          // Treat as success: nothing to delete
+          return { success: true, data: { deleted: false, reason: 'not-found', sheetName } };
+        }
+        wb.SheetNames.splice(idx, 1);
+        delete (wb.Sheets as any)[sheetName];
+        const outName = await saveWorkbook(wb, '-sheet-deleted');
+        return { success: true, data: { deleted: true, sheetName, downloadedFile: outName } };
+      }
+
+      // -------- Append Row --------
+      case 'Append Row': {
+        const sheetName = resolveTemplate(String(gen.sheetName ?? ''), { context }).trim();
+        if (!sheetName) {
+          const msg = 'Append Row: Select a sheet.';
+          showErrorToast('Excel Missing Fields', msg);
+          return { success: false, error: msg };
+        }
+        const buf = await loadSelectedFile();
+        const wb = XLSX.read(buf, { type: 'array' });
+        if (!wb.Sheets[sheetName]) {
+          const msg = `Append Row: Sheet "${sheetName}" not found.`;
+          showErrorToast('Excel Sheet Not Found', msg);
+          return { success: false, error: msg };
+        }
+        const ws = wb.Sheets[sheetName];
+        const aoa: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        const headers: string[] = (aoa[0] || []).map((h: any) => String(h));
+        if (!headers.length) {
+          const msg = 'Append Row: No column headers found. Create headers in row 1 and try again.';
+          showErrorToast('Excel Headers Missing', msg);
+          return { success: false, error: msg };
+        }
+
+        // Build row in header order
+        const appendValues = (gen.appendValues ?? {}) as Record<string, any>;
+        const row: any[] = headers.map((h) => resolveTemplate(String(appendValues[h] ?? ''), { context }));
+        if (aoa.length === 0) aoa.push(headers);
+        aoa.push(row);
+        const nextWs = XLSX.utils.aoa_to_sheet(aoa);
+        wb.Sheets[sheetName] = nextWs;
+        const outName = await saveWorkbook(wb, '-row-appended');
+        return { success: true, data: { appended: true, headers, downloadedFile: outName } };
+      }
+
+      // -------- Update Row --------
+      case 'Update Row': {
+        const sheetName = resolveTemplate(String(gen.sheetName ?? ''), { context }).trim();
+        const matchColumn = resolveTemplate(String(gen.update?.matchColumn ?? ''), { context }).trim();
+        if (!sheetName || !matchColumn) {
+          const msg = 'Update Row: Provide Sheet Name and Column to match.';
+          showErrorToast('Excel Missing Fields', msg);
+          return { success: false, error: msg };
+        }
+        const buf = await loadSelectedFile();
+        const wb = XLSX.read(buf, { type: 'array' });
+        if (!wb.Sheets[sheetName]) {
+          const msg = `Update Row: Sheet "${sheetName}" not found.`;
+          showErrorToast('Excel Sheet Not Found', msg);
+          return { success: false, error: msg };
+        }
+        const ws = wb.Sheets[sheetName];
+        const aoa: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        const headers: string[] = (aoa[0] || []).map((h: any) => String(h));
+        const colIndex = headers.indexOf(matchColumn);
+        if (colIndex === -1) {
+          const msg = `Update Row: Match column "${matchColumn}" not found in headers.`;
+          showErrorToast('Excel Header Missing', msg);
+          return { success: false, error: msg };
+        }
+        const rawValuesMap = (gen.update?.values ?? {}) as Record<string, any>;
+        const hasMatchKey = Object.prototype.hasOwnProperty.call(rawValuesMap, matchColumn);
+        const matchValue = hasMatchKey ? resolveTemplate(String(rawValuesMap[matchColumn] ?? ''), { context }).trim() : '';
+        if (!matchValue) {
+          const msg = `Update Row: Provide a value under "${matchColumn}" in Values to locate the row.`;
+          showErrorToast('Excel Missing Match Value', msg);
+          return { success: false, error: msg };
+        }
+
+        let foundRow = -1;
+        for (let r = 1; r < aoa.length; r++) {
+          const cellVal = String(aoa[r]?.[colIndex] ?? '').trim();
+          if (cellVal === matchValue) { foundRow = r; break; }
+        }
+        if (foundRow === -1) {
+          const msg = `Update Row: No row matched where "${matchColumn}" equals "${matchValue}".`;
+          showErrorToast('Excel No Match', msg);
+          return { success: false, error: msg };
+        }
+
+        // Apply updates (exclude match column)
+        const next = aoa.slice();
+        const row = (next[foundRow] = Array.isArray(next[foundRow]) ? next[foundRow].slice() : []);
+        for (const [k, v] of Object.entries(rawValuesMap)) {
+          if (k === matchColumn) continue;
+          const idx = headers.indexOf(k);
+          if (idx >= 0) row[idx] = resolveTemplate(String(v ?? ''), { context });
+        }
+        const nextWs = XLSX.utils.aoa_to_sheet(next);
+        wb.Sheets[sheetName] = nextWs;
+        const outName = await saveWorkbook(wb, '-row-updated');
+        return { success: true, data: { updated: true, rowIndex: foundRow + 1, downloadedFile: outName } };
+      }
+
+      // -------- Delete Row/Column --------
+      case 'Delete Row/Column': {
+        const sheetName = resolveTemplate(String(gen.sheetName ?? ''), { context }).trim();
+        const target = String(gen.delete?.target ?? 'Row');
+        const startIndex = Math.max(1, Number(gen.delete?.startIndex ?? 1));
+        const count = Math.max(1, Number(gen.delete?.count ?? 1));
+        if (!sheetName) {
+          const msg = 'Delete Row/Column: Provide Sheet Name.';
+          showErrorToast('Excel Missing Fields', msg);
+          return { success: false, error: msg };
+        }
+        const buf = await loadSelectedFile();
+        const wb = XLSX.read(buf, { type: 'array' });
+        if (!wb.Sheets[sheetName]) {
+          const msg = `Delete Row/Column: Sheet "${sheetName}" not found.`;
+          showErrorToast('Excel Sheet Not Found', msg);
+          return { success: false, error: msg };
+        }
+        const ws = wb.Sheets[sheetName];
+        const aoa: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        let next = aoa.slice();
+        if (target === 'Column') {
+          // Remove columns [startIndex-1 .. startIndex+count-2] from every row
+          const s = Math.max(0, startIndex - 1);
+          const e = s + count; // exclusive
+          next = next.map((row) => {
+            const r = Array.isArray(row) ? row.slice() : [];
+            r.splice(s, count);
+            return r;
+          });
+        } else {
+          // Remove rows [startIndex .. startIndex+count-1] (1-based with row0 as header)
+          const s = Math.max(1, startIndex); // never delete header (row 0)
+          next.splice(s, count);
+        }
+        const nextWs = XLSX.utils.aoa_to_sheet(next);
+        wb.Sheets[sheetName] = nextWs;
+        const outName = await saveWorkbook(wb, target === 'Column' ? '-columns-deleted' : '-rows-deleted');
+        return { success: true, data: { deleted: true, target, startIndex, count, downloadedFile: outName } };
+      }
+
+      // -------- Get Row(s) --------
+      case 'Get Rows': {
+        const sheetName = resolveTemplate(String(gen.sheetName ?? ''), { context }).trim();
+        if (!sheetName) {
+          const msg = 'Get Row(s): Provide Sheet Name.';
+          showErrorToast('Excel Missing Fields', msg);
+          return { success: false, error: msg };
+        }
+        const buf = await loadSelectedFile();
+        const wb = XLSX.read(buf, { type: 'array' });
+        if (!wb.Sheets[sheetName]) {
+          const msg = `Get Row(s): Sheet "${sheetName}" not found.`;
+          showErrorToast('Excel Sheet Not Found', msg);
+          return { success: false, error: msg };
+        }
+        const ws = wb.Sheets[sheetName];
+        const aoa: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        const headers: string[] = (aoa[0] || []).map((h: any) => String(h));
+        if (!headers.length) {
+          const msg = 'Get Row(s): No columns found. Create headers in row 1 and try again.';
+          showErrorToast('Excel Headers Missing', msg);
+          return { success: false, error: msg };
+        }
+        const rows = (aoa.slice(1) || []).map((r) => {
+          const obj: Record<string, any> = {};
+          headers.forEach((h, i) => { obj[h] = r?.[i]; });
+          return obj;
+        });
+
+        const filters = Array.isArray(gen.getRows?.filters) ? gen.getRows.filters : [];
+        const logic = String(gen.getRows?.combineWith ?? 'AND').toUpperCase() === 'OR' ? 'OR' : 'AND';
+        const resolvedFilters = filters
+          .map((f: any) => ({
+            column: String(f?.column ?? '').trim(),
+            value: resolveTemplate(String(f?.value ?? ''), { context }),
+          }))
+          .filter((f: any) => f.column.length > 0);
+
+        let outRows = rows;
+        if (resolvedFilters.length > 0) {
+          outRows = rows.filter((row) => {
+            const checks = resolvedFilters.map((f: any) => String(row[f.column] ?? '').trim() === String(f.value).trim());
+            return logic === 'OR' ? checks.some(Boolean) : checks.every(Boolean);
+          });
+        }
+
+        return { success: true, data: { count: outRows.length, headers, rows: outRows } };
+      }
+
+      default: {
+        const msg = 'Excel: Unsupported or missing operation.';
+        showErrorToast('Excel: Operation error', msg);
         return { success: false, error: msg };
       }
     }
