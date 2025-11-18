@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { DropDownListComponent } from '@syncfusion/ej2-react-dropdowns';
-import { ButtonComponent, CheckBoxComponent } from '@syncfusion/ej2-react-buttons';
+import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
 import { TooltipComponent } from '@syncfusion/ej2-react-popups';
 import { UploaderComponent, SelectedEventArgs } from '@syncfusion/ej2-react-inputs';
 import { RichTextEditorComponent, Inject, HtmlEditor, Toolbar, Image, Link, QuickToolbar, Table, PasteCleanup, ImportExport, Resize } from '@syncfusion/ej2-react-richtexteditor';
 import { VariablePickerTextBox, VariablePickerPopup } from './VariablePickerTextBox';
-import { insertAtCaret, buildJsonFromVariables } from '../../helper/variablePickerUtils';
+import { insertAtCaret } from '../../helper/variablePickerUtils';
 import './NodeConfigSidebar.css';
 
 export type WordNodeOperation = 'Write' | 'Read' | 'Update (Mapper)';
@@ -86,6 +86,7 @@ const WordNodeConfig: React.FC<Props> = ({ settings, onPatch, variableGroups, va
   );
 
   const fields = useMemo(() => ({ text: 'name', value: 'key' }), []);
+  const defaultFileOptions = useMemo(() => DEFAULT_WORD_FILES.map(({ key, name }) => ({ key, name })), []);
 
   const fileChosen = !!selectedDefault || !!localFile;
   const chosenName = localFile?.name || selectedDefault?.name || '';
@@ -127,10 +128,15 @@ const WordNodeConfig: React.FC<Props> = ({ settings, onPatch, variableGroups, va
       fileName: file.name 
     });
     
-    // Clear uploader file list to avoid UI confusion, but keep our state
-    if (uploaderRef.current) {
-      uploaderRef.current.clearAll();
-    }
+    // Uploader file list is controlled via the `files` prop; no imperative clear required
+  }, [localFileUrl]);
+
+  const onUploaderRemoving = useCallback(() => {
+    // Sync local state when user removes from the uploader list
+    if (localFileUrl) URL.revokeObjectURL(localFileUrl);
+    setLocalFile(null);
+    setLocalFileUrl('');
+    patch({ fileSource: undefined, fileName: undefined, defaultFileKey: undefined });
   }, [localFileUrl]);
 
   const onRemoveChosen = useCallback(() => {
@@ -259,8 +265,10 @@ const WordNodeConfig: React.FC<Props> = ({ settings, onPatch, variableGroups, va
           multiple={false}
           allowedExtensions=".doc,.docx"
           selected={onUploaderSelected}
+          removing={onUploaderRemoving}
           dropArea=".config-panel-content"
-          showFileList={false}
+          showFileList={true}
+          files={localFile ? ([{ name: localFile.name, size: localFile.size, type: localFile.type }] as any) : ([] as any)}
         />
       )}
 
@@ -269,7 +277,7 @@ const WordNodeConfig: React.FC<Props> = ({ settings, onPatch, variableGroups, va
         <div style={{ marginTop: 10 }}>
           <DropDownListComponent
             value={selectedDefaultKey ?? ''}
-            dataSource={DEFAULT_WORD_FILES}
+            dataSource={defaultFileOptions}
             placeholder="Or select a sample file"
             change={onSelectDefault}
             popupHeight="240px"
@@ -290,9 +298,7 @@ const WordNodeConfig: React.FC<Props> = ({ settings, onPatch, variableGroups, va
             style={{marginRight: '10px'}}
             onClick={() => {
               onRemoveChosen();
-              if (uploaderRef.current) {
-                uploaderRef.current.clearAll();
-              }
+              // Uploader list is controlled via `files` prop; no imperative clear needed
             }} 
           />
           <a onClick={onPreview} title='Download document' style={{ display: 'block', maxWidth: '80%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

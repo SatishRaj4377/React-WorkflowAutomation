@@ -62,12 +62,6 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   const [formPreviewOpen, setFormPreviewOpen] = useState(false);
   const [formPreviewError, setFormPreviewError] = useState<string>('');
 
-  // Draft-only settings; will commit when user clicks Update
-  const [draftSettings, setDraftSettings] = useState<{ general: any; authentication: any; advanced: any }>({ general: {}, authentication: {}, advanced: {} });
-  const [hasDraftChanges, setHasDraftChanges] = useState(false);
-  const [showUpdateButton, setShowUpdateButton] = useState(false);
-  const [draftDisplayName, setDraftDisplayName] = useState<string>('');
-
   const nodeIconSrc = selectedNode?.icon ? IconRegistry[selectedNode.icon] : null;
   const MessageIcon = IconRegistry['Message'];
 
@@ -85,20 +79,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
     return false;
   };
 
-  // Sync draft when selected node changes
-  useEffect(() => {
-    const general = (selectedNode?.settings && (selectedNode.settings as any).general) || {};
-    const authentication = (selectedNode?.settings && (selectedNode.settings as any).authentication) || {};
-    const advanced = (selectedNode?.settings && (selectedNode.settings as any).advanced) || {};
-    setDraftSettings({ general, authentication, advanced });
-    setDraftDisplayName(selectedNode?.displayName ?? '');
-    setHasDraftChanges(false);
-  }, [selectedNode?.id]);
-
-  
-  useEffect(() => {
-    setShowUpdateButton(hasDraftChanges);
-  }, [hasDraftChanges]);
+  // no draft syncing; changes are applied immediately
 
 
   // Fetch available variables and node output whenever the selected node or diagram changes.
@@ -158,33 +139,44 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
     }
   }, [selectedNode?.id, diagram, executionContext]);
 
-  /** Safely update settings (edit locally; commit via Update button) */
+  /** Safely update settings (apply immediately) */
   const handleConfigChange = (
     fieldOrPatch: string | Record<string, any>,
     value?: any,
     section: 'general' | 'authentication' | 'advanced' = 'general'
   ) => {
     if (!selectedNode) return;
+    const prevSection = (selectedNode.settings && (selectedNode.settings as any)[section]) ?? {};
+    const nextSection =
+      typeof fieldOrPatch === 'object' && fieldOrPatch !== null
+        ? { ...prevSection, ...fieldOrPatch }
+        : { ...prevSection, [fieldOrPatch]: value };
 
-    setDraftSettings(prev => {
-      const prevSection = prev[section] || {};
-      const nextSection =
-        typeof fieldOrPatch === 'object' && fieldOrPatch !== null
-          ? { ...prevSection, ...fieldOrPatch }
-          : { ...prevSection, [fieldOrPatch]: value };
-      return { ...prev, [section]: nextSection };
-    });
-    setHasDraftChanges(true);
+    // Only propagate if something actually changed
+    let same = true;
+    for (const k of Object.keys(nextSection)) {
+      if (prevSection[k] !== nextSection[k]) { same = false; break; }
+    }
+    if (same) return;
 
-    // Collapse preview promptly on any form config edits
+    const updatedConfig: NodeConfig = {
+      ...selectedNode,
+      settings: {
+        ...selectedNode.settings,
+        [section]: nextSection,
+      },
+    };
+    onNodeConfigChange(selectedNode.id, updatedConfig);
+
     if (selectedNode.nodeType === 'Form' && formPreviewOpen) {
       setFormPreviewOpen(false);
     }
   };
 
   const handleNameChange = (value: string) => {
-    setDraftDisplayName(value);
-    setHasDraftChanges(true);
+    if (!selectedNode) return;
+    const updatedConfig: NodeConfig = { ...selectedNode, displayName: value };
+    onNodeConfigChange(selectedNode.id, updatedConfig);
   };
 
   /** Node-specific fields inside the General tab */
@@ -766,13 +758,13 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
 
   /** General tab */
   const renderGeneralTab = useCallback(() => {
-    const settings = draftSettings.general || {};
+    const settings = (selectedNode?.settings && (selectedNode.settings as any).general) || {};
     return (
       <div className="config-tab-content">
         <div className="config-section">
           <label className="config-label">Node Name</label>
           <TextBoxComponent
-            value={draftDisplayName}
+            value={selectedNode?.displayName ?? ''}
             placeholder="Enter node name"
             change={(e: any) => handleNameChange(e.value)}
             cssClass="config-input"
@@ -782,7 +774,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
         {renderNodeSpecificFields(selectedNode!.nodeType, settings)}
       </div>
     );
-  }, [selectedNode, availableVariables, isChatOpen, formPreviewOpen, formPreviewError, draftSettings]);
+  }, [selectedNode, availableVariables, isChatOpen, formPreviewOpen, formPreviewError]);
 
   /** Output tab (shows when a node is executed) */
   const renderOutputTab = useCallback(() => {
@@ -826,7 +818,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
   const renderAuthenticationTab = useCallback(() => {
     if (!selectedNode) return <div></div>;
 
-    const authSettings = draftSettings.authentication || {};
+    const authSettings = (selectedNode?.settings && (selectedNode.settings as any).authentication) || {};
 
     // Render Azure Chat Model node specific authentication fields
     switch (selectedNode.nodeType) {
@@ -1035,7 +1027,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
             </div>
           );
     }
-  }, [selectedNode, draftSettings]);
+  }, [selectedNode]);
 
 
   const requiresAuthTab = !!selectedNode && AUTH_NODE_TYPES.includes(selectedNode.nodeType);
@@ -1048,13 +1040,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
       position="Left"
       type="Over"
       isOpen={isOpen}
-      open={()=>{
-        if (hasDraftChanges) setShowUpdateButton(true)
-      }}
-      close={() => {
-        setShowUpdateButton(false);
-        onClose?.();
-      }}
+      close={onClose}
       enableGestures={false}
       target=".editor-content"
     >
@@ -1099,28 +1085,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
               />
             </div>
           </div>
-          {/* Floating update button at right outer edge */}
-            <div className={`config-update-floating ${showUpdateButton ? "show" : "hide"}`}>
-              <ButtonComponent
-                title="Update"
-                iconCss="e-icons e-check"
-                onClick={() => {
-                  if (!selectedNode) return;
-                  const updatedConfig: NodeConfig = {
-                    ...selectedNode,
-                    displayName: draftDisplayName,
-                    settings: {
-                      ...selectedNode.settings,
-                      general: draftSettings.general || {},
-                      authentication: draftSettings.authentication || {},
-                      advanced: draftSettings.advanced || {},
-                    },
-                  };
-                  onNodeConfigChange(selectedNode.id, updatedConfig);
-                  setHasDraftChanges(false);
-                }}
-              />
-            </div>
+          
           {/* === Body === */}
           <div className="config-panel-content">
             <TabComponent

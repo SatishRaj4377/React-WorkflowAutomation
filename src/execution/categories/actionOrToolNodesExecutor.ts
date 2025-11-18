@@ -137,21 +137,32 @@ async function executeWordNode(nodeConfig: NodeConfig, context: ExecutionContext
       return { success: false, error: msg };
     }
 
+    // Build default files list dynamically (mirror UI logic)
+    const loadDefaultWordFiles = (): Array<{ key: string; name: string; url: string }> => {
+      try {
+        const ctx = (require as any).context('../../data/Word Files', false, /\.docx?$/i);
+        const keys = ctx.keys();
+        return keys.map((k: string) => {
+          const url: string = ctx(k)?.default || ctx(k);
+          const file = k.split('/').pop() || k;
+          const base = file.replace(/\.(docx?|DOCX?)$/, '');
+          const name = base.replace(/[\-_]+/g, ' ').trim();
+          const key = base.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+          return { key, name, url };
+        });
+      } catch {
+        return [];
+      }
+    };
+
     // Helper: load the selected .docx as ArrayBuffer (default templates only for now)
     const loadSelectedFile = async (): Promise<ArrayBuffer> => {
-      // For security, we can only re-load known default templates by key. Local device files aren't persisted.
       if (fileSource === 'default') {
         try {
-          // Map known demo keys → URLs (kept local to avoid coupling with UI state)
-          // If you add more defaults in WordNodeConfig, mirror the mapping here.
-          let url: string | null = null;
-          if (defaultFileKey === 'offer-letter') {
-            // Lazy import to keep bundle size in check
-            const mod = await import('../../data/Word Files/Syncfusion_Offer_Letter_Template_Doc.docx');
-            url = (mod as any).default || (mod as any);
-          }
-          if (!url) throw new Error('Unknown default template key');
-          const res = await fetch(url);
+          const files = loadDefaultWordFiles();
+          const match = files.find(f => f.key === defaultFileKey);
+          if (!match) throw new Error('Unknown default template key');
+          const res = await fetch(match.url);
           if (!res.ok) throw new Error(`Failed to load template (HTTP ${res.status})`);
           return await res.arrayBuffer();
         } catch (e: any) {
