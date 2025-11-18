@@ -21,6 +21,7 @@ import WordIcon from '../assets/images/svg-icons/word.svg';
 import ExcelIcon from '../assets/images/svg-icons/excel.svg';
 import NodeLoader from '../assets/images/svg-icons/node-loader.svg';
 import StopIcon from '../assets/images/svg-icons/stop.svg';
+import BellIcon from '../assets/images/svg-icons/bell.svg';
 
 import ApiIntegrationImage from '../assets/images/template-images/api-integration.jpg';
 import DataProcessingImage from '../assets/images/template-images/data-processing.jpg';
@@ -68,6 +69,7 @@ export const IconRegistry: { [key: string]: string | React.ElementType } = {
   LoopIcon,
   NodeLoader,
   StopIcon,
+  BellIcon,
   ChevronDown,
   Message
 };

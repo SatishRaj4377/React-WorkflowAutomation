@@ -220,6 +220,16 @@ export const NODE_REGISTRY: Record<NodeType, NodeRegistryEntry> = {
     iconId: 'StopIcon',
     portConfig: { leftPort: true },
   },
+  'Notify': {
+    type: 'Notify',
+    category: 'action',
+    paletteCategory: 'Core',
+    isServerExecuted: false,
+    label: 'Notify',
+    description: 'Show a toast notification',
+    iconId: 'BellIcon',
+    portConfig: { leftPort: true, rightPort: true },
+  },
   'Azure Chat Model Tool': {
     type: 'Azure Chat Model Tool',
     category: 'tool',

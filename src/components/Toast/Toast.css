@@ -145,6 +145,23 @@
   background-color: var(--toast-info-progress);
 }
 
+/* Notification variant */
+#workflow-toast .toast-notification.toast-success,
+#workflow-toast .toast-notification.toast-error,
+#workflow-toast .toast-notification.toast-warning,
+#workflow-toast .toast-notification.toast-info {
+  border-left: none;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+}
+
+#workflow-toast .toast-notification .toast-notification-text { min-width: 0; }
+#workflow-toast .toast-notification .toast-notification-title { font-weight: 600; margin-bottom: .5rem; }
+#workflow-toast .toast-notification .toast-notification-content { opacity: .9; }
+
 /* Responsive Adjustments */
 @media (max-width: 480px) {
   #workflow-toast .e-toast {

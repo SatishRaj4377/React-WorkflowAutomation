@@ -49,6 +49,7 @@ export type NodeType =
   | 'AI Agent'
   | 'HTTP Request'
   | 'EmailJS'
+  | 'Notify'
   | 'Gmail'
   | 'Google Sheets'
   | 'Word'

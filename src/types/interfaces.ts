@@ -118,6 +118,7 @@ export interface ToastMessage {
   content: string;
   type: ToastType;
   duration?: number;
+  variant?: 'default' | 'notification';
 }
 
 // Workflow Execution Context

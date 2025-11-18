@@ -3,7 +3,7 @@ import { getGmailTokenCached, gmailSendRaw, toBase64Url } from '../../helper/goo
 import { extractSpreadsheetIdFromUrl, getSheetsTokenCached, sheetsAppendRowByHeaders, sheetsCreateSheet, sheetsDeleteDimension, sheetsDeleteSheetByTitle, sheetsGetAllRows, sheetsGetHeaderRow, sheetsGetRowsWithFilters, sheetsUpdateRowByMatch, sheetsWriteHeadersIfMissing } from '../../helper/googleSheetsClient';
 import { ExecutionContext, NodeConfig, NodeExecutionResult } from '../../types';
 import { NodeModel } from '@syncfusion/ej2-react-diagrams';
-import { showErrorToast, showInfoToast } from '../../components/Toast';
+import { showErrorToast, showInfoToast, showToast } from '../../components/Toast';
 import { resolveTemplate } from '../../helper/expression';
 import { GoogleAuth } from '../../helper/googleAuthClient';
 import { createDocxFromHtml, appendHtmlToDocx, downloadBlob } from '../../helper/wordExecutionUtils';
@@ -30,6 +30,8 @@ export async function executeActionOrToolCategory(
       return executeWordNode(nodeConfig, context);
     case 'Excel':
       return executeExcelNode(nodeConfig, context);
+    case 'Notify':
+      return executeNotifyNode(nodeConfig, context);
 
     default:
       return { success: false, error: `Unsupported trigger node type: ${nodeConfig.nodeType}` };
@@ -335,6 +337,27 @@ async function executeWordNode(nodeConfig: NodeConfig, context: ExecutionContext
     const message = (err?.message ?? `${err}`)?.toString();
     return { success: false, error: message };
   }
+}
+
+// ---------------- Notify ----------------
+async function executeNotifyNode(nodeConfig: NodeConfig, context: ExecutionContext): Promise<NodeExecutionResult> {
+  const gen = (nodeConfig.settings?.general ?? {}) as any;
+  const rawTitle = String(gen.title ?? 'Notification');
+  const rawMessage = String(gen.message ?? '').trim();
+  const rawType = String(gen.type ?? 'info') as 'success' | 'error' | 'info' | 'warning';
+
+  // Resolve templates
+  const title = resolveTemplate(rawTitle, { context });
+  const content = resolveTemplate(rawMessage, { context });
+
+  // Show toast using modern variant
+  showToast({ id: `notify-${Date.now()}`, title, content, type: rawType, variant: 'notification' });
+
+  // Sound cue
+  const { playNotificationSound } = await import('../../helper/soundUtils');
+  playNotificationSound(rawType);
+
+  return { success: true, data: { shown: true, title, content, type: rawType, variant: 'notification' } };
 }
 
 // ---------------- Excel ----------------

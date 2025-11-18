@@ -1,0 +1,59 @@
+import React from 'react';
+import { DropDownListComponent } from '@syncfusion/ej2-react-dropdowns';
+import { VariablePickerTextBox } from './VariablePickerTextBox';
+import './NodeConfigSidebar.css';
+
+type Props = {
+  settings: any; // selectedNode.settings.general
+  onPatch: (patch: Record<string, any>) => void; // merges into settings.general
+  variableGroups: any[];
+  variablesLoading: boolean;
+};
+
+const TYPES = ['success', 'error', 'info', 'warning'] as const;
+
+const NotifyNodeConfig: React.FC<Props> = ({ settings, onPatch, variableGroups, variablesLoading }) => {
+  const type = (settings.type as typeof TYPES[number]) || 'info';
+  const title = settings.title ?? 'Notification';
+  const message = settings.message ?? '';
+
+  return (
+    <>
+      <div className="config-section">
+        <label className="config-label">Status type</label>
+        <DropDownListComponent
+          value={type}
+          dataSource={TYPES as unknown as string[]}
+          change={(e: any) => onPatch({ type: e.value })}
+          popupHeight="220px"
+          zIndex={1000000}
+        />
+      </div>
+      <div className="config-section">
+        <label className="config-label">Title</label>
+        <VariablePickerTextBox
+          value={title}
+          onChange={(val) => onPatch({ title: val })}
+          placeholder="Notification title"
+          cssClass="config-input"
+          variableGroups={variableGroups}
+          variablesLoading={variablesLoading}
+        />
+      </div>
+      <div className="config-section">
+        <label className="config-label">Message</label>
+        <VariablePickerTextBox
+          value={message}
+          onChange={(val) => onPatch({ message: val })}
+          placeholder="Type a message..."
+          cssClass="config-textarea"
+          multiline
+          variableGroups={variableGroups}
+          variablesLoading={variablesLoading}
+        />
+      </div>
+    </>
+  );
+};
+
+export default NotifyNodeConfig;

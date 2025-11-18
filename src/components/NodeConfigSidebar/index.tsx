@@ -31,6 +31,7 @@ import GmailNodeConfig from './GmailNodeConfig';
 import ConditionNodeConfig from './ConditionNodeConfig';
 import FormNodeConfig from './FormNodeConfig';
 import FormPreviewPopup from '../FormPreviewPopup';
+import NotifyNodeConfig from './NotifyNodeConfig';
 
 interface ConfigPanelProps {
   isOpen: boolean;
@@ -612,6 +613,17 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
       case 'Excel': {
         return (
           <ExcelNodeConfig
+            settings={settings}
+            onPatch={(patch) => handleConfigChange(patch, undefined, 'general')}
+            variableGroups={availableVariables}
+            variablesLoading={variablesLoading}
+          />
+        );
+      }
+
+      case 'Notify': {
+        return (
+          <NotifyNodeConfig
             settings={settings}
             onPatch={(patch) => handleConfigChange(patch, undefined, 'general')}
             variableGroups={availableVariables}

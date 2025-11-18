@@ -3,42 +3,73 @@ import { ToastComponent } from '@syncfusion/ej2-react-notifications';
 import { ToastMessage, ToastType } from '../../types';
 import './Toast.css';
 
-interface ToastProps {
-  position?: { X: string; Y: string };
-}
-
-const Toast: React.FC<ToastProps> = ({
-  position = { X: 'Right', Y: 'Bottom' }
-}) => {
-  const toastRef = useRef<ToastComponent>(null);
+const Toast: React.FC = () => {
+  const defaultToastRef = useRef<ToastComponent>(null);
+  const notificaitonToastRef = useRef<ToastComponent>(null);
 
   useEffect(() => {
-    // Expose the show method globally
-    if (toastRef.current) {
-      (window as any).showToast = (message: ToastMessage) => {
-        showToastMessage(message);
+    // Default toast global method
+    if (defaultToastRef.current) {
+      (window as any).showDefaultToast = (message: ToastMessage) => {
+        defaultToastRef.current!.show({
+          title: message.title,
+          content: message.content,
+          cssClass: `toast-${message.type}`,
+          icon: getIconForType(message.type),
+          timeOut: message.duration || getDefaultDuration(message.type),
+          position: { X: 'Right', Y: 'Bottom' },
+          animation: {
+            show: { effect: 'SlideRightIn', duration: 400, easing: 'ease' },
+            hide: { effect: 'SlideRightOut', duration: 300, easing: 'ease' }
+          }
+        });
+      };
+    }
+
+    // Modern toast global method
+    if (notificaitonToastRef.current) {
+      (window as any).showNotificationToast = (message: ToastMessage) => {
+        notificaitonToastRef.current!.show({
+          title: '',
+          content: renderNotificationContent(message),
+          cssClass: `toast-notification toast-${message.type}`,
+          icon: '',
+          timeOut: message.duration || 4000,
+          position: { X: 'Center', Y: 'Top' },
+          animation: {
+            show: { effect: 'SlideTopIn', duration: 300, easing: 'ease' },
+            hide: { effect: 'FadeOut', duration: 200, easing: 'ease' }
+          }
+        });
       };
     }
 
     return () => {
-      delete (window as any).showToast;
+      delete (window as any).showDefaultToast;
+      delete (window as any).showNotificationToast;
     };
   }, []);
 
-  const showToastMessage = (message: ToastMessage) => {
-    if (!toastRef.current) return;
+  const renderNotificationContent = (message: ToastMessage) => {
+    const container = document.createElement('div');
+    container.className = 'toast-notification-body';
 
-    // Prepare toast configuration
-    const toastConfig = {
-      title: message.title,
-      content: message.content,
-      cssClass: `toast-${message.type}`,
-      icon: getIconForType(message.type),
-      timeOut: message.duration || getDefaultDuration(message.type),
-    };
+    const textWrap = document.createElement('div');
+    textWrap.className = 'toast-notification-text';
 
-    // Show the toast
-    toastRef.current.show(toastConfig);
+    const titleEl = document.createElement('div');
+    titleEl.className = 'toast-notification-title';
+    titleEl.textContent = message.title;
+
+    const contentEl = document.createElement('div');
+    contentEl.className = 'toast-notification-content';
+    contentEl.textContent = message.content;
+
+    textWrap.appendChild(titleEl);
+    textWrap.appendChild(contentEl);
+
+    container.appendChild(textWrap);
+    return container;
   };
 
   const getIconForType = (type: ToastType): string => {
@@ -62,65 +93,59 @@ const Toast: React.FC<ToastProps> = ({
   };
 
   return (
-    <ToastComponent
-      ref={toastRef}
-      id="workflow-toast"
-      position={position}
-      showCloseButton={true}
-      animation={{
-        show: { effect: 'SlideRightIn', duration: 400, easing: 'ease' },
-        hide: { effect: 'SlideRightOut', duration: 300, easing: 'ease' }
-      }}
-      newestOnTop={true}
-      showProgressBar={true}
-      cssClass="workflow-toast-container"
-    />
+    <>
+      {/* Default Toast Instance */}
+      <ToastComponent
+        ref={defaultToastRef}
+        id="workflow-toast"
+        position={{ X: 'Right', Y: 'Bottom' }}
+        showCloseButton={true}
+        newestOnTop={true}
+        showProgressBar={true}
+      />
+
+      {/* Notification Style Toast Instance */}
+      <ToastComponent
+        ref={notificaitonToastRef}
+        id="workflow-toast"
+        position={{ X: 'Center', Y: 'Top' }}
+        showProgressBar={true}
+      />
+    </>
   );
 };
 
-// Utility functions for showing toasts from anywhere in the app
+// Utility functions for showing toasts globally
 export const showToast = (message: ToastMessage) => {
-  if ((window as any).showToast) {
-    (window as any).showToast(message);
+  if (message.variant === 'notification') {
+    if ((window as any).showNotificationToast) {
+      (window as any).showNotificationToast(message);
+    } else {
+      console.warn('Notification toast component not initialized');
+    }
   } else {
-    console.warn('Toast component not initialized');
+    if ((window as any).showDefaultToast) {
+      (window as any).showDefaultToast(message);
+    } else {
+      console.warn('DefaultToast component not initialized');
+    }
   }
 };
 
 export const showSuccessToast = (title: string, content: string) => {
-  showToast({
-    id: `success-${Date.now()}`,
-    title,
-    content,
-    type: 'success'
-  });
+  showToast({ id: `success-${Date.now()}`, title, content, type: 'success' });
 };
 
 export const showErrorToast = (title: string, content: string) => {
-  showToast({
-    id: `error-${Date.now()}`,
-    title,
-    content,
-    type: 'error'
-  });
+  showToast({ id: `error-${Date.now()}`, title, content, type: 'error' });
 };
 
 export const showInfoToast = (title: string, content: string) => {
-  showToast({
-    id: `info-${Date.now()}`,
-    title,
-    content,
-    type: 'info'
-  });
+  showToast({ id: `info-${Date.now()}`, title, content, type: 'info' });
 };
 
 export const showWarningToast = (title: string, content: string) => {
-  showToast({
-    id: `warning-${Date.now()}`,
-    title,
-    content,
-    type: 'warning'
-  });
+  showToast({ id: `warning-${Date.now()}`, title, content, type: 'warning' });
 };
 
 export default Toast;
