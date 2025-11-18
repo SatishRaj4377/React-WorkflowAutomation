@@ -811,6 +811,9 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   useEffect(() => {
     if (diagramRef.current && project?.workflowData?.diagramString) {
       diagramRef.current.loadDiagram(project.workflowData.diagramString);
+      if (project.id.startsWith("template")){
+        (diagramRef.current as any).fitToPage();
+      }
       if (!hasFirstNodeAdded) {
         setHasFirstNodeAdded(true);
         if (onNodeAddedFirstTime) onNodeAddedFirstTime();
@@ -858,20 +861,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     }
   }, [diagramRef.current, onDiagramRef]);
 
-  // Load diagram from project if available
-  useEffect(() => {
-    if (diagramRef.current && project && project.workflowData.diagramString && !isLoaded) {
-      try {
-        diagramRef.current.loadDiagram(project.workflowData.diagramString);
-        setIsLoaded(true);
-      } catch (error) {
-        console.error('Failed to load diagram:', error);
-        setIsLoaded(true); // Set as loaded even if failed to prevent infinite loop
-      }
-    } else if (diagramRef.current && !project.workflowData.diagramString) {
-      setIsLoaded(true);
-    }
-  }, [project, diagramRef.current, isLoaded]);
 
   return (
     <div className="diagram-editor-container">

@@ -703,7 +703,6 @@ async function executeExcelNode(nodeConfig: NodeConfig, context: ExecutionContex
 
 // ---------------- HTTP Request ----------------
 async function executeHttpRequestNode(nodeConfig: NodeConfig, context: ExecutionContext): Promise<NodeExecutionResult> {
-  debugger
   try {
     const general = (nodeConfig.settings?.general ?? {}) as any;
 
