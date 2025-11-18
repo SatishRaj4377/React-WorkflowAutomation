@@ -306,8 +306,11 @@
 }
 
 /* Rich text editor */
- .e-richtexteditor .e-rte-content .e-content {
+.e-richtexteditor .e-rte-content .e-content {
   padding: 0;
+}
+.e-richtexteditor #word-write-editorrte-view , .e-richtexteditor .e-rte-container {
+background-color: var(--background-color);
 }
 
 /* Variable Picker Styling */
