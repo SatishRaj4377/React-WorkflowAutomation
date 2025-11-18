@@ -155,7 +155,6 @@
   grid-template-columns: auto 1fr auto;
   gap: 12px;
   align-items: center;
-  padding: 12px 14px;
 }
 
 #workflow-toast .toast-notification .toast-notification-text { min-width: 0; }

@@ -75,11 +75,11 @@ body, .e-control, .e-card{
   --grid-dotted-color: #a6b4caff; 
   
   /* Toast Colors - Light Theme */
-  --toast-success-bg: #eff6ff;
-  --toast-success-border: #2563eb;
-  --toast-success-text: #1e40af;
-  --toast-success-icon-color: #1d4ed8;
-  --toast-success-progress: #2563eb;
+  --toast-success-bg: #ecfdf5;
+  --toast-success-border: #10b981;
+  --toast-success-text: #065f46;
+  --toast-success-icon-color: #059669;
+  --toast-success-progress: #10b981;
 
   --toast-error-bg: #fff5f5;
   --toast-error-border: #f56565;
@@ -146,11 +146,11 @@ body, .e-control, .e-card{
   --grid-dotted-color: #475569;
   
   /* Toast Colors - Dark Theme */
-  --toast-success-bg: #1e3a8a;
-  --toast-success-border: #2563eb;
-  --toast-success-text: #dbeafe;
-  --toast-success-icon-bg: #1d4ed8;
-  --toast-success-icon-color: #dbeafe;
+  --toast-success-bg: #064e3b;
+  --toast-success-border: #10b981;
+  --toast-success-text: #d1fae5;
+  --toast-success-icon-bg: #065f46;
+  --toast-success-icon-color: #d1fae5;
 
   --toast-error-bg: #341e1e;
   --toast-error-border: #f56565;
