@@ -1,5 +1,5 @@
 import React from 'react';
-import { ProjectData, TemplateProjectConfig } from '../../types';
+import { TemplateProjectConfig } from '../../types';
 
 interface TemplateCardProps {
   template: TemplateProjectConfig;

@@ -813,12 +813,13 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   useEffect(() => {
     if (diagramRef.current && project?.workflowData?.diagramString) {
       diagramRef.current.loadDiagram(project.workflowData.diagramString);
-      if (project.id.startsWith("template")){
-        (diagramRef.current as any).fitToPage();
-      }
       if (!hasFirstNodeAdded) {
         setHasFirstNodeAdded(true);
         if (onNodeAddedFirstTime) onNodeAddedFirstTime();
+      }
+      if (project.id.startsWith("template")){
+        (diagramRef.current as any).reset();
+        (diagramRef.current as any).fitToPage();
       }
     }
   }, [diagramRef.current, project?.workflowData?.diagramString]);

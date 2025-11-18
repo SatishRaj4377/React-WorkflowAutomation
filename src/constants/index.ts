@@ -41,6 +41,12 @@ export const SIDEBAR_ITEMS = [
 
 export const TEMPLATE_PROJECTS: TemplateProjectConfig[] = [
     {
+        id: 'offer-letter-generator',
+        title: 'Automated Offer Letter Generator Workflow',
+        description: 'Template for generating offer letters.',
+        image: templateImages.OfferLetterGeneratorImage,
+    },
+    {
         id: 'hr-policy-assistant',
         title: 'Real-Time HR Policy Assistant via Chat',
         description: 'Template for real-time HR policy assistant via chat.',
