@@ -204,6 +204,9 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     }
   }, [diagramRef]);
 
+  // Ensure the global node toolbar handler is available before any templates mount
+  setGlobalNodeToolbarHandler(handleNodeToolbarAction);
+
   const handleNodeConfigChange = (nodeId: string, config: NodeConfig) => {
     setSelectedNode(config);
     

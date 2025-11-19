@@ -95,9 +95,14 @@ export function attachNodeTemplateEvents(node: NodeModel, onNodeToolbarAction?: 
     const editBtn = document.getElementById(`btn-edit-${node.id}`);
     const delBtn = document.getElementById(`btn-del-${node.id}`);
 
-    if (execBtn) execBtn.onclick = (e) => { e.stopPropagation(); onNodeToolbarAction && onNodeToolbarAction(node.id as string, 'execute-step'); };
-    if (editBtn) editBtn.onclick = (e) => { e.stopPropagation(); onNodeToolbarAction && onNodeToolbarAction(node.id as string, 'edit'); };
-    if (delBtn) delBtn.onclick = (e) => { e.stopPropagation(); onNodeToolbarAction && onNodeToolbarAction(node.id as string, 'delete'); };
+    const callHandler = (action: NodeToolbarAction) => {
+      const handler = onNodeToolbarAction || GLOBAL_NODE_TOOLBAR_HANDLER;
+      if (handler) handler(node.id as string, action);
+    };
+
+    if (execBtn) execBtn.onclick = (e) => { e.stopPropagation(); callHandler('execute-step'); };
+    if (editBtn) editBtn.onclick = (e) => { e.stopPropagation(); callHandler('edit'); };
+    if (delBtn) delBtn.onclick = (e) => { e.stopPropagation(); callHandler('delete'); };
   }, 0);
 }
 
