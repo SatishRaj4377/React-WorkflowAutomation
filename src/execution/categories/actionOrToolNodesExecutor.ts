@@ -656,7 +656,11 @@ async function executeExcelNode(nodeConfig: NodeConfig, context: ExecutionContex
           return { success: false, error: msg };
         }
         const ws = wb.Sheets[sheetName];
-        const aoa: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        const aoa: any[][] = XLSX.utils.sheet_to_json(ws, {
+          header: 1,
+          raw: false,   // <-- use formatted text exactly as shown in Excel
+          defval: ''    // <-- keep empty cells as empty string
+        });
         const headers: string[] = (aoa[0] || []).map((h: any) => String(h));
         if (!headers.length) {
           const msg = 'Get Row(s): No columns found. Create headers in row 1 and try again.';
