@@ -122,7 +122,13 @@ export class WorkflowExecutionService {
   private async executeBranchWithErrorHandling(node: NodeModel): Promise<boolean> {
     try {
       return await this.executeBranch(node);
-    } catch (error) {
+    } catch (error: any) {
+      // If the workflow was intentionally aborted (Stop/Do Nothing), treat as graceful cancel
+      const isCancelled = this.abortController.signal.aborted || (error && String(error?.message || error) === 'Execution cancelled');
+      if (isCancelled) {
+        // Do not mark node as error; simply stop traversal
+        return false;
+      }
       console.error(`Branch execution failed at node ${node.id}:`, error);
       if (node.id) {
         updateNodeStatus(this.diagram, node.id, 'error');
@@ -147,6 +153,17 @@ export class WorkflowExecutionService {
       const result = await this.executeNodeWithTimeout(node);
       if (!result.success) {
         throw new Error(result.error || 'Node execution failed');
+      }
+
+      // If a Stop (Do Nothing) node signalled a stop, abort the entire workflow immediately
+      if ((result as any)?.data?.stopped === true) {
+        // Mark the node as success and stop traversal
+        updateNodeStatus(this.diagram, node.id, 'success');
+        // Abort the whole workflow so loops and pending branches halt
+        this.abortController.abort();
+        // Optionally, record a friendly reason (not treated as error)
+        this.executionStatus.error = undefined;
+        return true;
       }
 
       const cfg = getNodeConfig(node);
@@ -487,6 +504,11 @@ export class WorkflowExecutionService {
    * Handle node execution error
    */
   private handleNodeError(nodeId: string, error: unknown) {
+    // Ignore cancellation signals caused by Stop/Do Nothing
+    const msg = error instanceof Error ? error.message : String(error);
+    if (this.abortController.signal.aborted && msg === 'Execution cancelled') {
+      return;
+    }
     console.error(`Error executing node ${nodeId}:`, error);
     updateNodeStatus(this.diagram, nodeId, 'error');
     this.executionStatus.error = error instanceof Error ? error.message : 'Unknown error';
