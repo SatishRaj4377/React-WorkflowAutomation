@@ -24,7 +24,6 @@ interface DiagramEditorProps {
   onInitialAddClick?: () => void;
   onNodeAddedFirstTime?: () => void;
   onCanvasClick?: () => void;
-  onNodeToolbarAction?: (nodeId: string, action: NodeToolbarAction) => void;
 }
 
 let isStickyNoteEditing = false;
@@ -48,7 +47,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   onInitialAddClick,
   onNodeAddedFirstTime,
   onCanvasClick,
-  onNodeToolbarAction
 }) => {
 
   const diagramRef = useRef<DiagramComponent>(null);
@@ -171,7 +169,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       updateNodeConstraints(node);
 
       // Set up templates and ports
-      updateNodeTemplates(setUpStickyNote, node, handleNodeToolbarAction);
+      updateNodeTemplates(setUpStickyNote, node);
       prepareUserHandlePortData(node);
 
       // Position the node with stagger effect
@@ -344,8 +342,8 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     const diagram = diagramRef.current;
     if (!diagram) return;
 
-    // Attach toolbar actions after direct HTML render
-    attachNodeTemplateEvents(node, onNodeToolbarAction);
+    // Attach toolbar actions after direct HTML render (uses global handler)
+    attachNodeTemplateEvents(node);
 
     const isOutOfView = isNodeOutOfViewport(diagram, node);
     const isFirstNode = !hasFirstNodeAdded && diagram.nodes?.length === 1;
@@ -547,11 +545,9 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     hideAllExcept(presentDiagramMenu);
   };
 
-  // handle the node toolbar actions
-  const handleNodeToolbarAction = (nodeId: string, action: NodeToolbarAction) => {
-    if (onNodeToolbarAction) {
-      onNodeToolbarAction(nodeId, action);
-    } 
+  // handle the node toolbar actions (forwarded globally by Editor via setGlobalNodeToolbarHandler)
+  const handleNodeToolbarAction = (_nodeId: string, _action: NodeToolbarAction) => {
+    // No-op locally. Events are handled by the global handler set from Editor.
   };
 
   // handle conext menu click event
@@ -1004,8 +1000,7 @@ function updateNodePosition(obj: NodeModel, diagramRef: React.RefObject<DiagramC
 // Sets the node template for nodes
 function updateNodeTemplates(
   setUpStickyNote: (stickyNode: NodeModel) => void, 
-  node: NodeModel,
-  onNodeToolbarAction: (nodeId: string, action: NodeToolbarAction) => void
+  node: NodeModel
 ) {
   const nodeConfig = (node.addInfo as any)?.nodeConfig as NodeConfig;
   if (nodeConfig && isStickyNote(nodeConfig)) {
@@ -1019,8 +1014,8 @@ function updateNodeTemplates(
       content: buildNodeHtml(node)
     };
 
-    // After DOM mounts, wire toolbar actions
-    setTimeout(() => attachNodeTemplateEvents(node, onNodeToolbarAction), 0);
+    // After DOM mounts, wire toolbar actions (uses global handler)
+    setTimeout(() => attachNodeTemplateEvents(node), 0);
   }
 }
 

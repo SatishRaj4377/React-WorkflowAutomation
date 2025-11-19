@@ -310,6 +310,6 @@ export function updateSwitchPorts(
   // Refresh user-handle metadata for your UI
   prepareUserHandlePortData(node);
 
-  // refresh the node template
+  // refresh the node template (handler will come from global if Editor provided it)
   refreshNodeTemplate(diagram as any, nodeId);
 }

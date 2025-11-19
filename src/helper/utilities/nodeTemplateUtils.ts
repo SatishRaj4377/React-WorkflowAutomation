@@ -4,6 +4,12 @@ import { getNodePortConfiguration } from './portUtils';
 import { isAiAgentNode, isSwitchNode, isLoopNode } from './nodeUtils';
 import { IconRegistry } from '../../assets/icons';
 
+// Global handler used when a local callback isn't provided
+let GLOBAL_NODE_TOOLBAR_HANDLER: ((id: string, action: NodeToolbarAction) => void) | undefined;
+export function setGlobalNodeToolbarHandler(handler?: (id: string, action: NodeToolbarAction) => void) {
+  GLOBAL_NODE_TOOLBAR_HANDLER = handler;
+}
+
 // Build node HTML content based on node type/config
 export function buildNodeHtml(node: NodeModel): string {
   const addInfo: any = node.addInfo || {};
@@ -104,5 +110,7 @@ export function refreshNodeTemplate(
   const node = diagram.getObject(nodeId) as NodeModel | null;
   if (!node) return;
   node.shape = { type: 'HTML', content: buildNodeHtml(node) } as any;
-  attachNodeTemplateEvents(node, onNodeToolbarAction);
+  // Prefer explicit callback; fallback to global
+  const handler = onNodeToolbarAction || GLOBAL_NODE_TOOLBAR_HANDLER;
+  attachNodeTemplateEvents(node, handler);
 }

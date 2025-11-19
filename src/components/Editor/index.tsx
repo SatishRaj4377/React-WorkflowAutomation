@@ -20,7 +20,7 @@ import { handleEditorKeyDown } from '../../helper/keyboardShortcuts';
 import { WorkflowExecutionService } from '../../execution/WorkflowExecutionService';
 import { ChatPopup } from '../ChatPopup';
 import { MessageComponent } from '@syncfusion/ej2-react-notifications';
-import { refreshNodeTemplate } from '../../helper/utilities/nodeTemplateUtils';
+import { refreshNodeTemplate, setGlobalNodeToolbarHandler } from '../../helper/utilities/nodeTemplateUtils';
 
 interface EditorProps {
   project: ProjectData;
@@ -212,8 +212,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       const node = diagramRef.getObject(nodeId);
       if (node) {
         node.addInfo = { ...node.addInfo, nodeConfig: config };
-        // Rebuild the node HTML and reattach toolbar handlers
-        refreshNodeTemplate(diagramRef, nodeId, handleNodeToolbarAction);
+        // Rebuild the node HTML and reattach toolbar handlers via global handler
+        refreshNodeTemplate(diagramRef, nodeId);
         setIsDirty(true);
       }
     }
@@ -630,6 +630,9 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   // Initialize workflow execution service when diagram ref changes
   useEffect(() => {
     if (diagramRef) {
+      // Provide a global handler so template refreshes from utilities still wire events
+      setGlobalNodeToolbarHandler(handleNodeToolbarAction);
+
       workflowExecutionRef.current = new WorkflowExecutionService(diagramRef, {
         enableDebug: process.env.NODE_ENV === 'development',
         timeout: 30000,
@@ -648,8 +651,9 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
       if (workflowExecutionRef.current) {
         workflowExecutionRef.current.cleanup();
       }
+      setGlobalNodeToolbarHandler(undefined);
     };
-  }, [diagramRef]);
+  }, [diagramRef, handleNodeToolbarAction]);
 
   useEffect(() => {
     // Check initial pan state on mount
@@ -956,7 +960,6 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
               setNodeConfigPanelOpen(false);
               setPaletteFilterContext({ mode: 'default' });
             }}
-            onNodeToolbarAction={handleNodeToolbarAction}
           />
         </div>
         
