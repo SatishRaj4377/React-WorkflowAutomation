@@ -97,13 +97,38 @@ async function executeFormTriggerNode(nodeConfig: NodeConfig): Promise<NodeExecu
     }
 
     // Build output payload
-    const valueRows = fields.map((f: any, i: number) => ({
-      label: f?.label ?? `field_${i + 1}`,
-      type: f?.type ?? 'text',
-      value: submitted.values?.[i] ?? ''
-    }));
+    const valueRows = fields.map((f: any, i: number) => {
+      const label = f?.label ?? `field_${i + 1}`;
+      const type = f?.type ?? 'text';
+      const rawVal = submitted.values?.[i] ?? '';
+
+      // Enrich date fields with useful details
+      let details: Record<string, any> | undefined;
+      if (type === 'date' && rawVal) {
+        const d = new Date(rawVal);
+        if (!isNaN(d.getTime())) {
+          details = buildDateDetails(d);
+        }
+      }
+
+      return details
+        ? { label, type, value: rawVal, details }
+        : { label, type, value: rawVal };
+    });
+
     const byLabel: Record<string, any> = {};
-    valueRows.forEach((r: { label: string; value: any }) => { byLabel[slugify(r.label)] = r.value; });
+    valueRows.forEach((r: { label: string; value: any; type?: string; details?: Record<string, any> }) => {
+      const key = slugify(r.label);
+      if (r.type === 'date') {
+        const d = r.value ? new Date(r.value) : null;
+        if (d && !isNaN(d.getTime())) {
+          byLabel[key] = { value: r.value, ...buildDateDetails(d) };
+          return;
+        }
+      }
+      // Non-date (or invalid date) -> fallback
+      byLabel[key] = r.value;
+    });
 
     return {
       success: true,
@@ -122,14 +147,6 @@ async function executeFormTriggerNode(nodeConfig: NodeConfig): Promise<NodeExecu
     showErrorToast('Form Trigger Error', message);
     return { success: false, error: message };
   }
-}
-
-function slugify(s: string): string {
-  return String(s || '')
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '');
 }
 
 // ---------------- Chat Trigger ----------------
@@ -183,4 +200,29 @@ async function executeChatTriggerNode(): Promise<NodeExecutionResult> {
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Chat trigger failed' };
   }
+}
+
+function slugify(s: string): string {
+  return String(s || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
+
+// Helper: compute limited date details for reporting
+function buildDateDetails(d: Date) {
+  const year = d.getFullYear();
+  const month = d.getMonth() + 1; // 1-12
+  const day = d.getDate(); // 1-31
+  const weekday = d.getDay(); // 0-6 (0=Sunday)
+  const weekdayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+  return {
+    year,
+    month,
+    day,
+    weekday,
+    weekdayName: weekdayNames[weekday]
+  };
 }
