@@ -30,7 +30,7 @@ import { GoogleAuth } from '../../helper/googleAuthClient';
 import GmailNodeConfig from './GmailNodeConfig';
 import ConditionNodeConfig from './ConditionNodeConfig';
 import FormNodeConfig from './FormNodeConfig';
-import FormPreviewPopup from '../FormPreviewPopup';
+import FormPopup from '../FormPopup';
 import NotifyNodeConfig from './NotifyNodeConfig';
 
 interface ConfigPanelProps {
@@ -228,7 +228,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
               {formPreviewError && <div style={{ color: 'var(--danger-color)' }}>{formPreviewError}</div>}
             </div>
 
-            <FormPreviewPopup
+            <FormPopup
               open={formPreviewOpen}
               onClose={() => setFormPreviewOpen(false)}
               title={settings.formTitle ?? ''}

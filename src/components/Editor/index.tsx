@@ -4,7 +4,7 @@ import { useBlocker } from 'react-router';
 import { DiagramTools, NodeConstraints, NodeModel, PortConstraints, ConnectorModel } from '@syncfusion/ej2-react-diagrams';
 import EditorHeader from '../Header/EditorHeader';
 import DiagramEditor from '../DiagramEditor';
-import FormPreviewPopup, { PreviewFormField } from '../FormPreviewPopup';
+import FormPreviewPopup, { PreviewFormField } from '../FormPopup';
 import Toolbar from '../Toolbar';
 import Toast, { showSuccessToast, showErrorToast } from '../Toast';
 import NodePaletteSidebar from '../NodePaletteSidebar';

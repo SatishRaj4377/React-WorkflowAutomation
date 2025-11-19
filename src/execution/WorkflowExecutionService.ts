@@ -219,18 +219,17 @@ export class WorkflowExecutionService {
     }
 
     try {
-      // If a trigger that waits for external input (e.g., Chat/Webhook), do not timeout and show waiting banner
-      const isWaitingTrigger = nodeConfig.nodeType === 'Chat' || nodeConfig.nodeType === 'Webhook';
+      // If a trigger that waits for external input (e.g., Chat/Webhook/Form), do not timeout and show waiting banner
+      const isWaitingTrigger = nodeConfig.nodeType === 'Chat' || nodeConfig.nodeType === 'Webhook' || nodeConfig.nodeType === 'Form';
       if (isWaitingTrigger && typeof window !== 'undefined') {
         window.dispatchEvent(
           new CustomEvent('wf:trigger:waiting', { detail: { type: nodeConfig.nodeType } })
         );
       }
 
-      const isChatTrigger = nodeConfig.nodeType === 'Chat';
-      const isWebhookTrigger = nodeConfig.nodeType === 'Webhook';
+      const isNoTimeoutTrigger = nodeConfig.nodeType === 'Chat' || nodeConfig.nodeType === 'Webhook' || nodeConfig.nodeType === 'Form';
 
-      const result = (isChatTrigger || isWebhookTrigger)
+      const result = isNoTimeoutTrigger
         ? await executor.executeNode(node, this.executionContext)
         : await Promise.race([
             executor.executeNode(node, this.executionContext),

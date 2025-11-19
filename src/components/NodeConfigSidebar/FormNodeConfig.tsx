@@ -3,7 +3,7 @@ import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { DropDownListComponent } from '@syncfusion/ej2-react-dropdowns';
 import { ButtonComponent, CheckBoxComponent } from '@syncfusion/ej2-react-buttons';
 
-export type FormFieldType = 'text' | 'textarea' | 'number' | 'password' | 'email' | 'dropdown';
+export type FormFieldType = 'text' | 'textarea' | 'number' | 'password' | 'email' | 'dropdown' | 'date' | 'time';
 
 export interface FormFieldRow {
   label: string;
@@ -29,6 +29,8 @@ const FIELD_TYPE_OPTIONS: { text: string; value: FormFieldType }[] = [
   { text: 'Password', value: 'password' },
   { text: 'Email', value: 'email' },
   { text: 'Dropdown', value: 'dropdown' },
+  { text: 'Date', value: 'date' },
+  { text: 'Time', value: 'time' },
 ];
 
 const FormNodeConfig: React.FC<FormNodeConfigProps> = ({ title, description, value, onChange, onMetaChange }) => {
@@ -142,8 +144,8 @@ const FormNodeConfig: React.FC<FormNodeConfigProps> = ({ title, description, val
                   </div>
                 </div>
 
-                {/* Placeholder (not for dropdown) */}
-                {!isDropdown && (
+                {/* Placeholder (not for dropdown/date/time) */}
+                {!isDropdown && row.type !== 'date' && row.type !== 'time' && (
                   <>
                     <div />
                     <div>
