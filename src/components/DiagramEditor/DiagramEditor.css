@@ -312,9 +312,11 @@
     transition: all 0.1s ease-in;
 }
 .conditon-node-port-label.switch {
-  right: -155px;
-  width: 100px;
-  background: transparent;
+  right: unset;
+  top: -3px;
+  width: fit-content;
+  margin-left: 12px;
+  transform: none;
 }
 
 /* Diagram Container Styles */
