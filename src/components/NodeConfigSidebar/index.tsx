@@ -669,14 +669,14 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
         }
 
       case 'Switch Case': {
-        const rules = (settings.rules ?? [{ left: '', comparator: 'is equal to', right: '' }]) as Array<{ left: string; comparator: string; right: string }>;
+        const rules = (settings.rules ?? [{ left: '', comparator: 'is equal to', right: '', name: '' }]) as Array<{ left: string; comparator: string; right: string; name?: string }>;
 
         // Map Switch rows <-> IfCondition rows (joiner is unused)
-        const rows = rules.map(r => ({ left: r.left, comparator: r.comparator, right: r.right }));
+        const rows = rules.map(r => ({ left: r.left, comparator: r.comparator, right: r.right, name: r.name ?? '' }));
 
         const onRowsChange = (nextRows: any[]) => {
           // Persist back as 'rules' (ignore joiners)
-          handleConfigChange('rules', nextRows.map(r => ({ left: r.left ?? '', comparator: r.comparator, right: r.right ?? '' })));
+          handleConfigChange('rules', nextRows.map(r => ({ left: r.left ?? '', comparator: r.comparator, right: r.right ?? '', name: r.name ?? '' })));
           if (diagram && selectedNode) {
             const count = Math.max(1, nextRows.length);
             updateSwitchPorts(diagram as any, selectedNode.id, count);

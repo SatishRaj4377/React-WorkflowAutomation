@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { DropDownListComponent } from '@syncfusion/ej2-react-dropdowns';
 import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
+import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { VariablePickerTextBox } from './VariablePickerTextBox';
 import { ConditionComparator, ConditionJoiner, ConditionRow, ConditionValueKind } from '../../types';
 import { OP_OPTIONS, OpKind, orderByPreferredGroup, usesRightOperand } from '../../constants';
@@ -147,8 +148,20 @@ const ConditionNodeConfig: React.FC<ConditionNodeConfigProps> = ({
                     />
                   </div>
                 )}
+
+                {/* Line 3: Optional Case Name (only in Switch Case, where joiners are hidden) */}
+                {!showJoiners && (
+                  <div style={{ marginTop: 14, width: '85%', marginLeft: 'auto'}}>
+                    <TextBoxComponent
+                      value={row.name ?? ''}
+                      placeholder="Case name (optional)"
+                      change={(e: any) => updateRow(i, { name: e.value })}
+                      cssClass="config-input"
+                    />
+                  </div>
+                )}
               </div>
-              {/* Line 3: AND/OR between rows, only if a next row exists */}
+              {/* Line 4: AND/OR between rows, only if a next row exists */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', margin: '12px 0 6px'}}>
                 {showJoiners && showJoinerBelow && (
                   <>

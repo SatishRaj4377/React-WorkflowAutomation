@@ -311,6 +311,11 @@
     text-align: left;
     transition: all 0.1s ease-in;
 }
+.conditon-node-port-label.switch {
+  right: -155px;
+  width: 100px;
+  background: transparent;
+}
 
 /* Diagram Container Styles */
 .diagram-editor-container {

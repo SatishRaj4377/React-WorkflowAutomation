@@ -22,10 +22,28 @@ export function buildNodeHtml(node: NodeModel): string {
   const leftPort = portConfig.leftPort ? '<div class="node-port-left"></div>' : '';
   const rightPort = portConfig.rightPort && !isSwitch ? '<div class="node-port-right"></div>' : '';
 
+  // For Switch Case, show per-case index and optional case name next to each right port
   const switchRightPorts = isSwitch
-    ? (dynamicCaseOffsets.length > 0 ? dynamicCaseOffsets : [0.5])
-      .map((y, i) => `<div class="node-port-right" style="top:${y * 100}%"><span class='switch-conditon-node-port-label'>${i + 1}</span></div>`)
-      .join('')
+    ? (() => {
+        const cfg: any = nodeConfig?.settings?.general || {};
+        const rules: any[] = Array.isArray(cfg.rules) ? cfg.rules : [];
+        // Ensure at least one right port is rendered initially
+        const countRaw = Math.max(dynamicCaseOffsets?.length || 0, rules.length || 0);
+        const count = Math.max(1, countRaw);
+        const positions: number[] = Array.from({ length: count }, (_, i) =>
+          typeof dynamicCaseOffsets?.[i] === 'number' ? dynamicCaseOffsets[i] : ((i + 1) / (count + 1))
+        );
+        return positions
+          .map((y, i) => {
+            const name: string = rules?.[i]?.name ? String(rules[i].name) : '';
+            const nameHtml = name && name.trim().length > 0
+              ? `<span class='conditon-node-port-label switch'>${name}</span>`
+              : '';
+            const idxHtml = `<span class='switch-conditon-node-port-label'>${i + 1}</span>`;
+            return `<div class=\"node-port-right\" style=\"top:${y * 100}%\">${idxHtml}${nameHtml}</div>`;
+          })
+          .join('');
+      })()
     : '';
 
   const ifRightPorts = !isSwitch
