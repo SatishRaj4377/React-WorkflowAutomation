@@ -18,6 +18,84 @@ export const KEY_PROP_COMPARATORS = new Set<string>(['has key', 'has property'])
 // Readable constant name for ISO date strings
 export const ISO_DATE_REGEX = /^(\d{4})-(\d{2})-(\d{2})(?:[T ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?Z?)?$/;
 
+// Robust date/time parsing to support common string formats and timestamps
+const parseDateToTimestamp = (x: any): number => {
+  try {
+    if (x instanceof Date) {
+      const t = +x;
+      return Number.isNaN(t) ? NaN : t;
+    }
+
+    if (typeof x === 'number' && Number.isFinite(x)) {
+      // Heuristic: treat 10-digit numbers as seconds, 13+ as milliseconds
+      return x < 1e11 ? x * 1000 : x;
+    }
+
+    let s = typeof x === 'string' ? x.trim() : String(x);
+    if (!s) return NaN;
+
+    // Normalize common typos like double colons in time (e.g., 09::00 -> 09:00)
+    s = s.replace(/:{2,}/g, ':');
+
+    // Try native ISO/Date.parse first
+    let t = Date.parse(s);
+    if (!Number.isNaN(t)) return t;
+
+    // Time-only HH:mm[:ss]
+    let m = s.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+    if (m) {
+      const now = new Date();
+      const [, hh, mm, ss = '00'] = m;
+      const dt = new Date(now.getFullYear(), now.getMonth(), now.getDate(), Number(hh), Number(mm), Number(ss));
+      t = +dt;
+      return Number.isNaN(t) ? NaN : t;
+    }
+
+    // Try YYYY/MM/DD or YYYY-MM-DD with optional time HH:mm[:ss]
+    m = s.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?$/);
+    if (m) {
+      const [, y, mo, d, hh = '00', mm = '00', ss = '00'] = m;
+      const dt = new Date(Number(y), Number(mo) - 1, Number(d), Number(hh), Number(mm), Number(ss));
+      t = +dt;
+      return Number.isNaN(t) ? NaN : t;
+    }
+
+    // Try DD/MM/YYYY or DD-MM-YYYY with optional time HH:mm[:ss]
+    m = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?$/);
+    if (m) {
+      const [, d, mo, y, hh = '00', mm = '00', ss = '00'] = m;
+      const dt = new Date(Number(y), Number(mo) - 1, Number(d), Number(hh), Number(mm), Number(ss));
+      t = +dt;
+      return Number.isNaN(t) ? NaN : t;
+    }
+
+    // Numeric string (epoch seconds or millis)
+    if (/^-?\d+$/.test(s)) {
+      const n = Number(s);
+      return Math.abs(n) < 1e11 ? n * 1000 : n;
+    }
+
+    return NaN;
+  } catch {
+    return NaN;
+  }
+};
+
+// Detect if a string is time-only (HH:mm[:ss])
+const isTimeOnlyString = (s: any): boolean => {
+  if (typeof s !== 'string') return false;
+  const t = s.trim().replace(/:{2,}/g, ':');
+  return /^\d{1,2}:\d{2}(?::\d{2})?$/.test(t);
+};
+
+// Convert any supported time/date input to milliseconds since start of day (local)
+const toTimeOfDayMs = (x: any): number => {
+  const ts = parseDateToTimestamp(x);
+  if (Number.isNaN(ts)) return NaN;
+  const d = new Date(ts);
+  return d.getHours() * 3600000 + d.getMinutes() * 60000 + d.getSeconds() * 1000 + d.getMilliseconds();
+};
+
 // Resolve text -> value: bare "$.' uses evaluateExpression; otherwise resolveTemplate (string interpolation)
 export const resolveValue = (raw: string, context: ExecutionContext): any => {
   if (typeof raw !== 'string') return raw;
@@ -38,7 +116,7 @@ export const resolveValue = (raw: string, context: ExecutionContext): any => {
   return resolveTemplate(raw, { context });
 };
 
-export type ConditionValueKind = 'string' | 'number' | 'boolean' | 'date' | 'array' | 'object';
+export type ConditionValueKind = 'string' | 'number' | 'boolean' | 'date' | 'time' | 'array' | 'object';
 
 export const inferValueKind = (v: any): ConditionValueKind => {
   if (Array.isArray(v)) return 'array';
@@ -46,7 +124,16 @@ export const inferValueKind = (v: any): ConditionValueKind => {
   if (v !== null && typeof v === 'object') return 'object';
   if (typeof v === 'boolean') return 'boolean';
   if (typeof v === 'number' && !Number.isNaN(v)) return 'number';
-  if (typeof v === 'string' && ISO_DATE_REGEX.test(v) && !Number.isNaN(+new Date(v))) return 'date';
+  if (typeof v === 'string') {
+    const ts = parseDateToTimestamp(v);
+    if (!Number.isNaN(ts)) {
+      // If the input looks like time-only (HH:mm or HH:mm:ss), treat as 'time'
+      if (/^\d{1,2}:\d{2}(?::\d{2})?$/.test(v.replace(/\s+/g, '').replace(/:{2,}/g, ':'))) {
+        return 'time';
+      }
+      return 'date';
+    }
+  }
   return 'string';
 };
 
@@ -61,7 +148,16 @@ export const coerceToKind = (v: any, kind: ConditionValueKind) => {
         if (/^false$/i.test(s)) return false;
         return Boolean(v);
       }
-      case 'date': return v instanceof Date ? v : new Date(v);
+      case 'date': {
+        if (v instanceof Date) return v;
+        const ts = parseDateToTimestamp(v);
+        return Number.isNaN(ts) ? new Date(v) : new Date(ts);
+      }
+      case 'time': {
+        // Represent time as Date anchored to today for comparisons
+        const ts = parseDateToTimestamp(v);
+        return new Date(ts);
+      }
       case 'array': return Array.isArray(v) ? v : (typeof v === 'string' ? JSON.parse(v) : [v]);
       case 'object': return v && typeof v === 'object' ? v : (typeof v === 'string' ? JSON.parse(v) : { value: v });
       default: return typeof v === 'string' ? v : JSON.stringify(v);
@@ -72,7 +168,7 @@ export const coerceToKind = (v: any, kind: ConditionValueKind) => {
 };
 
 export const deepEqual = (a: any, b: any) => { try { return JSON.stringify(a) === JSON.stringify(b); } catch { return a === b; } };
-export const toTimestamp = (x: any) => +(x instanceof Date ? x : new Date(x));
+export const toTimestamp = (x: any) => parseDateToTimestamp(x);
 
 export const isValueEmpty = (x: any) => x == null
   ? true
@@ -100,10 +196,29 @@ export const compareValues = (left: any, comparator: string, right: any): boolea
   if (comparator === 'is true') return Boolean(left) === true;
   if (comparator === 'is false') return Boolean(left) === false;
 
-  const kind = inferValueKind(left);
+  // Determine kind; auto-upgrade to 'time' when the inputs look like time-only
+  const DATE_TIME_COMPARATORS = new Set([
+    'before', 'after', 'on or before', 'on or after', 'is between', 'is not between',
+  ]);
+  let kind = inferValueKind(left);
+  if (DATE_TIME_COMPARATORS.has(comparator)) {
+    const rightIsPair = comparator === 'is between' || comparator === 'is not between';
+    const rightVal = rightIsPair ? parsePairValues(right) : right;
+    const rightLooksTime = rightIsPair
+      ? (isTimeOnlyString((rightVal as any)[0]) && isTimeOnlyString((rightVal as any)[1]))
+      : isTimeOnlyString(rightVal);
+    const leftLooksTime = isTimeOnlyString(left);
+    if (leftLooksTime || rightLooksTime) kind = 'time';
+  }
+
   const l = coerceToKind(left, kind);
   const r = (comparator === 'is between' || comparator === 'is not between')
-    ? parsePairValues(coerceToKind(right, kind))
+    ? (() => {
+        const [ra, rb] = parsePairValues(right);
+        const r0 = coerceToKind(ra, kind);
+        const r1 = coerceToKind(rb, kind);
+        return [r0, r1];
+      })()
     : coerceToKind(right, kind);
 
   switch (comparator) {
@@ -120,13 +235,51 @@ export const compareValues = (left: any, comparator: string, right: any): boolea
     case 'greater than or equal to': return Number(l) >= Number(r);
     case 'less than': return Number(l) < Number(r);
     case 'less than or equal to': return Number(l) <= Number(r);
-    case 'is between': return Number(l) >= Number(r[0]) && Number(l) <= Number(r[1]);
-    case 'is not between': return !(Number(l) >= Number(r[0]) && Number(l) <= Number(r[1]));
+    case 'is between': {
+      // Time-of-day handling: compare by HH:mm[:ss] regardless of date
+      if (kind === 'time') {
+        const lt = toTimeOfDayMs(l);
+        const r0t = toTimeOfDayMs((r as any)[0]);
+        const r1t = toTimeOfDayMs((r as any)[1]);
+        if (!Number.isNaN(lt) && !Number.isNaN(r0t) && !Number.isNaN(r1t)) {
+          const min = Math.min(r0t, r1t);
+          const max = Math.max(r0t, r1t);
+          return lt >= min && lt <= max;
+        }
+      }
+      // Date handling: compare timestamps inclusively
+      const lt = toTimestamp(l);
+      const r0t = toTimestamp((r as any)[0]);
+      const r1t = toTimestamp((r as any)[1]);
+      const useDate = !Number.isNaN(lt) && !Number.isNaN(r0t) && !Number.isNaN(r1t);
+      return useDate
+        ? (lt >= Math.min(r0t, r1t) && lt <= Math.max(r0t, r1t))
+        : (Number(l) >= Number((r as any)[0]) && Number(l) <= Number((r as any)[1]));
+    }
+    case 'is not between': {
+      if (kind === 'time') {
+        const lt = toTimeOfDayMs(l);
+        const r0t = toTimeOfDayMs((r as any)[0]);
+        const r1t = toTimeOfDayMs((r as any)[1]);
+        if (!Number.isNaN(lt) && !Number.isNaN(r0t) && !Number.isNaN(r1t)) {
+          const min = Math.min(r0t, r1t);
+          const max = Math.max(r0t, r1t);
+          return !(lt >= min && lt <= max);
+        }
+      }
+      const lt = toTimestamp(l);
+      const r0t = toTimestamp((r as any)[0]);
+      const r1t = toTimestamp((r as any)[1]);
+      const useDate = !Number.isNaN(lt) && !Number.isNaN(r0t) && !Number.isNaN(r1t);
+      return useDate
+        ? !(lt >= Math.min(r0t, r1t) && lt <= Math.max(r0t, r1t))
+        : !(Number(l) >= Number((r as any)[0]) && Number(l) <= Number((r as any)[1]));
+    }
 
-    case 'before': return toTimestamp(l) < toTimestamp(r);
-    case 'after': return toTimestamp(l) > toTimestamp(r);
-    case 'on or before': return toTimestamp(l) <= toTimestamp(r);
-    case 'on or after': return toTimestamp(l) >= toTimestamp(r);
+    case 'before': return kind === 'time' ? (toTimeOfDayMs(l) < toTimeOfDayMs(r)) : (toTimestamp(l) < toTimestamp(r));
+    case 'after': return kind === 'time' ? (toTimeOfDayMs(l) > toTimeOfDayMs(r)) : (toTimestamp(l) > toTimestamp(r));
+    case 'on or before': return kind === 'time' ? (toTimeOfDayMs(l) <= toTimeOfDayMs(r)) : (toTimestamp(l) <= toTimestamp(r));
+    case 'on or after': return kind === 'time' ? (toTimeOfDayMs(l) >= toTimeOfDayMs(r)) : (toTimestamp(l) >= toTimestamp(r));
 
     case 'contains value': return Array.isArray(l) ? l.some(x => deepEqual(x, r)) : String(l).includes(String(r));
     case 'length greater than': return (Array.isArray(l) || typeof l === 'string') ? (l as any).length > Number(r) : false;

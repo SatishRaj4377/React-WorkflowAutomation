@@ -125,7 +125,7 @@ export type ConditionComparator =
   | 'contains value' | 'length greater than' | 'length less than'
   | 'has key' | 'has property';
 
-export type ConditionValueKind = 'string' | 'number' | 'boolean' | 'date' | 'array' | 'object';
+export type ConditionValueKind = 'string' | 'number' | 'boolean' | 'date' | 'time' | 'array' | 'object';
 
 export interface ConditionRow {
   left: string;                 // Variable or literal; supports {{ }} and bare "$." expressions

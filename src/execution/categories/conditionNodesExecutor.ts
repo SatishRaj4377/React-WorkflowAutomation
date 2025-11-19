@@ -9,7 +9,8 @@ import {
   KEY_PROP_COMPARATORS,
   resolveValue,
   parsePairValues,
-  compareValues
+  compareValues,
+  toTimestamp
 } from '../../helper/conditionUtils';
 import { NodeModel } from '@syncfusion/ej2-react-diagrams';
 
@@ -149,7 +150,7 @@ async function executeIfConditionNode(nodeConfig: NodeConfig, context: Execution
         const [a, b] = parsePairValues(rightVal);
         const lv = leftVal;
         const bothNum = !Number.isNaN(Number(a)) && !Number.isNaN(Number(b)) && !Number.isNaN(Number(lv));
-        const bothDate = !Number.isNaN(+new Date(a)) && !Number.isNaN(+new Date(b)) && !Number.isNaN(+new Date(lv));
+        const bothDate = !Number.isNaN(toTimestamp(a)) && !Number.isNaN(toTimestamp(b)) && !Number.isNaN(toTimestamp(lv));
         if (!bothNum && !bothDate) {
           const msg = `Row ${idx + 1}: "${row.comparator}" requires numeric or date values (e.g., "10,20" or "2024-01-01,2024-12-31").`;
           toast('If Condition: Invalid Range', msg);
@@ -323,6 +324,15 @@ async function executeFilterNode(nodeConfig: NodeConfig, context: ExecutionConte
         const [a, b] = parsePairValues(rv);
         if (a == null || b == null || String(a).length === 0 || String(b).length === 0) {
           const msg = `Row ${rowNo}: "${comparator}" expects two values (e.g., "min,max").`;
+          showErrorToast('Filter: Invalid Range', msg);
+          return { success: false, error: msg };
+        }
+        // Accept either numeric or date ranges
+        const sampleLeft = resolveValue(String(rows[idx].left ?? ''), context);
+        const numericOk = !Number.isNaN(Number(a)) && !Number.isNaN(Number(b)) && !Number.isNaN(Number(sampleLeft));
+        const dateOk = !Number.isNaN(toTimestamp(a)) && !Number.isNaN(toTimestamp(b)) && !Number.isNaN(toTimestamp(sampleLeft));
+        if (!numericOk && !dateOk) {
+          const msg = `Row ${rowNo}: "${comparator}" requires numeric or date values (e.g., "10,20" or "2024-01-01,2024-12-31").`;
           showErrorToast('Filter: Invalid Range', msg);
           return { success: false, error: msg };
         }

@@ -7,14 +7,16 @@ import { ConditionComparator, ConditionJoiner, ConditionRow, ConditionValueKind 
 import { OP_OPTIONS, OpKind, orderByPreferredGroup, usesRightOperand } from '../../constants';
 
 const ISO_DATE_TEXT_RX = /^\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(:\d{2})?(?:\.\d+)?Z?)?$/;
+const TIME_TEXT_RX = /^\d{1,2}:\d{2}(?::\d{2})?$/; // HH:mm[:ss]
 // Infer kind from left value (heuristic at config-time; runtime does precise inference)
 function inferKindFromLeftText(raw: string): ConditionValueKind {
   if (!raw || typeof raw !== 'string') return 'string';
-  const s = raw.trim();
+  const s = raw.trim().replace(/:{2,}/g, ':');
   if (s.startsWith('[') && s.endsWith(']')) return 'array';
   if (s.startsWith('{') && s.endsWith('}')) return 'object';
   if (/^(true|false)$/i.test(s)) return 'boolean';
   if (!isNaN(Number(s)) && s !== '') return 'number';
+  if (TIME_TEXT_RX.test(s)) return 'time' as any;
   if (ISO_DATE_TEXT_RX.test(s)) return 'date';
   return 'string';
 }
@@ -83,6 +85,7 @@ const ConditionNodeConfig: React.FC<ConditionNodeConfigProps> = ({
             kind === 'number' ? 'Number' :
             kind === 'boolean' ? 'Boolean' :
             kind === 'date' ? 'Date' :
+            (kind as any) === 'time' ? 'Time' :
             kind === 'array' ? 'Array' :
             kind === 'object' ? 'Object' : 'String';
 
@@ -140,7 +143,16 @@ const ConditionNodeConfig: React.FC<ConditionNodeConfigProps> = ({
                   <div style={{ marginTop: 8, width: '85%', marginLeft: 'auto'}}>
                     <VariablePickerTextBox
                       value={row.right ?? ''}
-                      placeholder="value 2"
+                      placeholder={(() => {
+                        if (row.comparator === 'is between') {
+                          if (preferredGroup === 'Number') return 'min,max  (e.g., 10,20) or an array like {{ [10,20] }}';
+                          if (preferredGroup === 'Date') return 'start,end  (e.g., 2024-01-01,2024-12-31) or {{ [$.start, $.end] }}';
+                          if (preferredGroup === 'Time') return 'start,end  (e.g., 09:00,17:00) or {{ [\'09:00\', \'17:00\'] }}';
+                          return 'min,max (comma-separated)';
+                        }
+                        if (row.comparator === 'has key' || row.comparator === 'has property') return 'key/property name';
+                        return 'value 2';
+                      })()}
                       onChange={(val) => updateRow(i, { right: val })}
                       cssClass="config-input"
                       variableGroups={variableGroups}

@@ -161,6 +161,15 @@ export const DATE_COMPARATORS: ConditionComparator[] = [
   'is between', 'is not between',
 ];
 
+// Time uses the same comparator values as Date
+export const TIME_COMPARATORS: ConditionComparator[] = [
+  'exists', 'does not exist',
+  'is equal to', 'is not equal to',
+  'before', 'after',
+  'on or before', 'on or after',
+  'is between', 'is not between',
+];
+
 export const ARRAY_COMPARATORS: ConditionComparator[] = [
   'exists', 'does not exist',
   'is empty', 'is not empty',
@@ -179,6 +188,7 @@ export function getComparatorsFor(kind: ConditionValueKind): ConditionComparator
     case 'number': return NUMBER_COMPARATORS;
     case 'boolean': return BOOLEAN_COMPARATORS;
     case 'date': return DATE_COMPARATORS;
+    case 'time': return TIME_COMPARATORS;
     case 'array': return ARRAY_COMPARATORS;
     case 'object': return OBJECT_COMPARATORS;
     default: return STRING_COMPARATORS;
@@ -186,7 +196,7 @@ export function getComparatorsFor(kind: ConditionValueKind): ConditionComparator
 }
 
 // ---- UI data for grouped DropDownList (kept compact "most used" ops)
-export type OpKind = 'String' | 'Number' | 'Boolean' | 'Date' | 'Array' | 'Object';
+export type OpKind = 'String' | 'Number' | 'Boolean' | 'Date' | 'Time' | 'Array' | 'Object';
 
 export interface OpOption {
   group: OpKind;                 // group header
@@ -225,7 +235,16 @@ export const OP_OPTIONS: OpOption[] = [
   { group: 'Date', text: 'does not exist', value: 'does not exist' },
   { group: 'Date', text: 'before', value: 'before' },
   { group: 'Date', text: 'after', value: 'after' },
+  { group: 'Date', text: 'on or before', value: 'on or before' },
+  { group: 'Date', text: 'on or after', value: 'on or after' },
   { group: 'Date', text: 'is between', value: 'is between' },
+
+  // Time (uses the same comparator values as Date; parsed as today HH:mm[:ss])
+  { group: 'Time', text: 'before', value: 'before' },
+  { group: 'Time', text: 'after', value: 'after' },
+  { group: 'Time', text: 'on or before', value: 'on or before' },
+  { group: 'Time', text: 'on or after', value: 'on or after' },
+  { group: 'Time', text: 'is between', value: 'is between' },
 
   // Array
   { group: 'Array', text: 'exists', value: 'exists' },
