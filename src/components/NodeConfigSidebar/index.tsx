@@ -517,8 +517,9 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
               <div className="config-row" style={{ alignItems: 'center', gap: 8 }}>
                 <label className="config-label">Template Variables</label>
                 <TooltipComponent
-                  content={
-                    'Add key–value pairs where the key exactly matches your EmailJS template placeholder (e.g., {{name}}, {{user_email}}). ' +
+                    content={
+                    'Add key–value pairs where the key exactly matches your EmailJS template variable name (e.g., name, user_email). ' +
+                    'Do not include curly braces {{ }} when entering variables. ' +
                     'See EmailJS docs for more info.'
                   }
                 >
