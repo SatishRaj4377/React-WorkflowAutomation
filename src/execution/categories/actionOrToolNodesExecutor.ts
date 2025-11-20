@@ -215,7 +215,15 @@ async function executeWordNode(nodeConfig: NodeConfig, context: ExecutionContext
           pieces.push(text);
         }
         const fullText = pieces.join('\n').trim();
-        return { success: true, data: { fileName, source: fileSource, operation: 'Read', text: fullText, length: fullText.length } };
+        const out: NodeExecutionResult = { success: true, data: { fileName, source: fileSource, operation: 'Read', text: fullText, length: fullText.length } };
+        try {
+          const raw = String((nodeConfig.settings as any)?.general?.chatResponse ?? '').trim();
+          const inputResolvedValue = raw ? resolveTemplate(raw, { context }) : '';
+          if (typeof window !== 'undefined' && inputResolvedValue) {
+            window.dispatchEvent(new CustomEvent('wf:chat:assistant-response', { detail: { text: inputResolvedValue, triggeredFrom:'Word Node' } }));
+          }
+        } catch {}
+        return out;
       }
 
       case 'Write': {
@@ -259,7 +267,7 @@ async function executeWordNode(nodeConfig: NodeConfig, context: ExecutionContext
           showErrorToast('Word: DOCX export failed', e?.message || 'Could not generate file');
         }
 
-        return {
+        const out: NodeExecutionResult = {
           success: true,
           data: {
             operation: 'Write',
@@ -269,6 +277,14 @@ async function executeWordNode(nodeConfig: NodeConfig, context: ExecutionContext
             downloaded,
           },
         };
+        try {
+          const raw = String((nodeConfig.settings as any)?.general?.chatResponse ?? '').trim();
+          const inputResolvedValue = raw ? resolveTemplate(raw, { context }) : '';
+          if (typeof window !== 'undefined' && inputResolvedValue) {
+            window.dispatchEvent(new CustomEvent('wf:chat:assistant-response', { detail: { text: inputResolvedValue, triggeredFrom:'Word Node' } }));
+          }
+        } catch {}
+        return out;
       }
 
       case 'Update (Mapper)': {
@@ -312,10 +328,18 @@ async function executeWordNode(nodeConfig: NodeConfig, context: ExecutionContext
           const out: Blob = doc.getZip().generate({ type: 'blob' });
           const outName = (fileName || 'Document').replace(/\.(docx?|DOCX?)$/, '').concat('-updated.docx');
           downloadBlob(out, outName);
-          return {
+          const res: NodeExecutionResult = {
             success: true,
             data: { operation: 'Update', placeholders: Object.keys(dataMap), downloadedFile: outName },
           };
+          try {
+            const raw = String((nodeConfig.settings as any)?.general?.chatResponse ?? '').trim();
+            const inputResolvedValue = raw ? resolveTemplate(raw, { context }) : '';
+            if (typeof window !== 'undefined' && inputResolvedValue) {
+              window.dispatchEvent(new CustomEvent('wf:chat:assistant-response', { detail: { text: inputResolvedValue, triggeredFrom:'Word Node' } }));
+            }
+          } catch {}
+          return res;
         } catch (e: any) {
           // Surface meaningful docxtemplater MultiError details when available
           const details = Array.isArray(e?.errors)

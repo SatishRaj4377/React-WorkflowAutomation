@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import ReactDOMServer from 'react-dom/server';
 import { createPortal } from 'react-dom';
-import { Draggable } from '@syncfusion/ej2-base';
+import { Draggable, getRandomId } from '@syncfusion/ej2-base';
 import { AIAssistViewComponent  } from '@syncfusion/ej2-react-interactive-chat';
 import { ensurePortalRoot } from '../../helper/variablePickerUtils';
 import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
@@ -75,10 +75,15 @@ export const ChatPopup: React.FC<ChatPopupProps> = ({
   // Update the response in the chat received from AI
   useEffect(() => {
     const onAssistantReply = (e: Event) => {
-      const ce = e as CustomEvent<{ text?: string }>;
+      const ce = e as CustomEvent<{ text?: string, triggeredFrom?: string}>;
       const reply = (ce.detail?.text || '').trim();
+      const triggeredFrom = (ce.detail?.triggeredFrom || '').trim();
       if (!reply) return;
-      aiViewRef.current?.addPromptResponse?.(reply);
+      if (triggeredFrom){
+        aiViewRef.current?.addPromptResponse({prompt: `${triggeredFrom}${getRandomId()}`, response: reply }); 
+      }else{
+        aiViewRef.current?.addPromptResponse(reply); 
+      }
     };
     window.addEventListener('wf:chat:assistant-response', onAssistantReply as EventListener);
     return () => window.removeEventListener('wf:chat:assistant-response', onAssistantReply as EventListener);

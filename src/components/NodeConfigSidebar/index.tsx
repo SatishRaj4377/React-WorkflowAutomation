@@ -653,6 +653,26 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
           </>
         );
 
+        case 'Stop': {
+          return (
+            <div className="config-section">
+              <div className="config-row" style={{ alignItems: 'center', gap: 8 }}>
+                <label className="config-label">Send message to chat (optional)</label>
+                <TooltipComponent content="Returns the specified value as the chat response, if chat trigger is attached.">
+                  <span className="e-icons e-circle-info help-icon"></span>
+                </TooltipComponent>
+              </div>        <VariablePickerTextBox
+              value={settings.chatResponse ?? ''}
+              onChange={(val) => handleConfigChange('chatResponse', val)}
+              placeholder="Type a message or use variables"
+              cssClass="config-input"
+              variableGroups={availableVariables}
+              variablesLoading={variablesLoading}
+            />
+          </div>
+          );
+        }
+
         case 'If Condition': {
           const conditions = (settings.conditions ?? [
             { left: '', comparator: 'is equal to', right: '' },

@@ -30,17 +30,17 @@ export async function executeConditionCategory(
     case 'Loop':
       return executeLoopNode(_node, nodeConfig, context);
     case 'Stop':
-      return executeStopNode();
+      return executeStopNode(nodeConfig, context);
     default:
       return { success: false, error: `Unsupported condition node type: ${nodeConfig.nodeType}` };
   }
 }
 
 // ---------------- Do Nothing / Stop ----------------
-function executeStopNode(): NodeExecutionResult {
+function executeStopNode(nodeConfig?: NodeConfig, context?: ExecutionContext): NodeExecutionResult {
   // Mark success and signal the designer via output. Since Stop node has no outgoing ports,
   // the branch ends naturally. If needed later, the engine can watch this flag to abort all branches.
-  return {
+  const res: NodeExecutionResult = {
     success: true,
     data: {
       stopped: true,
@@ -48,6 +48,14 @@ function executeStopNode(): NodeExecutionResult {
       at: new Date().toISOString(),
     },
   };
+  try {
+    const raw = String((nodeConfig as any)?.settings?.general?.chatResponse ?? '').trim();
+    const inputResolvedValue = raw ? resolveTemplate(raw, { context: context as ExecutionContext }) : '';
+    if (typeof window !== 'undefined' && inputResolvedValue) {
+      window.dispatchEvent(new CustomEvent('wf:chat:assistant-response', { detail: { text: inputResolvedValue, triggeredFrom:'Stop Node' } }));
+    }
+  } catch {}
+  return res;
 }
 
 // ---------------- If Condition ----------------
