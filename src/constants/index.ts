@@ -43,8 +43,14 @@ export const TEMPLATE_PROJECTS: TemplateProjectConfig[] = [
     {
         id: 'offer-letter-generator',
         title: 'Automated Offer Letter Generator Workflow',
-        description: 'Template for generating offer letters.',
+        description: 'Template for preparing and delivering professional offer letters.',
         image: templateImages.OfferLetterGeneratorImage,
+    },
+    {
+        id: 'patient-appointment',
+        title: 'Patient Appointment Automation Workflow',
+        description: 'Template for managing patient appointment bookings.',
+        image: templateImages.PatientAppointmentImage,
     },
     {
         id: 'hr-policy-assistant',
