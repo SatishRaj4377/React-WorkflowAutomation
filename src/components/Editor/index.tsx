@@ -95,6 +95,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const [selectedNode, setSelectedNode] = useState<NodeConfig | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
   const [isChatOpen, setChatOpen] = useState(false);
+  const [chatPromptSuggestions, setChatPromptSuggestions] = useState<string[]>([]);
   const [executionContext, setExecutionContext] = useState<ExecutionContext>({ results: {}, variables: {} });
   const [waitingTrigger, setWaitingTrigger] = useState<{ active: boolean; type?: string }>({ active: false });
 
@@ -220,6 +221,14 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         setIsDirty(true);
       }
     }
+
+    // If this is the Chat node, immediately reflect its prompt suggestions in the popup
+    try {
+      if (config?.nodeType === 'Chat') {
+        const s = (config as any)?.settings?.general?.promptSuggestions;
+        setChatPromptSuggestions(Array.isArray(s) ? s : []);
+      }
+    } catch {}
   };
 
   const handleUserhandleAddNodeClick = (node: NodeModel, portId: string) => {
@@ -630,6 +639,31 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     }
   }, [selectedNodeId, diagramRef]);
 
+  // Helper: extract prompt suggestions from the Chat trigger node (if present)
+  const extractChatSuggestions = useCallback((): string[] => {
+    try {
+      if (!diagramRef) return [];
+      const nodes: any[] = Array.isArray(diagramRef.nodes) ? diagramRef.nodes : [];
+      for (const n of nodes) {
+        try {
+          const cfg = getNodeConfig(n);
+          if (cfg?.nodeType === 'Chat') {
+            const arr = (cfg as any)?.settings?.general?.promptSuggestions;
+            return Array.isArray(arr) ? arr : [];
+          }
+        } catch {}
+      }
+    } catch {}
+    return [];
+  }, [diagramRef]);
+
+  // Sync chat suggestions whenever diagram ref becomes available/changes
+  useEffect(() => {
+    setChatPromptSuggestions(extractChatSuggestions());
+  }, [extractChatSuggestions]);
+
+
+
   // Initialize workflow execution service when diagram ref changes
   useEffect(() => {
     if (diagramRef) {
@@ -912,7 +946,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         <ChatPopup 
           open={isChatOpen} 
           onClose={() => setChatOpen(false)} 
-          promptSuggestions={selectedNode?.settings?.general?.promptSuggestions}
+          promptSuggestions={chatPromptSuggestions}
         />
 
         {/* Form Popup - opened by executor during Form trigger */}
