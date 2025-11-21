@@ -21,6 +21,7 @@ import { WorkflowExecutionService } from '../../execution/WorkflowExecutionServi
 import { ChatPopup } from '../ChatPopup';
 import { MessageComponent } from '@syncfusion/ej2-react-notifications';
 import { refreshNodeTemplate, setGlobalNodeToolbarHandler } from '../../helper/utilities/nodeTemplateUtils';
+import { createSpinner, showSpinner, hideSpinner } from '@syncfusion/ej2-popups';
 
 interface EditorProps {
   project: ProjectData;
@@ -88,6 +89,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const workflowExecutionRef = useRef<WorkflowExecutionService | null>(null);
   const chatPendingMessageRef = useRef<{ text: string; at: string } | null>(null);
   const assistantRespondedRef = useRef<boolean>(false);
+  const editorContainerRef = useRef<HTMLDivElement | null>(null);
 
   const [nodePaletteSidebarOpen, setNodePaletteSidebarOpen] = useState(false);
   const [nodeConfigPanelOpen, setNodeConfigPanelOpen] = useState(false);
@@ -130,6 +132,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const blocker = useBlocker(React.useCallback(() => isDirty, [isDirty]));
 
   const handleSave = useCallback(async () => {
+    if (editorContainerRef.current) showSpinner(editorContainerRef.current);
     try {
       if (diagramRef) {
         // Reset execution states before saving to ensure clean thumbnail
@@ -161,6 +164,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     } catch (error) {
       console.error('Failed to save workflow:', error);
       showErrorToast('Save Failed', 'There was an error saving your workflow.');
+    } finally {
+      if (editorContainerRef.current) hideSpinner(editorContainerRef.current);
     }
   }, [diagramRef, project, projectName, diagramSettings, onSaveProject]);
 
@@ -731,6 +736,20 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     };
   }, [diagramRef]);
 
+  // Initialize EJ2 spinner on the editor container once
+  useEffect(() => {
+    if (editorContainerRef.current) {
+      try {
+        createSpinner({ target: editorContainerRef.current, cssClass: 'e-spin-overlay editor-save-spinner' });
+      } catch {}
+    }
+    return () => {
+      try {
+        if (editorContainerRef.current) hideSpinner(editorContainerRef.current);
+      } catch {}
+    };
+  }, []);
+
   const handleExport = () => {
     if (diagramRef) {
       const diagramString = diagramRef.saveDiagram();
@@ -911,7 +930,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   }, []);
 
   return (
-    <div className="editor-container" data-theme={theme}>
+    <div className="editor-container" data-theme={theme} ref={editorContainerRef}>
       {/* Header */}
       <EditorHeader
         projectName={projectName}

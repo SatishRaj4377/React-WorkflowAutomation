@@ -365,3 +365,22 @@ kbd {
   text-align: center;
   font-weight: 900;
 }
+
+/* Spinner Styles */
+.editor-container .e-spinner-pane.editor-save-spinner {
+  background: rgba(173, 216, 230, 0.35); /* light blue with transparency */
+  z-index: 2000; /* above toolbar */
+  pointer-events: all;
+  opacity: 0;
+  animation: fadeIn .5s ease forwards;
+}
+.editor-container .e-spinner-pane.editor-save-spinner .e-spinner-inner {
+  transform: scale(1.6);
+}
+.editor-container .e-spinner-pane .e-spinner-inner .e-spin-tailwind3 .e-path-circle {
+  stroke: var(--center-action-icon);
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
