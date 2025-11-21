@@ -381,7 +381,15 @@ async function executeNotifyNode(nodeConfig: NodeConfig, context: ExecutionConte
   const { playNotificationSound } = await import('../../helper/soundUtils');
   playNotificationSound(rawType);
 
-  return { success: true, data: { shown: true, title, content, type: rawType, variant: 'notification' } };
+  const out: NodeExecutionResult = { success: true, data: { shown: true, title, content, type: rawType, variant: 'notification' } };
+  try {
+    const raw = String((nodeConfig.settings as any)?.general?.chatResponse ?? '').trim();
+    const inputResolvedValue = raw ? resolveTemplate(raw, { context }) : '';
+    if (typeof window !== 'undefined' && inputResolvedValue) {
+      window.dispatchEvent(new CustomEvent('wf:chat:assistant-response', { detail: { text: inputResolvedValue, triggeredFrom:'Notify Node' } }));
+    }
+  } catch {}
+  return out;
 }
 
 // ---------------- Excel ----------------

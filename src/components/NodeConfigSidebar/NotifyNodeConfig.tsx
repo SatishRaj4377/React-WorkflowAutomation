@@ -1,6 +1,7 @@
 import React from 'react';
 import { DropDownListComponent } from '@syncfusion/ej2-react-dropdowns';
 import { VariablePickerTextBox } from './VariablePickerTextBox';
+import { TooltipComponent } from '@syncfusion/ej2-react-popups';
 import './NodeConfigSidebar.css';
 
 type Props = {
@@ -48,6 +49,23 @@ const NotifyNodeConfig: React.FC<Props> = ({ settings, onPatch, variableGroups, 
           placeholder="Type a message..."
           cssClass="config-textarea"
           multiline
+          variableGroups={variableGroups}
+          variablesLoading={variablesLoading}
+        />
+      </div>
+
+      <div className="config-section">
+        <div className="config-row" style={{ alignItems: 'center', gap: 8 }}>
+          <label className="config-label">Send message to chat (optional)</label>
+          <TooltipComponent content="Returns the specified value as the chat response, if chat trigger is attached.">
+            <span className="e-icons e-circle-info help-icon"></span>
+          </TooltipComponent>
+        </div>
+        <VariablePickerTextBox
+          value={settings.chatResponse ?? ''}
+          onChange={(val) => onPatch({ chatResponse: val })}
+          placeholder="Type a message or use variables"
+          cssClass="config-input"
           variableGroups={variableGroups}
           variablesLoading={variablesLoading}
         />
