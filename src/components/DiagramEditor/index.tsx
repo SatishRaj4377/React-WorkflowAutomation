@@ -674,7 +674,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       horizontalAlignment: 'Stretch',
       verticalAlignment: 'Stretch',
       template: diagramRef.current 
-          ? getStickyNoteTemplate(diagramRef.current, stickyNode.id as string)
+          ? getStickyNoteTemplate(diagramRef.current, stickyNode)
           : '<div>Loading sticky note...</div>'
     }]
 

@@ -1,27 +1,55 @@
-import { DiagramComponent } from "@syncfusion/ej2-react-diagrams";
+import { DiagramComponent, NodeModel } from "@syncfusion/ej2-react-diagrams";
 
 // Get sticky note template
-export const getStickyNoteTemplate = (diagram: DiagramComponent, nodeId: string): string => {
-  // Get stored markdown content from node data
-  const node = diagram?.nodes?.find(n => n.id === nodeId);
-  const storedMarkdown = (node?.addInfo as any)?.markdown || 'Double-click to edit\n\nYou can use **bold**, *italic*, `code`, and\n# Headers\n- Lists';
+
+export const getStickyNoteTemplate = (
+  diagram: DiagramComponent,
+  node: NodeModel
+): HTMLElement => {
+  const nodeId = node.id;
+
+  const storedMarkdown =
+    (node?.addInfo as any)?.markdown ||
+    'Double-click to edit\n\nYou can use **bold**, *italic*, `code`, and\n# Headers\n- Lists';
+
   const markdownHtml = convertMarkdownToHtml(storedMarkdown);
 
-  return `
-    <div class="sticky-note-container" data-node-id="${nodeId}">
-        <button class="sticky-note-delete-btn e-icons e-trash" id="delete-${nodeId}" title="Delete sticky note"></button>
-        <div class="sticky-note-content">
-        <div class="markdown-preview" id="preview-${nodeId}" style="display: block;">
-            ${markdownHtml}
-        </div>
-        <textarea class="markdown-editor" 
-            id="editor-${nodeId}" 
-            style="display: none;"
-            placeholder="Type your markdown here..."
-        />
-        </div>
-    </div>
-    `;
+  // Build the DOM programmatically
+  const container = document.createElement('div');
+  container.className = 'sticky-note-container';
+  container.setAttribute('data-node-id', node.id as any);
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.className = 'sticky-note-delete-btn e-icons e-trash';
+  deleteBtn.id = `delete-${nodeId}`;
+  deleteBtn.title = 'Delete sticky note';
+
+  const content = document.createElement('div');
+  content.className = 'sticky-note-content';
+
+  const preview = document.createElement('div');
+  preview.className = 'markdown-preview';
+  preview.id = `preview-${nodeId}`;
+  preview.style.display = 'block';
+  // Preserve spaces & line breaks and still wrap
+  preview.style.whiteSpace = 'pre-wrap';
+  preview.style.wordWrap = 'break-word';
+
+  // Inject the converted HTML
+  preview.innerHTML = markdownHtml;
+
+  const editor = document.createElement('textarea');
+  editor.className = 'markdown-editor';
+  editor.id = `editor-${nodeId}`;
+  editor.style.display = 'none';
+  editor.placeholder = 'Type your markdown here...';
+
+  content.appendChild(preview);
+  content.appendChild(editor);
+  container.appendChild(deleteBtn);
+  container.appendChild(content);
+
+  return container;
 };
 
 // Simple markdown to HTML converter for sticky node
