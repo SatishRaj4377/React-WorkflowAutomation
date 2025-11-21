@@ -154,6 +154,12 @@
     color: var(--text-secondary);
     margin: 0 1rem 0 0;
     text-wrap-mode: wrap;
+    cursor: pointer;
+}
+.chat-popup-body .e-aiassistview .e-suggestions li:hover {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: var(--surface-color);
 }
 
 /* update the html tags formatting */
