@@ -4,7 +4,7 @@ import { useBlocker } from 'react-router';
 import { DiagramTools, NodeConstraints, NodeModel, PortConstraints, ConnectorModel } from '@syncfusion/ej2-react-diagrams';
 import EditorHeader from '../Header/EditorHeader';
 import DiagramEditor from '../DiagramEditor';
-import FormPreviewPopup, { PreviewFormField } from '../FormPopup';
+import FormPreviewPopup, { FormField } from '../FormPopup';
 import Toolbar from '../Toolbar';
 import Toast, { showSuccessToast, showErrorToast } from '../Toast';
 import NodePaletteSidebar from '../NodePaletteSidebar';
@@ -33,11 +33,11 @@ const FormPortalHost: React.FC = () => {
   const [open, setOpen] = React.useState(false);
   const [title, setTitle] = React.useState('');
   const [description, setDescription] = React.useState<string | undefined>('');
-  const [fields, setFields] = React.useState<PreviewFormField[]>([]);
+  const [fields, setFields] = React.useState<FormField[]>([]);
 
   React.useEffect(() => {
     const onOpen = (e: Event) => {
-      const ce = e as CustomEvent<{ title?: string; description?: string; fields?: PreviewFormField[] }>;
+      const ce = e as CustomEvent<{ title?: string; description?: string; fields?: FormField[] }>;
       setTitle(ce.detail?.title || 'Form');
       setDescription(ce.detail?.description || '');
       setFields(Array.isArray(ce.detail?.fields) ? ce.detail!.fields! : []);
@@ -61,7 +61,7 @@ const FormPortalHost: React.FC = () => {
     window.dispatchEvent(new CustomEvent('wf:form:cancel'));
   };
 
-  const handleSubmit = (payload: { values: string[]; fields: PreviewFormField[] }) => {
+  const handleSubmit = (payload: { values: string[]; fields: FormField[] }) => {
     window.dispatchEvent(
       new CustomEvent('wf:form:submitted', {
         detail: { values: payload.values, at: new Date().toISOString() }

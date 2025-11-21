@@ -35,6 +35,7 @@ import FormSubmissionPriorityImage from '../assets/images/template-images/user-f
 import HRPolicyAssistantImage from '../assets/images/template-images/hr-policy-assistant.png';
 import OfferLetterGeneratorImage from '../assets/images/template-images/offer-letter-generator.png';
 import PatientAppointmentImage from '../assets/images/template-images/patient-appointment.png';
+import WikipediaArticleSummarizerImage from '../assets/images/template-images/wikipedia-article-summarizer.png';
 
 import {ReactComponent as WorkflowLogo} from '../assets/images/svg-icons/workflow-logo.svg';
 import {ReactComponent as WorkflowFolder} from '../assets/images/svg-icons/workflow-folder.svg';
@@ -89,4 +90,5 @@ export const templateImages = {
   FormSubmissionPriorityImage,
   OfferLetterGeneratorImage,
   PatientAppointmentImage,
+  WikipediaArticleSummarizerImage
 };

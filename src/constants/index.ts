@@ -53,6 +53,12 @@ export const TEMPLATE_PROJECTS: TemplateProjectConfig[] = [
         image: templateImages.PatientAppointmentImage,
     },
     {
+        id: 'wikipedia-article-summarizer',
+        title: 'Wikipedia Article Summarizer & Report Generator',
+        description: 'Template for fetching Wikipedia article summaries and generating a Word report.',
+        image: templateImages.WikipediaArticleSummarizerImage,
+    },
+    {
         id: 'hr-policy-assistant',
         title: 'Real-Time HR Policy Assistant via Chat',
         description: 'Template for real-time HR policy assistant via chat.',

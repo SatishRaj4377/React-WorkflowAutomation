@@ -215,6 +215,11 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
 
         return (
           <>
+            <div className="config-section" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
+              <ButtonComponent cssClass="e-flat flat-btn" iconCss="e-icons e-eye" onClick={onPreview}>Show Form Preview</ButtonComponent>
+              {formPreviewError && <div style={{ color: 'var(--danger-color)' }}>{formPreviewError}</div>}
+            </div>
+
             <FormNodeConfig
               title={settings.formTitle ?? ''}
               description={settings.formDescription ?? ''}
@@ -222,11 +227,6 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
               onChange={(next) => handleConfigChange('formFields', next)}
               onMetaChange={(patch) => handleConfigChange(patch)}
             />
-
-            <div className="config-section" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
-              <ButtonComponent cssClass="e-flat" iconCss="e-icons e-eye" onClick={onPreview}>Preview</ButtonComponent>
-              {formPreviewError && <div style={{ color: 'var(--danger-color)' }}>{formPreviewError}</div>}
-            </div>
 
             <FormPopup
               open={formPreviewOpen}

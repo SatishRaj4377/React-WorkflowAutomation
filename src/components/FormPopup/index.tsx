@@ -6,7 +6,7 @@ import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
 import { DatePickerComponent, TimePickerComponent } from '@syncfusion/ej2-react-calendars';
 import './FormPopup.css';
 
-export type PreviewFormField = {
+export type FormField = {
   label: string;
   type:
     | 'text'
@@ -27,8 +27,8 @@ interface FormPopupProps {
   onClose: () => void;
   title: string;
   description?: string;
-  fields: PreviewFormField[];
-  onSubmit?: (payload: { values: string[]; fields: PreviewFormField[] }) => void;
+  fields: FormField[];
+  onSubmit?: (payload: { values: string[]; fields: FormField[] }) => void;
   showPreviewBadge?: boolean; // text is generic ("Form")
 }
 
@@ -135,7 +135,7 @@ const FormPopup: React.FC<FormPopupProps> = ({
     if (val && errors[idx]) setFieldError(idx, '');
   };
 
-  const renderField = (f: PreviewFormField, idx: number) => {
+  const renderField = (f: FormField, idx: number) => {
     const id = `form-field-${idx}`;
     const name = `field_${f.type}_${idx}`; // kept for consistency; not required for custom validation
 
