@@ -65,6 +65,12 @@ export const TEMPLATE_PROJECTS: TemplateProjectConfig[] = [
         image: templateImages.IssueSubmissionImage,
     },
     {
+        id: 'worklog-status-check',
+        title: 'Daily Worklog Status Check & Alert System',
+        description: 'Template for tracking worklogs and sending notifications.',
+        image: templateImages.WorklogTrackerImage,
+    },
+    {
         id: 'hr-policy-assistant',
         title: 'Real-Time HR Policy Assistant via Chat',
         description: 'Template for real-time HR policy assistant via chat.',
@@ -75,12 +81,6 @@ export const TEMPLATE_PROJECTS: TemplateProjectConfig[] = [
         title: 'Use Case Generator for Product Strategy',
         description: 'Template for generating use cases for product strategy',
         image: templateImages.UseCaseGeneratorImage,
-    },
-    {
-        id: 'daily-worklog-tracker',
-        title: 'Daily Worklog Tracker & Reminder',
-        description: 'Template for tracking daily worklogs and sending reminders.',
-        image: templateImages.WorklogTrackerImage,
     },
     {
         id: 'user-form-submission-priority',
