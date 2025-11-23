@@ -23,11 +23,7 @@ import NodeLoader from '../assets/images/svg-icons/node-loader.svg';
 import StopIcon from '../assets/images/svg-icons/stop.svg';
 import BellIcon from '../assets/images/svg-icons/bell.svg';
 
-import ApiIntegrationImage from '../assets/images/template-images/api-integration.jpg';
-import DataProcessingImage from '../assets/images/template-images/data-processing.jpg';
-import DefaultImageImage from '../assets/images/template-images/default-image.jpg';
-import EmailAutomationImage from '../assets/images/template-images/email-automation.jpg';
-import NotificationSystemImage from '../assets/images/template-images/notification-system.jpg';
+import DefaultImage from '../assets/images/template-images/default-image.jpg';
 import GithubTemplateImage from '../assets/images/template-images/auto-notify-github-issues.png';
 import UseCaseGeneratorImage from '../assets/images/template-images/component-usecase-generator.png';
 import WorklogTrackerImage from '../assets/images/template-images/daily-worklog-tracker.png';
@@ -36,6 +32,7 @@ import HRPolicyAssistantImage from '../assets/images/template-images/hr-policy-a
 import OfferLetterGeneratorImage from '../assets/images/template-images/offer-letter-generator.png';
 import PatientAppointmentImage from '../assets/images/template-images/patient-appointment.png';
 import WikipediaArticleSummarizerImage from '../assets/images/template-images/wikipedia-article-summarizer.png';
+import IssueSubmissionImage from '../assets/images/template-images/issue-submission.png';
 
 import {ReactComponent as WorkflowLogo} from '../assets/images/svg-icons/workflow-logo.svg';
 import {ReactComponent as WorkflowFolder} from '../assets/images/svg-icons/workflow-folder.svg';
@@ -78,11 +75,7 @@ export const IconRegistry: { [key: string]: string | React.ElementType } = {
 };
 
 export const templateImages = {
-  ApiIntegrationImage,
-  DataProcessingImage,
-  DefaultImageImage,
-  EmailAutomationImage,
-  NotificationSystemImage,
+  DefaultImageImage: DefaultImage,
   HRPolicyAssistantImage,
   GithubTemplateImage,
   UseCaseGeneratorImage,
@@ -90,5 +83,6 @@ export const templateImages = {
   FormSubmissionPriorityImage,
   OfferLetterGeneratorImage,
   PatientAppointmentImage,
-  WikipediaArticleSummarizerImage
+  WikipediaArticleSummarizerImage,
+  IssueSubmissionImage
 };

@@ -59,6 +59,12 @@ export const TEMPLATE_PROJECTS: TemplateProjectConfig[] = [
         image: templateImages.WikipediaArticleSummarizerImage,
     },
     {
+        id: 'issue-submission-priortization',
+        title: 'Issue Submission & Prioritization Workflow',
+        description: 'Template for capturing product issues and handling them based on priority.',
+        image: templateImages.IssueSubmissionImage,
+    },
+    {
         id: 'hr-policy-assistant',
         title: 'Real-Time HR Policy Assistant via Chat',
         description: 'Template for real-time HR policy assistant via chat.',

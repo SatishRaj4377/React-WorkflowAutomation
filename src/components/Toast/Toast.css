@@ -159,7 +159,7 @@
 
 #workflow-toast .toast-notification .toast-notification-text { min-width: 0; }
 #workflow-toast .toast-notification .toast-notification-title { font-weight: 600; margin-bottom: .5rem; }
-#workflow-toast .toast-notification .toast-notification-content { opacity: .9; }
+#workflow-toast .toast-notification .toast-notification-content { opacity: .9; white-space: pre-line; }
 
 /* Responsive Adjustments */
 @media (max-width: 480px) {

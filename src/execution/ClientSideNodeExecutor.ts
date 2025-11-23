@@ -29,7 +29,7 @@ export class ClientSideNodeExecutor extends BaseNodeExecutor {
 
   private async executeClientSideLogic(node: NodeModel, nodeConfig: NodeConfig, context: ExecutionContext): Promise<NodeExecutionResult> {
     // Add a small delay to simulate processing
-    await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
+    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1500));
 
     switch (nodeConfig.category) {
       case 'trigger':
