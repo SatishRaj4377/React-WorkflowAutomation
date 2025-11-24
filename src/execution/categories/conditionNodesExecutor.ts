@@ -383,7 +383,7 @@ async function executeFilterNode(nodeConfig: NodeConfig, context: ExecutionConte
       if (cumulative) filtered.push(item);
     }
 
-    return { success: true, data: { filtered, count: filtered.length } };
+    return { success: true, data: { filtered, filteredCount: filtered.length } };
   } catch (error: any) {
     return { success: false, error: `Filter execution failed: ${error?.message ?? String(error)}` };
   }
