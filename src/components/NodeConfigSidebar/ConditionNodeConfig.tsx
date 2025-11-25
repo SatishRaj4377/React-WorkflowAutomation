@@ -89,7 +89,6 @@ const ConditionNodeConfig: React.FC<ConditionNodeConfigProps> = ({
             kind === 'array' ? 'Array' :
             kind === 'object' ? 'Object' : 'String';
 
-          // DO NOT use hooks inside map; call pure helper
           const operatorOptions = orderByPreferredGroup(OP_OPTIONS, preferredGroup);
 
           // Show joiner *below current row* only if there is a next row

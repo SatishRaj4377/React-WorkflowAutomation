@@ -29,8 +29,6 @@ interface EditorProps {
   onBackToHome: () => void;
 }
 
-
-
 const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, }) => {
   const { theme } = useTheme();
   const workflowExecutionRef = useRef<WorkflowExecutionService | null>(null);
@@ -47,7 +45,6 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const [chatPromptSuggestions, setChatPromptSuggestions] = useState<string[]>([]);
   const [executionContext, setExecutionContext] = useState<ExecutionContext>({ results: {}, variables: {} });
   const [waitingTrigger, setWaitingTrigger] = useState<{ active: boolean; type?: string }>({ active: false });
-
   const [projectName, setProjectName] = useState(project.name);
   const [diagramRef, setDiagramRef] = useState<any>(null);
   const [isPanActive, setIsPanActive] = useState(false);
@@ -56,7 +53,6 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   const [isUserhandleAddNodeSelectionMode, setUserhandleAddNodeSelectionMode] = useState(false);
   const [selectedPortConnection, setSelectedPortConnection] = useState<{nodeId: string, portId: string} | null>(null);
-  // Connector insertion (+ handle on connector)
   const [isConnectorInsertSelectionMode, setConnectorInsertSelectionMode] = useState(false);
   const [selectedConnectorForInsertion, setSelectedConnectorForInsertion] = useState<ConnectorModel | null>(null);
   const [paletteFilterContext, setPaletteFilterContext] = useState<PaletteFilterContext>({ mode: 'default' });
@@ -575,8 +571,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   useEffect(() => {
     if (selectedNodeId && diagramRef) {
       // Get node from diagram
-      const nodes = diagramRef.nodes;
-      const node = nodes.find((n: any) => n.id === selectedNodeId);
+      const node = diagramRef.getObject(selectedNodeId);
       if (node && node.addInfo && node.addInfo.nodeConfig) {
         setSelectedNode(node.addInfo.nodeConfig);
         setNodePaletteSidebarOpen(false);
@@ -614,20 +609,13 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     setChatPromptSuggestions(extractChatSuggestions());
   }, [extractChatSuggestions]);
 
-
-
   // Initialize workflow execution service when diagram ref changes
   useEffect(() => {
     if (diagramRef) {
       // Provide a global handler so template refreshes from utilities still wire events
       setGlobalNodeToolbarHandler(handleNodeToolbarAction);
 
-      workflowExecutionRef.current = new WorkflowExecutionService(diagramRef, {
-        enableDebug: process.env.NODE_ENV === 'development',
-        timeout: 30000,
-        retryCount: 3,
-        retryDelay: 1000
-      });
+      workflowExecutionRef.current = new WorkflowExecutionService(diagramRef);
       
       // Start listening for updates to execution context
       workflowExecutionRef.current.onExecutionContextUpdate((context) => {
@@ -759,7 +747,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
     }
   };
 
-  // When a navigation is blocked, open your confirmation dialog
+  // When a navigation is blocked, open the confirmation dialog
   useEffect(() => {
     if (blocker.state === 'blocked') {
       // If execution is running, stop it silently before confirming navigation
@@ -914,7 +902,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
           setChatOpen={setChatOpen}
         />
 
-        {/* Chat Component - shown when the user clicks on the chat trigger node */}
+        {/* Chat Component - shown when the user execute the chat trigger node */}
         <ChatPopup 
           open={isChatOpen} 
           onClose={() => setChatOpen(false)} 

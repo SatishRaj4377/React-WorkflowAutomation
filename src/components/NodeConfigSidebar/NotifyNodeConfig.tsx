@@ -5,8 +5,8 @@ import { TooltipComponent } from '@syncfusion/ej2-react-popups';
 import './NodeConfigSidebar.css';
 
 type Props = {
-  settings: any; // selectedNode.settings.general
-  onPatch: (patch: Record<string, any>) => void; // merges into settings.general
+  settings: any;
+  onPatch: (patch: Record<string, any>) => void;
   variableGroups: any[];
   variablesLoading: boolean;
 };

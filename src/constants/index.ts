@@ -69,30 +69,6 @@ export const TEMPLATE_PROJECTS: TemplateProjectConfig[] = [
         title: 'Daily Worklog Status Check & Alert System',
         description: 'Template for tracking worklogs and sending notifications.',
         image: templateImages.WorklogTrackerImage,
-    },
-    {
-        id: 'hr-policy-assistant',
-        title: 'Real-Time HR Policy Assistant via Chat',
-        description: 'Template for real-time HR policy assistant via chat.',
-        image: templateImages.HRPolicyAssistantImage,
-    },
-    {
-        id: 'component-usecase-generator',
-        title: 'Use Case Generator for Product Strategy',
-        description: 'Template for generating use cases for product strategy',
-        image: templateImages.UseCaseGeneratorImage,
-    },
-    {
-        id: 'user-form-submission-priority',
-        title: 'Form Submission → Priority Triage Email',
-        description: 'Template for sending priority emails based on form submissions.',
-        image: templateImages.FormSubmissionPriorityImage,
-    },
-    {
-        id: 'auto-notify-github-issues',
-        title: 'Auto-Notify Team on New GitHub Issues',
-        description: 'Template for notify the team on new GitHub issues created.',
-        image: templateImages.GithubTemplateImage,
     }
 ];
 

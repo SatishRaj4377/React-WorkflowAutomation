@@ -8,7 +8,7 @@ const Toast: React.FC = () => {
   const notificaitonToastRef = useRef<ToastComponent>(null);
 
   useEffect(() => {
-    // Default toast global method (safe against unmounts)
+    // Default toast global method
     (window as any).showDefaultToast = (message: ToastMessage) => {
       const inst = defaultToastRef.current;
       if (!inst) { console.warn('DefaultToast component not available'); return; }
@@ -28,7 +28,7 @@ const Toast: React.FC = () => {
       } catch (e) { console.warn('Failed to show default toast', e); }
     };
 
-    // Modern toast global method (safe against unmounts)
+    // Modern toast global method
     (window as any).showNotificationToast = (message: ToastMessage) => {
       const inst = notificaitonToastRef.current;
       if (!inst) { console.warn('Notification toast component not available'); return; }

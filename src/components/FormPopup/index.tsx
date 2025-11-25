@@ -48,13 +48,12 @@ const FormPopup: React.FC<FormPopupProps> = ({
   const formRef = useRef<HTMLFormElement>(null);
   const popupHeightRef = useRef('0px');
   const dragRef = useRef<Draggable | null>(null);
-
   const [isMinimized, setIsMinimized] = useState(false);
-
-  const initialValues = useMemo(() => fields.map(() => emptyValFor()), [fields]);
-  const [values, setValues] = useState<string[]>(initialValues);
   const [errors, setErrors] = useState<string[]>(fields.map(() => ''));
   const [submitted, setSubmitted] = useState(false);
+  
+  const initialValues = useMemo(() => fields.map(() => emptyValFor()), [fields]);
+  const [values, setValues] = useState<string[]>(initialValues);
 
   // Reset when fields change or popup reopens
   useEffect(() => {

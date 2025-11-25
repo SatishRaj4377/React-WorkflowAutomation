@@ -11,8 +11,8 @@ import './NodeConfigSidebar.css';
 export type WordNodeOperation = 'Write' | 'Read' | 'Update (Mapper)';
 
 type Props = {
-  settings: any; // selectedNode.settings.general
-  onPatch: (patch: Record<string, any>) => void; // merges into settings.general
+  settings: any;
+  onPatch: (patch: Record<string, any>) => void;
   variableGroups: any[];
   variablesLoading: boolean;
 };
@@ -311,6 +311,12 @@ const WordNodeConfig: React.FC<Props> = ({ settings, onPatch, variableGroups, va
             {chosenName}
           </a>
 
+        </div>
+      )}
+
+      {previewError && (
+        <div className="textbox-info" style={{ color: 'var(--danger-color)', marginTop: 8 }}>
+          {previewError}
         </div>
       )}
     </div>

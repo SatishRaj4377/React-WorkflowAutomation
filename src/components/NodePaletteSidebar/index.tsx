@@ -8,7 +8,6 @@ import {
 import { ButtonComponent } from "@syncfusion/ej2-react-buttons";
 import { TextBoxComponent } from "@syncfusion/ej2-react-inputs";
 import type { NodeTemplate, PaletteCategory, PaletteFilterContext } from "../../types";
-
 import { getNodesByPaletteCategory } from "../../constants/nodeRegistry";
 import { IconRegistry } from "../../assets/icons";
 import { getFilteredCategories } from "../../helper/utilities/paletteFilter";

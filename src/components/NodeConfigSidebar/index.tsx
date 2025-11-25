@@ -1,10 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  SidebarComponent,
-  TabComponent,
-  TabItemsDirective,
-  TabItemDirective,
-} from '@syncfusion/ej2-react-navigations';
+import { SidebarComponent, TabComponent, TabItemsDirective, TabItemDirective } from '@syncfusion/ej2-react-navigations';
 import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 import { DropDownListComponent } from '@syncfusion/ej2-react-dropdowns';
 import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
@@ -19,7 +14,6 @@ import { buildJsonFromVariables } from '../../helper/variablePickerUtils';
 import JsonVisualizer from './JsonVisualizer';
 import ValuePeekPanel, { PeekInfo } from './ValuePeekPanel';
 import { AUTH_NODE_TYPES, TIMEZONES } from '../../constants';
-import './NodeConfigSidebar.css';
 import GoogleAuthPanel from './GoogleAuthPanel';
 import { updateSwitchPorts } from '../../helper/utilities/portUtils';
 import GoogleSheetsNodeConfig from './GoogleSheetsNodeConfig';
@@ -32,6 +26,7 @@ import ConditionNodeConfig from './ConditionNodeConfig';
 import FormNodeConfig from './FormNodeConfig';
 import FormPopup from '../FormPopup';
 import NotifyNodeConfig from './NotifyNodeConfig';
+import './NodeConfigSidebar.css';
 
 interface ConfigPanelProps {
   isOpen: boolean;
@@ -81,9 +76,6 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
     return false;
   };
 
-  // no draft syncing; changes are applied immediately
-
-
   // Fetch available variables and node output whenever the selected node or diagram changes.
   useEffect(() => {
     // Define an async function to fetch both available variables and node output
@@ -125,7 +117,7 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
     fetchData();
 
     // Initialize/Sync dynamic ports for Switch Case nodes when opening.
-    // Only update if desired count differs from existing, to avoid height jump on open.
+    // Only update if desired case count differs from existing
     if (selectedNode && diagram && selectedNode.nodeType === 'Switch Case') {
       const general = (selectedNode?.settings?.general as any) ?? {};
       const rules = general?.rules as any[] | undefined;
@@ -141,7 +133,6 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
     }
   }, [selectedNode?.id, diagram, executionContext]);
 
-  /** Safely update settings (apply immediately) */
   const handleConfigChange = (
     fieldOrPatch: string | Record<string, any>,
     value?: any,
@@ -692,7 +683,6 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
       case 'Switch Case': {
         const rules = (settings.rules ?? [{ left: '', comparator: 'is equal to', right: '', name: '' }]) as Array<{ left: string; comparator: string; right: string; name?: string }>;
 
-        // Map Switch rows <-> IfCondition rows (joiner is unused)
         const rows = rules.map(r => ({ left: r.left, comparator: r.comparator, right: r.right, name: r.name ?? '' }));
 
         const onRowsChange = (nextRows: any[]) => {
@@ -703,8 +693,6 @@ const NodeConfigSidebar: React.FC<ConfigPanelProps> = ({
             updateSwitchPorts(diagram as any, selectedNode.id, count);
           }
         };
-
-        // Default port UI is currently disabled; keep logic minimal here.
 
         return (
           <>
