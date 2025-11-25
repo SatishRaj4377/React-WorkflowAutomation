@@ -1,12 +1,12 @@
-import './DiagramEditor.css';
 import React, { useRef, useEffect, useState } from 'react';
-import { DiagramComponent, SnapSettingsModel, OverviewComponent, GridlinesModel, Inject, ConnectorModel, NodeModel, DiagramTools, UndoRedo, DataBinding, DiagramContextMenu, NodeConstraints, Keys, KeyModifiers, CommandManagerModel, UserHandleModel, UserHandleEventsArgs, SelectorConstraints, ConnectorConstraints, Snapping, DiagramConstraints, DiagramModel, Connector, ComplexHierarchicalTree } from '@syncfusion/ej2-react-diagrams';
+import { DiagramComponent, SnapSettingsModel, OverviewComponent, GridlinesModel, Inject, ConnectorModel, NodeModel, DiagramTools, UndoRedo, DataBinding, DiagramContextMenu, NodeConstraints, Keys, KeyModifiers, CommandManagerModel, UserHandleModel, UserHandleEventsArgs, SelectorConstraints, ConnectorConstraints, Snapping, DiagramConstraints, DiagramModel, Connector, ComplexHierarchicalTree, LayoutModel } from '@syncfusion/ej2-react-diagrams';
 import { DiagramSettings, NodeConfig, NodePortDirection, NodeToolbarAction } from '../../types';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
 import { bringConnectorsToFront, convertMarkdownToHtml, getConnectorCornerRadius, getConnectorType, getFirstSelectedNode, getGridColor, getGridType, getNodeConfig, getPortOffset, getPortSide, getSnapConstraints, getStickyNoteTemplate, initializeNodeDimensions, isConnectorBetweenAgentAndTool, isNodeOutOfViewport, isStickyNote, prepareUserHandlePortData, updateNodeConstraints, shouldShowUserHandleForPort } from '../../helper/utilities';
 import { isAgentBottomToToolConnector, computeConnectorLength, adjustUserHandlesForConnectorLength } from '../../helper/utilities/connectorUtils';
 import { DIAGRAM_MENU, NODE_MENU } from '../../constants';
 import { buildNodeHtml, attachNodeTemplateEvents } from '../../helper/utilities/nodeTemplateUtils';
+import './DiagramEditor.css';
 
 interface DiagramEditorProps {
   onAddNode?: () => void;
@@ -16,7 +16,6 @@ interface DiagramEditorProps {
   onDiagramChange?: (args: any) => void;
   onAddStickyNote?: (position: { x: number; y: number }) => void;
   onUserhandleAddNodeClick?: (node: NodeModel, portId: string) => void;
-  // Triggered when user clicks the + handle on a connector to insert a node between its ends
   onConnectorUserhandleAddNodeClick?: (connector: ConnectorModel) => void;
   isUserHandleAddNodeEnabled?: boolean;
   diagramSettings: DiagramSettings;
@@ -24,6 +23,7 @@ interface DiagramEditorProps {
   onInitialAddClick?: () => void;
   onNodeAddedFirstTime?: () => void;
   onCanvasClick?: () => void;
+  onAutoAlignNodes: () => void;
 }
 
 let isStickyNoteEditing = false;
@@ -47,6 +47,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   onInitialAddClick,
   onNodeAddedFirstTime,
   onCanvasClick,
+  onAutoAlignNodes
 }) => {
 
   const diagramRef = useRef<DiagramComponent>(null);
@@ -55,7 +56,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
   const [showOverview, setShowOverview] = useState(false);
   const overviewTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
   const [hasFirstNodeAdded, setHasFirstNodeAdded] = useState(false);
   const [zoomPercentage, setZoomPercentage] = useState<number>(100);
   const [showZoomPercentage, setShowZoomPercentage] = useState<boolean>(false);
@@ -127,7 +127,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     // Apply handles for connector selection (after any filtering)
     (diagramRef.current as any).selectedItems.userHandles = userHandles;
     (diagramRef.current as any).dataBind();
-
   }
 
   // Context Menu Items for the diagram
@@ -140,10 +139,21 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       { id: 'delete', text: 'Delete', iconCss: 'e-icons e-trash' },
       // Diagram menu
       { text: 'Add Node', id: 'addNode', iconCss: 'e-icons e-plus' },
+      { text: 'Auto Align Nodes', id: 'autoAlign', iconCss: 'e-icons e-ai-chat' },
       { text: 'Add Sticky Note', id: 'addSticky', iconCss: 'e-icons e-add-notes' },
       { text: 'Lock Workflow', id: 'lockWorkflow', iconCss: 'e-icons e-lock' },
       { text: 'Select All', id: 'selectAll', iconCss: 'e-icons e-select-all' }
     ]
+  };
+
+  // Layout settings for the diagram
+  const layoutSettings: LayoutModel = { 
+    type: 'ComplexHierarchicalTree',
+    orientation: 'LeftToRight',
+    horizontalAlignment:'Center',
+    verticalAlignment: 'Center',
+    horizontalSpacing: 80,
+    verticalSpacing: 80,
   };
 
   // Grid and Snap Settings based on diagramSettings
@@ -175,6 +185,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       // Position the node with stagger effect
       updateNodePosition(node, diagramRef);
 
+      // Avoid layout positioning for the tools nodes - we wil position it manually
       if (nodeConfig.category === 'tool'){
         node.excludeFromLayout = true;
       }
@@ -396,7 +407,6 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
     }
   };
 
-
   const handleDiagramLoaded = ()=> {
     // Hide the initial plus button
     if (onNodeAddedFirstTime) onNodeAddedFirstTime();
@@ -540,14 +550,9 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       return;
     }
 
-    // Diagram only → show diagram menu (addNode, addSticky, lockWorkflow, selectAll), only those present
+    // Diagram only → show diagram menu only those present
     const presentDiagramMenu = DIAGRAM_MENU.filter((id) => availableIds.includes(id));
     hideAllExcept(presentDiagramMenu);
-  };
-
-  // handle the node toolbar actions (forwarded globally by Editor via setGlobalNodeToolbarHandler)
-  const handleNodeToolbarAction = (_nodeId: string, _action: NodeToolbarAction) => {
-    // No-op locally. Events are handled by the global handler set from Editor.
   };
 
   // handle conext menu click event
@@ -582,6 +587,10 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
       // ----- Diagram items -----
       case 'addNode': {
         if (onAddNode) onAddNode();
+        break;
+      }
+      case 'autoAlign': {
+        if (onAutoAlignNodes) onAutoAlignNodes();
         break;
       }
       case 'addSticky': {
@@ -883,14 +892,7 @@ const DiagramEditor: React.FC<DiagramEditorProps> = ({
         height="100%"
         nodes={[]}
         connectors={[]}
-        layout={{ 
-          type: 'ComplexHierarchicalTree',
-          orientation: 'LeftToRight',
-          horizontalAlignment:'Center',
-          verticalAlignment: 'Center',
-          horizontalSpacing: 80,
-          verticalSpacing: 80,
-        }}
+        layout={layoutSettings}
         getNodeDefaults={getNodeDefaults}
         getConnectorDefaults={getConnectorDefaults}
         elementDraw={removeDisConnectedConnectors}
@@ -997,7 +999,7 @@ function updateNodePosition(obj: NodeModel, diagramRef: React.RefObject<DiagramC
   }
 }
 
-// Sets the node template for nodes
+// Sets the template for nodes
 function updateNodeTemplates(
   setUpStickyNote: (stickyNode: NodeModel) => void, 
   node: NodeModel
@@ -1008,13 +1010,13 @@ function updateNodeTemplates(
     setUpStickyNote(node);
   }
   else {
-    // Set direct HTML template for all other nodes with node-specific content
+    // Set direct HTML template for all other nodes
     node.shape = {
       type: 'HTML',
       content: buildNodeHtml(node)
     };
 
-    // After DOM mounts, wire toolbar actions (uses global handler)
+    // After DOM mounts, wire toolbar actions
     setTimeout(() => attachNodeTemplateEvents(node), 0);
   }
 }

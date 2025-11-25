@@ -1009,6 +1009,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
               setNodePaletteSidebarOpen(true);
             }}
             onNodeAddedFirstTime={() => setShowInitialAddButton(false)}
+            onAutoAlignNodes={handleAutoAlign}
             onCanvasClick={() => {
               setUserhandleAddNodeSelectionMode(false)
               resetConnectorInsertMode();

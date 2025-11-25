@@ -72,7 +72,7 @@ export const ChatPopup: React.FC<ChatPopupProps> = ({
     };
   }, [open]);
 
-  // Update the response in the chat received from AI
+  // Update the response in the chat received from execution
   useEffect(() => {
     const onAssistantReply = (e: Event) => {
       const ce = e as CustomEvent<{ text?: string, triggeredFrom?: string}>;

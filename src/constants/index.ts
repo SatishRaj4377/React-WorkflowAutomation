@@ -3,7 +3,7 @@ import { templateImages } from "../assets/icons";
 import { ConditionComparator, ConditionValueKind, NodeType, TemplateProjectConfig } from "../types";
 
 export const NODE_MENU = ['editNode', 'delete'];
-export const DIAGRAM_MENU = ['addNode', 'addSticky', 'lockWorkflow', 'selectAll'];
+export const DIAGRAM_MENU = ['addNode', 'addSticky', 'lockWorkflow', 'selectAll', 'autoAlign'];
 
 export const GRID_STYLE_OPTIONS = [
     { text: 'Lines', value: 'lines' },
