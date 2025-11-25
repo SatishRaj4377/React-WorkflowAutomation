@@ -10,8 +10,7 @@ export interface FormFieldRow {
   type: FormFieldType;
   placeholder?: string;
   required?: boolean;
-  // Only for dropdown
-  options?: string[]; // simple list of options
+  options?: string[];
 }
 
 export interface FormNodeConfigProps {

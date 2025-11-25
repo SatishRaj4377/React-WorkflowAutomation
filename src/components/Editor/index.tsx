@@ -4,7 +4,6 @@ import { useBlocker } from 'react-router';
 import { DiagramTools, NodeConstraints, NodeModel, PortConstraints, ConnectorModel } from '@syncfusion/ej2-react-diagrams';
 import EditorHeader from '../Header/EditorHeader';
 import DiagramEditor from '../DiagramEditor';
-import FormPreviewPopup, { FormField } from '../FormPopup';
 import Toolbar from '../Toolbar';
 import Toast, { showSuccessToast, showErrorToast } from '../Toast';
 import NodePaletteSidebar from '../NodePaletteSidebar';
@@ -14,7 +13,7 @@ import ConfirmationDialog from '../ConfirmationDialog';
 import { ProjectData, NodeConfig, NodeTemplate, DiagramSettings, StickyNotePosition, ToolbarAction, ExecutionContext, NodeToolbarAction, PaletteFilterContext } from '../../types';
 import WorkflowProjectService from '../../services/WorkflowProjectService';
 import { applyStaggerMetadata, getNextStaggeredOffset } from '../../helper/stagger';
-import { calculateNewNodePosition, createConnector, createNodeFromTemplate, generateOptimizedThumbnail, getDefaultDiagramSettings, getNodeConfig, getNodePortById, isAiAgentNode, getNodeDimensions, findAiAgentBottomConnectedNodes, getAiAgentBottomNodePosition, isAgentBottomToToolConnector, getNodeCenter, findFirstPortId, adjustNodesSpacing } from '../../helper/utilities';
+import { calculateNewNodePosition, createConnector, createNodeFromTemplate, generateOptimizedThumbnail, getDefaultDiagramSettings, getNodeConfig, getNodePortById, isAiAgentNode, findAiAgentBottomConnectedNodes, getAiAgentBottomNodePosition, isAgentBottomToToolConnector, getNodeCenter, findFirstPortId, adjustNodesSpacing } from '../../helper/utilities';
 import { diagramHasChatTrigger, resetExecutionStates } from '../../helper/workflowExecution';
 import { handleEditorKeyDown } from '../../helper/keyboardShortcuts';
 import { WorkflowExecutionService } from '../../execution/WorkflowExecutionService';
@@ -22,6 +21,7 @@ import { ChatPopup } from '../ChatPopup';
 import { MessageComponent } from '@syncfusion/ej2-react-notifications';
 import { refreshNodeTemplate, setGlobalNodeToolbarHandler } from '../../helper/utilities/nodeTemplateUtils';
 import { createSpinner, showSpinner, hideSpinner } from '@syncfusion/ej2-popups';
+import { ensureGlobalFormPopupHost } from '../FormPopup';
 
 interface EditorProps {
   project: ProjectData;
@@ -29,60 +29,7 @@ interface EditorProps {
   onBackToHome: () => void;
 }
 
-// Lightweight host that listens for form trigger events and renders the popup
-const FormPortalHost: React.FC = () => {
-  const [open, setOpen] = React.useState(false);
-  const [title, setTitle] = React.useState('');
-  const [description, setDescription] = React.useState<string | undefined>('');
-  const [fields, setFields] = React.useState<FormField[]>([]);
 
-  React.useEffect(() => {
-    const onOpen = (e: Event) => {
-      const ce = e as CustomEvent<{ title?: string; description?: string; fields?: FormField[] }>;
-      setTitle(ce.detail?.title || 'Form');
-      setDescription(ce.detail?.description || '');
-      setFields(Array.isArray(ce.detail?.fields) ? ce.detail!.fields! : []);
-      setOpen(true);
-    };
-    const onClear = () => setOpen(false);
-
-    window.addEventListener('wf:form:open', onOpen as EventListener);
-    window.addEventListener('wf:trigger:clear', onClear as EventListener);
-    window.addEventListener('wf:trigger:resumed', onClear as EventListener);
-
-    return () => {
-      window.removeEventListener('wf:form:open', onOpen as EventListener);
-      window.removeEventListener('wf:trigger:clear', onClear as EventListener);
-      window.removeEventListener('wf:trigger:resumed', onClear as EventListener);
-    };
-  }, []);
-
-  const handleClose = () => {
-    setOpen(false);
-    window.dispatchEvent(new CustomEvent('wf:form:cancel'));
-  };
-
-  const handleSubmit = (payload: { values: string[]; fields: FormField[] }) => {
-    window.dispatchEvent(
-      new CustomEvent('wf:form:submitted', {
-        detail: { values: payload.values, at: new Date().toISOString() }
-      })
-    );
-    setOpen(false);
-  };
-
-  return (
-    <FormPreviewPopup
-      open={open}
-      onClose={handleClose}
-      title={title}
-      description={description}
-      fields={fields}
-      onSubmit={handleSubmit}
-      showPreviewBadge={false}
-    />
-  );
-};
 
 const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, }) => {
   const { theme } = useTheme();
@@ -743,6 +690,9 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         createSpinner({ target: editorContainerRef.current, cssClass: 'e-spin-overlay editor-save-spinner' });
       } catch {}
     }
+    // Ensure global Form popup host is mounted once
+    try { ensureGlobalFormPopupHost(); } catch {}
+
     return () => {
       try {
         if (editorContainerRef.current) hideSpinner(editorContainerRef.current);
@@ -966,10 +916,7 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
           open={isChatOpen} 
           onClose={() => setChatOpen(false)} 
           promptSuggestions={chatPromptSuggestions}
-        />
-
-        {/* Form Popup - opened by executor during Form trigger */}
-        <FormPortalHost />
+        />        
 
         {/* Sidebar for Node Palette */}
         <NodePaletteSidebar 

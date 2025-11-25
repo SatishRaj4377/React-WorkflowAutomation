@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { createRoot, Root } from 'react-dom/client';
 import { Draggable } from '@syncfusion/ej2-base';
 import { ensurePortalRoot } from '../../helper/variablePickerUtils';
 import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
@@ -323,3 +324,75 @@ const FormPopup: React.FC<FormPopupProps> = ({
 };
 
 export default FormPopup;
+
+// ---------------------------------------------
+// Global host initializer
+// ---------------------------------------------
+let __formPopupRoot: Root | null = null;
+let __formPopupInitialized = false;
+
+export function ensureGlobalFormPopupHost() {
+  if (__formPopupInitialized) return;
+  __formPopupInitialized = true;
+
+  const container = ensurePortalRoot();
+  if (!__formPopupRoot) {
+    __formPopupRoot = createRoot(container);
+  }
+
+  const Host: React.FC = () => {
+    const [open, setOpen] = useState(false);
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState<string | undefined>('');
+    const [fields, setFields] = useState<FormField[]>([]);
+
+    useEffect(() => {
+      const onOpen = (e: Event) => {
+        const ce = e as CustomEvent<{ title?: string; description?: string; fields?: FormField[] }>;
+        setTitle(ce.detail?.title || 'Form');
+        setDescription(ce.detail?.description || '');
+        setFields(Array.isArray(ce.detail?.fields) ? (ce.detail!.fields! as FormField[]) : []);
+        setOpen(true);
+      };
+      const onClear = () => setOpen(false);
+
+      window.addEventListener('wf:form:open', onOpen as EventListener);
+      window.addEventListener('wf:trigger:clear', onClear as EventListener);
+      window.addEventListener('wf:trigger:resumed', onClear as EventListener);
+
+      return () => {
+        window.removeEventListener('wf:form:open', onOpen as EventListener);
+        window.removeEventListener('wf:trigger:clear', onClear as EventListener);
+        window.removeEventListener('wf:trigger:resumed', onClear as EventListener);
+      };
+    }, []);
+
+    const handleClose = () => {
+      setOpen(false);
+      window.dispatchEvent(new CustomEvent('wf:form:cancel'));
+    };
+
+    const handleSubmit = (payload: { values: string[]; fields: FormField[] }) => {
+      window.dispatchEvent(
+        new CustomEvent('wf:form:submitted', {
+          detail: { values: payload.values, at: new Date().toISOString() },
+        })
+      );
+      setOpen(false);
+    };
+
+    return (
+      <FormPopup
+        open={open}
+        onClose={handleClose}
+        title={title}
+        description={description}
+        fields={fields}
+        onSubmit={handleSubmit}
+        showPreviewBadge={false}
+      />
+    );
+  };
+
+  __formPopupRoot.render(<Host />);
+}
