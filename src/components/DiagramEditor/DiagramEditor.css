@@ -168,6 +168,23 @@
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.3s ease;
+  animation: zoomIn 0.5s ease;
+}
+@keyframes zoomIn {
+  0% {
+    transform: translate(-50%, -50%) scale(0.85);
+    opacity: 0;
+  }
+  70% {
+    transform: translate(-50%, -50%) scale(1.03);
+    opacity: 1;
+  }
+  85% {
+    transform: translate(-50%, -50%) scale(0.98);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
 }
 .node-spinner img {
   width: 100%;
