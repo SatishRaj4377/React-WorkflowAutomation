@@ -8,10 +8,12 @@ const Toast: React.FC = () => {
   const notificaitonToastRef = useRef<ToastComponent>(null);
 
   useEffect(() => {
-    // Default toast global method
-    if (defaultToastRef.current) {
-      (window as any).showDefaultToast = (message: ToastMessage) => {
-        defaultToastRef.current!.show({
+    // Default toast global method (safe against unmounts)
+    (window as any).showDefaultToast = (message: ToastMessage) => {
+      const inst = defaultToastRef.current;
+      if (!inst) { console.warn('DefaultToast component not available'); return; }
+      try {
+        inst.show({
           title: message.title,
           content: message.content,
           cssClass: `toast-${message.type}`,
@@ -23,13 +25,15 @@ const Toast: React.FC = () => {
             hide: { effect: 'SlideRightOut', duration: 300, easing: 'ease' }
           }
         });
-      };
-    }
+      } catch (e) { console.warn('Failed to show default toast', e); }
+    };
 
-    // Modern toast global method
-    if (notificaitonToastRef.current) {
-      (window as any).showNotificationToast = (message: ToastMessage) => {
-        notificaitonToastRef.current!.show({
+    // Modern toast global method (safe against unmounts)
+    (window as any).showNotificationToast = (message: ToastMessage) => {
+      const inst = notificaitonToastRef.current;
+      if (!inst) { console.warn('Notification toast component not available'); return; }
+      try {
+        inst.show({
           title: '',
           content: renderNotificationContent(message),
           cssClass: `toast-notification toast-${message.type}`,
@@ -41,8 +45,8 @@ const Toast: React.FC = () => {
             hide: { effect: 'FadeOut', duration: 200, easing: 'ease' }
           }
         });
-      };
-    }
+      } catch (e) { console.warn('Failed to show notification toast', e); }
+    };
 
     return () => {
       delete (window as any).showDefaultToast;

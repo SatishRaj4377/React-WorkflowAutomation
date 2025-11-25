@@ -690,9 +690,6 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
         createSpinner({ target: editorContainerRef.current, cssClass: 'e-spin-overlay editor-save-spinner' });
       } catch {}
     }
-    // Ensure global Form popup host is mounted once
-    try { ensureGlobalFormPopupHost(); } catch {}
-
     return () => {
       try {
         if (editorContainerRef.current) hideSpinner(editorContainerRef.current);
@@ -765,6 +762,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   // When a navigation is blocked, open your confirmation dialog
   useEffect(() => {
     if (blocker.state === 'blocked') {
+      // If execution is running, stop it silently before confirming navigation
+      try { workflowExecutionRef.current?.stopExecution(true); } catch {}
       setShowLeaveDialog(true);
     }
   }, [blocker.state]);
@@ -872,10 +871,14 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
   }, []);
 
 
-  // Open the chat popup when the engine (executor) requests it
+  // Handle the chat and form node trigger intialization
   useEffect(() => {
+    // Ensure global Form popup host is mounted once
+    try { ensureGlobalFormPopupHost(); } catch {}
+
     const handler = () => setChatOpen(true);
     window.addEventListener('wf:chat:open', handler);
+
     return () => window.removeEventListener('wf:chat:open', handler);
   }, []);
 
@@ -999,7 +1002,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
           }
         }}
         onConfirm={() => {
-          // save the changes, navigate to home page
+          // Save changes and navigate. Ensure execution is stopped silently.
+          try { workflowExecutionRef.current?.stopExecution(true); } catch {}
           handleSave();
           setShowLeaveDialog(false);
           if (blocker.state === 'blocked') {
@@ -1007,7 +1011,8 @@ const Editor: React.FC<EditorProps> = ({project, onSaveProject, onBackToHome, })
           }
         }}
         onClose={() => {
-          // discard changes, navigate to home page
+          // Discard changes and navigate. Ensure execution is stopped silently.
+          try { workflowExecutionRef.current?.stopExecution(true); } catch {}
           setShowLeaveDialog(false);
           if (blocker.state === 'blocked') {
             blocker.proceed();

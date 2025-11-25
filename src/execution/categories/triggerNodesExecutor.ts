@@ -33,13 +33,14 @@ export async function executeTriggerCategory(
 // ---------------- Form Trigger ----------------
 async function executeFormTriggerNode(nodeConfig: NodeConfig): Promise<NodeExecutionResult> {
   try {
+    // Read config
     const title = ((nodeConfig.settings as any)?.general?.formTitle ?? '').trim();
     const description = (nodeConfig.settings as any)?.general?.formDescription ?? '';
     const fields = Array.isArray((nodeConfig.settings as any)?.general?.formFields)
       ? (nodeConfig.settings as any).general.formFields
       : [];
 
-    // Validate configuration before opening
+    // Validate config
     const invalid = !title || fields.length === 0 || fields.some((f: any) => {
       if (!f || !f.type) return true;
       if (!f.label || String(f.label).trim() === '') return true;
@@ -55,67 +56,65 @@ async function executeFormTriggerNode(nodeConfig: NodeConfig): Promise<NodeExecu
       return { success: false, error: msg };
     }
 
+    // Wait for submit or cancel
     const waitForSubmit = () =>
       new Promise<{ values: string[]; at: string }>((resolve, reject) => {
+        // Resolve on submit
         const onSubmitted = (e: Event) => {
           const ce = e as CustomEvent<{ values?: string[]; at?: string }>;
           const vals = Array.isArray(ce.detail?.values) ? ce.detail!.values : [];
           cleanup();
           resolve({ values: vals, at: ce.detail?.at || new Date().toISOString() });
         };
+        // Reject on cancel
         const onCancel = () => {
           const err = new Error('Form trigger cancelled');
           cleanup(err);
         };
+        // Cleanup utility
         const cleanup = (err?: Error) => {
           window.removeEventListener('wf:form:submitted', onSubmitted as EventListener);
           window.removeEventListener('wf:form:cancel', onCancel as EventListener);
           if (err) reject(err);
         };
+        // Listen once
         window.addEventListener('wf:form:submitted', onSubmitted as EventListener, { once: true });
         window.addEventListener('wf:form:cancel', onCancel as EventListener, { once: true });
       });
 
     const pending = waitForSubmit();
 
-    // Open the form popup in the Editor
+    // Open the form and show waiting banner
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(
-        new CustomEvent('wf:form:open', {
-          detail: { title, description, fields }
-        })
-      );
-      // show waiting banner
+      window.dispatchEvent(new CustomEvent('wf:form:open', { detail: { title, description, fields } }));
       window.dispatchEvent(new CustomEvent('wf:trigger:waiting', { detail: { type: 'Form' } }));
     }
 
+    // Await user interaction
     const submitted = await pending;
 
-    // signal resume to UI
+    // Signal resume to UI
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('wf:trigger:resumed'));
     }
 
-    // Build output payload
+    // Map values back with labels and types
     const valueRows = fields.map((f: any, i: number) => {
       const label = f?.label ?? `field_${i + 1}`;
       const type = f?.type ?? 'text';
       const rawVal = submitted.values?.[i] ?? '';
 
-      // Enrich date fields with useful details
+      // Enrich date values
       let details: Record<string, any> | undefined;
       if (type === 'date' && rawVal) {
         const d = new Date(rawVal);
-        if (!isNaN(d.getTime())) {
-          details = buildDateDetails(d);
-        }
+        if (!isNaN(d.getTime())) details = buildDateDetails(d);
       }
 
-      return details
-        ? { label, type, value: rawVal, details }
-        : { label, type, value: rawVal };
+      return details ? { label, type, value: rawVal, details } : { label, type, value: rawVal };
     });
 
+    // Build dictionary by slugified label
     const byLabel: Record<string, any> = {};
     valueRows.forEach((r: { label: string; value: any; type?: string; details?: Record<string, any> }) => {
       const key = slugify(r.label);
@@ -126,10 +125,10 @@ async function executeFormTriggerNode(nodeConfig: NodeConfig): Promise<NodeExecu
           return;
         }
       }
-      // Non-date (or invalid date) -> fallback
-      byLabel[key] = r.value;
+      byLabel[key] = r.value; // Default mapping
     });
 
+    // Final payload
     return {
       success: true,
       data: {
@@ -139,11 +138,15 @@ async function executeFormTriggerNode(nodeConfig: NodeConfig): Promise<NodeExecu
         description,
         values: valueRows,
         fields,
-        data: byLabel
-      }
+        data: byLabel,
+      },
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Form trigger failed';
+    // Suppress toast if user cancelled or navigation aborted the form
+    if (message === 'Form trigger cancelled') {
+      return { success: false, error: message };
+    }
     showErrorToast('Form Trigger Error', message);
     return { success: false, error: message };
   }
@@ -152,9 +155,10 @@ async function executeFormTriggerNode(nodeConfig: NodeConfig): Promise<NodeExecu
 // ---------------- Chat Trigger ----------------
 async function executeChatTriggerNode(): Promise<NodeExecutionResult> {
   try {
-    // 1) Attach the listener FIRST (so we don't miss the Editor's forwarded message)
+    // Wait for a chat message or cancel
     const waitForMessage = () =>
       new Promise<{ text: string; at: string }>((resolve, reject) => {
+        // Resolve on message
         const onMessage = (e: Event) => {
           const ce = e as CustomEvent<{ text?: string; at?: string }>;
           const text = (ce.detail?.text || '').trim();
@@ -163,39 +167,40 @@ async function executeChatTriggerNode(): Promise<NodeExecutionResult> {
             resolve({ text, at: ce.detail?.at || new Date().toISOString() });
           }
         };
+        // Reject on cancel
         const onCancel = () => {
           const err = new Error('Chat trigger cancelled');
           cleanup(err);
         };
+        // Cleanup util
         const cleanup = (err?: Error) => {
           window.removeEventListener('wf:chat:message', onMessage as EventListener);
           window.removeEventListener('wf:chat:cancel', onCancel as EventListener);
           if (err) reject(err);
         };
+        // Listen once
         window.addEventListener('wf:chat:message', onMessage as EventListener, { once: true });
         window.addEventListener('wf:chat:cancel', onCancel as EventListener, { once: true });
       });
 
     const pending = waitForMessage();
 
-    // 2) Open the popup (UX)
+    // Open chat popup and announce ready (after listeners are attached)
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('wf:chat:open', { detail: { reason: 'chat-trigger' } }));
-    }
-    // 3) Announce we are ready AFTER listener is attached
-    if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('wf:chat:ready'));
     }
 
     const message = await pending;
 
+    // Success payload
     return {
       success: true,
       data: {
         triggered: true,
         message,
         triggeredAt: new Date().toISOString(),
-      }
+      },
     };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Chat trigger failed' };

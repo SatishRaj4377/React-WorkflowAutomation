@@ -123,11 +123,14 @@ export class WorkflowExecutionService {
     try {
       return await this.executeBranch(node);
     } catch (error: any) {
-      // If the workflow was intentionally aborted (Stop/Do Nothing), treat as graceful cancel
-      const isCancelled = this.abortController.signal.aborted || (error && String(error?.message || error) === 'Execution cancelled');
+      // Treat user/navigation cancellations as graceful (no error paint)
+      const msg = String(error?.message || error);
+      const isCancelled =
+        this.abortController.signal.aborted ||
+        msg === 'Execution cancelled' ||
+        msg === 'Form trigger cancelled';
       if (isCancelled) {
-        // Do not mark node as error; simply stop traversal
-        return false;
+        return false; // stop traversal quietly
       }
       console.error(`Branch execution failed at node ${node.id}:`, error);
       if (node.id) {
@@ -590,16 +593,16 @@ export class WorkflowExecutionService {
     // Clear all subscriptions
     this.contextUpdateCallbacks = [];
     
-    // Stop any ongoing execution
+    // Stop any ongoing execution (silent to avoid toasts during unmount/navigation)
     if (this.executionStatus.isExecuting) {
-      this.stopExecution();
+      this.stopExecution(true);
     }
   }
 
   /**
    * Stop the current execution
    */
-  stopExecution() {
+  stopExecution(silent?: boolean) {
     if (!this.executionStatus.isExecuting) return;
 
     this.abortController.abort();
@@ -608,7 +611,11 @@ export class WorkflowExecutionService {
     
     this.executionStatus.isExecuting = false;
     this.executionStatus.error = 'Execution cancelled by user';
-    showErrorToast('Execution Cancelled', 'Workflow execution was cancelled');
+
+    // Only show toast when not in silent mode
+    if (!silent) {
+      try { showErrorToast('Execution Cancelled', 'Workflow execution was cancelled'); } catch {}
+    }
 
     // Clear any waiting banner on cancel
     if (typeof window !== 'undefined') {
