@@ -122,7 +122,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
           'Add Nodes': 'Open Node Palette <kbd>Tab</kbd>',
           'Add Sticky Note': 'Add Sticky Note <kbd>Shift</kbd> <kbd>S</kbd>',
           'Pan': 'Pan <kbd>Space</kbd>',
-          'Auto Align': 'Auto Align Nodes <kbd>Shift</kbd> <kbd>A</kbd>',
+          'Auto Align Nodes': 'Auto Align Nodes <kbd>Shift</kbd> <kbd>A</kbd>',
           'Zoom In': 'Zoom In <kbd>Ctrl</kbd> <kbd>+</kbd>',
           'Zoom Out': 'Zoom Out <kbd>Ctrl</kbd> <kbd>-</kbd>',
           'Reset Zoom': 'Reset Zoom <kbd>Ctrl</kbd> <kbd>0</kbd>',
